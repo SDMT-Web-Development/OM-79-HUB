@@ -1,0 +1,237 @@
+﻿@model OM79.Models.DB.OMTable
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>OMTable</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DistrictNumber)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DistrictNumber)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.County)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.County)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.SubmissionDate)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SubmissionDate)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Routing)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Routing)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RoadChangeType)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RoadChangeType)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Otherbox)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Otherbox)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RouteAssignment)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RouteAssignment)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RightOfWayWidth)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RightOfWayWidth)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Railroad)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Railroad)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DOTAARNumber)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DOTAARNumber)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RequestedBy)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RequestedBy)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.AdjacentProperty)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.AdjacentProperty)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.APHouses)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.APHouses)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.APBusinesses)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.APBusinesses)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.APSchools)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.APSchools)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.APOther)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.APOther)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.APOtherIdentify)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.APOtherIdentify)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Attachments)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Attachments)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DESignature)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DESignature)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Preparer)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Preparer)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RequestedByName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RequestedByName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Route)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Route)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.SubRoute)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SubRoute)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CoDate)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CoDate)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CoDateTwo)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CoDateTwo)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RAddition)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RAddition)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RRedesignation)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RRedesignation)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RMapCorrection)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RMapCorrection)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RAbandonment)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RAbandonment)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RInventoryRemoval)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RInventoryRemoval)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RAmend)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RAmend)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RRescind)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RRescind)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ROther)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ROther)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RightOther)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RightOther)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.HubId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.HubId)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>
