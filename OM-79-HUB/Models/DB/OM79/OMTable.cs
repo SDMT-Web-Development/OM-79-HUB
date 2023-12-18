@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace OM79.Models.DB;
+namespace OM_79_HUB.Models;
 
 public partial class OMTable
 {
@@ -14,14 +14,14 @@ public partial class OMTable
     public int? DistrictNumber { get; set; }
     [Required]
     public string? County { get; set; }
-    
+
     [DisplayName("Date")]
-    
+
     public DateTime? SubmissionDate { get; set; }
 
     public string? Routing { get; set; }
     [DisplayName("Road Change Type")]
-    
+
     public string? RoadChangeType { get; set; }
     [DisplayName("If Other Please Explain")]
     public string? Otherbox { get; set; }
@@ -40,7 +40,7 @@ public partial class OMTable
     [Required]
     public string? RequestedBy { get; set; }
     [DisplayName("Explanation")]
-  
+
     public string? Comments { get; set; }
     [DisplayName("Total Adjacent Property")]
     public int? AdjacentProperty { get; set; }

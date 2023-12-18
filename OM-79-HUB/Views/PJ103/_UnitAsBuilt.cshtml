@@ -1,0 +1,165 @@
+﻿@using OM_79_HUB.Controllers
+@model PJ103V3.Models.ViewModels.Aclvl
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    <br />
+    <br />
+
+    <h2>Nature of Change Section</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <label asp-for="AccessControl" class="control-label"></label>
+            <select asp-for="AccessControl" name="AccessControl" class="form-control" asp-items="@ViewBag.AccessDropdown"></select>
+            <span asp-validation-for="AccessControl" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ThroughLanes" class="control-label"></label>
+            <input asp-for="ThroughLanes" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="ThroughLanes" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="CounterPeakLanes" class="control-label"></label>
+            <input asp-for="CounterPeakLanes" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="CounterPeakLanes" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="PeakLanes" class="control-label"></label>
+            <input asp-for="PeakLanes" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="PeakLanes" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ReverseLanes" class="control-label"></label>
+            <select asp-for="ReverseLanes" name="ReverseLanes" class="form-control" asp-items="@ViewBag.ReverseDropdown"></select>
+            <span asp-validation-for="ReverseLanes" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="MedianWidth" class="control-label"></label>
+            <input asp-for="MedianWidth" class="form-control" step="any" min="0" onkeydown="validatePositiveNumberAndDecimal(event)" />
+            <span asp-validation-for="MedianWidth" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="LaneWidth" class="control-label"></label>
+            <input asp-for="LaneWidth" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumberAndDecimal(event)" />
+            <span asp-validation-for="LaneWidth" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="GradeWidth" class="control-label">@Html.DisplayNameFor(model => model.GradeWidth)<span class="required-asterisk">*</span></label>
+            <input asp-for="GradeWidth" class="form-control" type="number" step="any" min="5" onkeydown="validatePositiveNumberAndDecimal(event)" />
+            <span asp-validation-for="GradeWidth" class="text-danger"></span>
+            <div id="gradeWidthError" class="text-danger"></div>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="PavementWidth" class="control-label">@Html.DisplayNameFor(model => model.PavementWidth)<span class="required-asterisk">*</span></label>
+            <input asp-for="PavementWidth" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumberAndDecimal(event)" />
+            <span asp-validation-for="PavementWidth" class="text-danger"></span>
+            <div id="pavementWidthError" class="text-danger"></div>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="SurfaceTypeN" class="control-label"></label>
+            <select asp-for="SurfaceTypeN" name="SurfaceTypeN" class="form-control" asp-items="@ViewBag.SurfaceTypeDropdown"></select>
+            <span asp-validation-for="SurfaceTypeN" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="FacilityType" class="control-label"></label>
+            <select asp-for="FacilityType" name="FacilityType" class="form-control" asp-items="@ViewBag.FacilityDropdown"></select>
+            <span asp-validation-for="FacilityType" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="MedianType" class="control-label"></label>
+            <select asp-for="MedianType" name="MedianType" class="form-control" asp-items="@ViewBag.MedianDropdown"></select>
+            <span asp-validation-for="MedianType" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="GovIDOwnership" class="control-label"></label>
+            <select asp-for="GovIDOwnership" name="GovIDOwnership" class="form-control" asp-items="@ViewBag.GovDropdown"></select>
+            <span asp-validation-for="GovIDOwnership" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="WVlegalClass" class="control-label"></label>
+            <select asp-for="WVlegalClass" name="WVlegalClass" class="form-control" asp-items="@ViewBag.LegalDropdown"></select>
+            <span asp-validation-for="WVlegalClass" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="FunctionalClass" class="control-label"></label>
+            <select asp-for="FunctionalClass" name="FunctionalClass" class="form-control" asp-items="@ViewBag.FuncDropdown"></select>
+            <span asp-validation-for="FunctionalClass" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="OtherBox" class="control-label"></label>
+            <input asp-for="OtherBox" class="form-control" />
+            <span asp-validation-for="OtherBox" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="FederalAid" class="control-label"></label>
+            <select asp-for="FederalAid" name="FederalAid" class="form-control" asp-items="@ViewBag.FederalDropdown"></select>
+            <span asp-validation-for="FederalAid" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="SpecialSys" class="control-label">Special System</label>
+            <select asp-for="SpecialSys" name="SpecialSys" class="form-control" asp-items="@ViewBag.SpecialDropdown"></select>
+            <span asp-validation-for="SpecialSys" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="FedForestHighway" class="control-label"></label>
+            <select asp-for="FedForestHighway" name="FedForestHighway" class="form-control" asp-items="@ViewBag.FedForestDropdown"></select>
+            <span asp-validation-for="FedForestHighway" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="TruckRoute" class="control-label"></label>
+            <select asp-for="TruckRoute" name="TruckRoute" class="form-control" asp-items="@ViewBag.TruckDropdown"></select>
+            <span asp-validation-for="TruckRoute" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="NHS" class="control-label"></label>
+            <select asp-for="NHS" name="NHS" class="form-control" asp-items="@ViewBag.NHSDropdown"></select>
+            <span asp-validation-for="NHS" class="text-danger"></span>
+        </div>
+    </div>
+
+}
+
+@section Scripts{
+
+
+
+
+    <script>
+        // Function to validate positive numbers
+        function validatePositiveNumber(event) {
+            if (event.keyCode === 189 || event.keyCode === 109) {
+                event.preventDefault(); // Doesn't allow -
+            }
+        }
+    </script>
+    <script>
+        // Function to validate positive numbers
+        function validatePositiveNumberAndDecimal(event) {
+            if (event.keyCode === 189 || event.keyCode === 109 || event.key === ".") {
+                event.preventDefault(); // Doesn't allow -
+            }
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#AccessControl').on('click', function () {
+                $('#AccessControl option[value=""]').prop('disabled', true);
+            });
+        });
+    </script>
+
+    }
+
+
+<style>
+    .button-container {
+        margin-top: 10px; /* Add desired margin value */
+    }
+
+    .required-asterisk {
+        color: red;
+    }
+</style>

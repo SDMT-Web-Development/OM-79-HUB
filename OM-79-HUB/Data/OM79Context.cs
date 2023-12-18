@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore;
 using OM79.Models;
+using OM_79_HUB.Models;
 
 namespace OM79.Models.DB;
 

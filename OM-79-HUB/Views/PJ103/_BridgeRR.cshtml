@@ -1,0 +1,200 @@
+﻿@using OM_79_HUB.Controllers
+@model PJ103V3.Models.ViewModels.Aclvl
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    <br />
+    <br />
+
+    <h2>Bridge Section</h2>
+    <div class="row">
+
+        <div class="col-md-4">
+            <label asp-for="BridgeName" class="control-label">@Html.DisplayNameFor(model => model.BridgeName)<span class="required-asterisk">*</span></label>
+            <input asp-for="BridgeName" class="form-control" />
+            <span asp-validation-for="BridgeName" class="text-danger"></span>
+            <div id="bridgeNameError" class="text-danger"></div>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="BridgeNumber" class="control-label">@Html.DisplayNameFor(model => model.BridgeNumber)<span class="required-asterisk">*</span></label>
+            <input asp-for="BridgeNumber" class="form-control" />
+            <span asp-validation-for="BridgeNumber" class="text-danger"></span>
+            <div id="bridgeNumberError" class="text-danger"></div>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="BridgeSurfaceType" class="control-label">@Html.DisplayNameFor(model => model.BridgeSurfaceType)<span class="required-asterisk">*</span></label>
+            <select asp-for="BridgeSurfaceType" name="BridgeSurfaceType" class="form-control" asp-items="@ViewBag.SurfaceTypeDropdown"></select>
+            <span asp-validation-for="BridgeSurfaceType" class="text-danger"></span>
+            <div id="bridgeSurfaceTypeError" class="text-danger"></div>
+        </div>
+        @* <div class="col-md-4">
+    <label asp-for="BridgeLocation" class="control-label"></label>
+    <input asp-for="BridgeLocation" class="form-control"  />
+    <span asp-validation-for="BridgeLocation" class="text-danger"></span>
+    </div>  *@
+        <div class="col-md-4">
+            <label asp-for="StationBeginMP" class="control-label">@Html.DisplayNameFor(model => model.StationBeginMP)<span class="required-asterisk">*</span></label>
+            <input asp-for="StationBeginMP" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" /> @* positive int *@
+            <span asp-validation-for="StationBeginMP" class="text-danger"></span>
+            <div id="bridgeStartError" class="text-danger"></div>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="StationEndMP" class="control-label">@Html.DisplayNameFor(model => model.StationEndMP)<span class="required-asterisk">*</span></label>
+            <input asp-for="StationEndMP" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" /> @* positive int *@
+            <span asp-validation-for="StationEndMP" class="text-danger"></span>
+            <div id="bridgeEndError" class="text-danger"></div>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="BridgeWidth" class="control-label">@Html.DisplayNameFor(model => model.BridgeWidth)<span class="required-asterisk">*</span></label>
+            <input asp-for="BridgeWidth" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumberAndDecimal(event)" /> @* positive int *@
+            <span asp-validation-for="BridgeWidth" class="text-danger"></span>
+            <div id="bridgeWidthError" class="text-danger"></div>
+        </div>
+
+        @* End Of Bridge Section *@
+
+
+        @* Start of RR
+
+
+    <div class="col-md-4">
+    <label asp-for="CrossingName" class="control-label"></label>
+    <input asp-for="CrossingName" class="form-control" />
+    <span asp-validation-for="CrossingName" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="RailRoadMP" class="control-label"></label>
+    <input asp-for="RailRoadMP" class="form-control" />
+    <span asp-validation-for="RailRoadMP" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+    <label asp-for="WeightLimit" class="control-label"></label>
+    <input asp-for="WeightLimit" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="WeightLimit" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="NumberOfSpans" class="control-label"></label>
+    <select asp-for="NumberOfSpans" name="NumberOfSpans" class="form-control" asp-items="@ViewBag.SpanDropdown"></select>
+    <span asp-validation-for="NumberOfSpans" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+    <label asp-for="SubMaterial" class="control-label"></label>
+    <input asp-for="SubMaterial" class="form-control" />
+    <span asp-validation-for="SubMaterial" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="SuperMaterial" class="control-label"></label>
+    <input asp-for="SuperMaterial" class="form-control" />
+    <span asp-validation-for="SuperMaterial" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="FloorMaterial" class="control-label"></label>
+    <input asp-for="FloorMaterial" class="form-control" />
+    <span asp-validation-for="FloorMaterial" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ArchMaterial" class="control-label"></label>
+    <input asp-for="ArchMaterial" class="form-control" />
+    <span asp-validation-for="ArchMaterial" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="TotalLength" class="control-label"></label>
+    <input asp-for="TotalLength" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="TotalLength" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ClearanceRoadway" class="control-label"></label>
+    <input asp-for="ClearanceRoadway" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="ClearanceRoadway" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ClearanceSidewalkRight" class="control-label"></label>
+    <input asp-for="ClearanceSidewalkRight" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="ClearanceSidewalkRight" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ClearanceSidewalkLeft" class="control-label"></label>
+    <input asp-for="ClearanceSidewalkLeft" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="ClearanceSidewalkLeft" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ClearanceStreamble" class="control-label"></label>
+    <input asp-for="ClearanceStreamble" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="ClearanceStreamble" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ClearancePortal" class="control-label"></label>
+    <input asp-for="ClearancePortal" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="ClearancePortal" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ClearanceAboveWater" class="control-label"></label>
+    <input asp-for="ClearanceAboveWater" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" />
+    <span asp-validation-for="ClearanceAboveWater" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="PostedLoadLimits" class="control-label"></label>
+    <input asp-for="PostedLoadLimits" class="form-control" />
+    <span asp-validation-for="PostedLoadLimits" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="ConstructionDate" class="control-label"></label>
+    <input asp-for="ConstructionDate" class="form-control" />
+    <span asp-validation-for="ConstructionDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="WhomBuilt" class="control-label"></label>
+    <input asp-for="WhomBuilt" class="form-control" />
+    <span asp-validation-for="WhomBuilt" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="HistoricalBridge" class="control-label"></label>
+    <input asp-for="HistoricalBridge" class="form-control" />
+    <span asp-validation-for="HistoricalBridge" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+    <label asp-for="UserID" class="control-label"></label>
+    <input asp-for="UserID" class="form-control" />
+    <span asp-validation-for="UserID" class="text-danger"></span>
+    </div>
+    *@
+
+    </div>
+
+}
+
+
+@section Scripts{
+    <script>
+        // Function to validate positive numbers
+        function validatePositiveNumber(event) {
+            if (event.keyCode === 189 || event.keyCode === 109) {
+                event.preventDefault(); // Doesn't allow -
+            }
+        }
+    </script>
+
+    <script>
+        // Function to validate positive numbers
+        function validatePositiveNumberAndDecimal(event) {
+            if (event.keyCode === 189 || event.keyCode === 109 || event.key === ".") {
+                event.preventDefault(); // Doesn't allow -
+            }
+        }
+    </script>
+    }
+
+
+<style>
+    .button-container {
+        margin-top: 10px; /* Add desired margin value */
+    }
+
+    .required-asterisk {
+        color: red;
+    }
+</style>

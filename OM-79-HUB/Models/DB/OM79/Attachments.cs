@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OM79.Models.DB
+namespace OM_79_HUB.Models
 {
     public class Attachments
     {
