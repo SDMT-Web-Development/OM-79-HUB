@@ -1,4 +1,4 @@
-﻿@model OM79.Models.DB.OMTable
+﻿@model OMTable
 
 @{
     ViewData["Title"] = "Edit";
@@ -119,81 +119,6 @@
                 <span asp-validation-for="Preparer" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="RequestedByName" class="control-label"></label>
-                <input asp-for="RequestedByName" class="form-control" />
-                <span asp-validation-for="RequestedByName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Route" class="control-label"></label>
-                <input asp-for="Route" class="form-control" />
-                <span asp-validation-for="Route" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SubRoute" class="control-label"></label>
-                <input asp-for="SubRoute" class="form-control" />
-                <span asp-validation-for="SubRoute" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CoDate" class="control-label"></label>
-                <input asp-for="CoDate" class="form-control" />
-                <span asp-validation-for="CoDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CoDateTwo" class="control-label"></label>
-                <input asp-for="CoDateTwo" class="form-control" />
-                <span asp-validation-for="CoDateTwo" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RAddition" /> @Html.DisplayNameFor(model => model.RAddition)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RRedesignation" /> @Html.DisplayNameFor(model => model.RRedesignation)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RMapCorrection" /> @Html.DisplayNameFor(model => model.RMapCorrection)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RAbandonment" /> @Html.DisplayNameFor(model => model.RAbandonment)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RInventoryRemoval" /> @Html.DisplayNameFor(model => model.RInventoryRemoval)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RAmend" /> @Html.DisplayNameFor(model => model.RAmend)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RRescind" /> @Html.DisplayNameFor(model => model.RRescind)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="ROther" /> @Html.DisplayNameFor(model => model.ROther)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="RightOther" class="control-label"></label>
-                <input asp-for="RightOther" class="form-control" />
-                <span asp-validation-for="RightOther" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HubId" class="control-label"></label>
-                <input asp-for="HubId" class="form-control" />
-                <span asp-validation-for="HubId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
@@ -205,5 +130,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

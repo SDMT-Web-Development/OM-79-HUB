@@ -1,4 +1,4 @@
-﻿@model PJ103V3.Models.DB.Submission
+﻿@model PJ103V3.Models.ViewModels.Aclvl
 
 @{
     ViewData["Title"] = "Edit";
@@ -54,14 +54,216 @@
                 <span asp-validation-for="NatureOfChange" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="MilesOfNewRoad" class="control-label"></label>
+                <input asp-for="MilesOfNewRoad" class="form-control" />
+                <span asp-validation-for="MilesOfNewRoad" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="MaintOrg" class="control-label"></label>
                 <input asp-for="MaintOrg" class="form-control" />
                 <span asp-validation-for="MaintOrg" class="text-danger"></span>
             </div>
+            @* <div class="form-group">
+            <label asp-for="YearOfSurvey" class="control-label"></label>
+            <input asp-for="YearOfSurvey" class="form-control" />
+            <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
+            </div>
+            *@
             <div class="form-group">
-                <label asp-for="YearOfSurvey" class="control-label"></label>
-                <input asp-for="YearOfSurvey" class="form-control" />
-                <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
+                <label asp-for="AccessControl" class="control-label"></label>
+                <input asp-for="AccessControl" class="form-control" />
+                <span asp-validation-for="AccessControl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ThroughLanes" class="control-label"></label>
+                <input asp-for="ThroughLanes" class="form-control" />
+                <span asp-validation-for="ThroughLanes" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CounterPeakLanes" class="control-label"></label>
+                <input asp-for="CounterPeakLanes" class="form-control" />
+                <span asp-validation-for="CounterPeakLanes" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PeakLanes" class="control-label"></label>
+                <input asp-for="PeakLanes" class="form-control" />
+                <span asp-validation-for="PeakLanes" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ReverseLanes" class="control-label"></label>
+                <input asp-for="ReverseLanes" class="form-control" />
+                <span asp-validation-for="ReverseLanes" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LaneWidth" class="control-label"></label>
+                <input asp-for="LaneWidth" class="form-control" />
+                <span asp-validation-for="LaneWidth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MedianWidth" class="control-label"></label>
+                <input asp-for="MedianWidth" class="form-control" />
+                <span asp-validation-for="MedianWidth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PavementWidth" class="control-label"></label>
+                <input asp-for="PavementWidth" class="form-control" />
+                <span asp-validation-for="PavementWidth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SpecialSys" class="control-label"></label>
+                <input asp-for="SpecialSys" class="form-control" />
+                <span asp-validation-for="SpecialSys" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FacilityType" class="control-label"></label>
+                <input asp-for="FacilityType" class="form-control" />
+                <span asp-validation-for="FacilityType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FederalAid" class="control-label"></label>
+                <input asp-for="FederalAid" class="form-control" />
+                <span asp-validation-for="FederalAid" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FedForestHighway" class="control-label"></label>
+                <input asp-for="FedForestHighway" class="form-control" />
+                <span asp-validation-for="FedForestHighway" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MedianType" class="control-label"></label>
+                <input asp-for="MedianType" class="form-control" />
+                <span asp-validation-for="MedianType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NHS" class="control-label"></label>
+                <input asp-for="NHS" class="form-control" />
+                <span asp-validation-for="NHS" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TruckRoute" class="control-label"></label>
+                <input asp-for="TruckRoute" class="form-control" />
+                <span asp-validation-for="TruckRoute" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="GovIDOwnership" class="control-label"></label>
+                <input asp-for="GovIDOwnership" class="form-control" />
+                <span asp-validation-for="GovIDOwnership" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WVlegalClass" class="control-label"></label>
+                <input asp-for="WVlegalClass" class="form-control" />
+                <span asp-validation-for="WVlegalClass" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FunctionalClass" class="control-label"></label>
+                <input asp-for="FunctionalClass" class="form-control" />
+                <span asp-validation-for="FunctionalClass" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BridgeNumber" class="control-label"></label>
+                <input asp-for="BridgeNumber" class="form-control" />
+                <span asp-validation-for="BridgeNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BridgeLocation" class="control-label"></label>
+                <input asp-for="BridgeLocation" class="form-control" />
+                <span asp-validation-for="BridgeLocation" class="text-danger"></span>
+            </div>
+            @*     <div class="form-group">
+            <label asp-for="StationFrom" class="control-label"></label>
+            <input asp-for="StationFrom" class="form-control" />
+            <span asp-validation-for="StationFrom" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+            <label asp-for="StationTo" class="control-label"></label>
+            <input asp-for="StationTo" class="form-control" />
+            <span asp-validation-for="StationTo" class="text-danger"></span>
+            </div>
+            *@
+            <div class="form-group">
+                <label asp-for="CrossingName" class="control-label"></label>
+                <input asp-for="CrossingName" class="form-control" />
+                <span asp-validation-for="CrossingName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WeightLimit" class="control-label"></label>
+                <input asp-for="WeightLimit" class="form-control" />
+                <span asp-validation-for="WeightLimit" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubMaterial" class="control-label"></label>
+                <input asp-for="SubMaterial" class="form-control" />
+                <span asp-validation-for="SubMaterial" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SuperMaterial" class="control-label"></label>
+                <input asp-for="SuperMaterial" class="form-control" />
+                <span asp-validation-for="SuperMaterial" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FloorMaterial" class="control-label"></label>
+                <input asp-for="FloorMaterial" class="form-control" />
+                <span asp-validation-for="FloorMaterial" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ArchMaterial" class="control-label"></label>
+                <input asp-for="ArchMaterial" class="form-control" />
+                <span asp-validation-for="ArchMaterial" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TotalLength" class="control-label"></label>
+                <input asp-for="TotalLength" class="form-control" />
+                <span asp-validation-for="TotalLength" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ClearanceRoadway" class="control-label"></label>
+                <input asp-for="ClearanceRoadway" class="form-control" />
+                <span asp-validation-for="ClearanceRoadway" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ClearanceSidewalkRight" class="control-label"></label>
+                <input asp-for="ClearanceSidewalkRight" class="form-control" />
+                <span asp-validation-for="ClearanceSidewalkRight" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ClearanceSidewalkLeft" class="control-label"></label>
+                <input asp-for="ClearanceSidewalkLeft" class="form-control" />
+                <span asp-validation-for="ClearanceSidewalkLeft" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ClearanceStreamble" class="control-label"></label>
+                <input asp-for="ClearanceStreamble" class="form-control" />
+                <span asp-validation-for="ClearanceStreamble" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ClearancePortal" class="control-label"></label>
+                <input asp-for="ClearancePortal" class="form-control" />
+                <span asp-validation-for="ClearancePortal" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ClearanceAboveWater" class="control-label"></label>
+                <input asp-for="ClearanceAboveWater" class="form-control" />
+                <span asp-validation-for="ClearanceAboveWater" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PostedLoadLimits" class="control-label"></label>
+                <input asp-for="PostedLoadLimits" class="form-control" />
+                <span asp-validation-for="PostedLoadLimits" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ConstructionDate" class="control-label"></label>
+                <input asp-for="ConstructionDate" class="form-control" />
+                <span asp-validation-for="ConstructionDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WhomBuilt" class="control-label"></label>
+                <input asp-for="WhomBuilt" class="form-control" />
+                <span asp-validation-for="WhomBuilt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HistoricalBridge" class="control-label"></label>
+                <input asp-for="HistoricalBridge" class="form-control" />
+                <span asp-validation-for="HistoricalBridge" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="UserID" class="control-label"></label>
@@ -72,31 +274,6 @@
                 <label asp-for="OtherBox" class="control-label"></label>
                 <input asp-for="OtherBox" class="form-control" />
                 <span asp-validation-for="OtherBox" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SignSystem" class="control-label"></label>
-                <input asp-for="SignSystem" class="form-control" />
-                <span asp-validation-for="SignSystem" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartingMilePoint" class="control-label"></label>
-                <input asp-for="StartingMilePoint" class="form-control" />
-                <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndingMilePoint" class="control-label"></label>
-                <input asp-for="EndingMilePoint" class="form-control" />
-                <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RailroadInv" class="control-label"></label>
-                <input asp-for="RailroadInv" class="form-control" />
-                <span asp-validation-for="RailroadInv" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BridgeInv" class="control-label"></label>
-                <input asp-for="BridgeInv" class="form-control" />
-                <span asp-validation-for="BridgeInv" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
@@ -110,5 +287,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

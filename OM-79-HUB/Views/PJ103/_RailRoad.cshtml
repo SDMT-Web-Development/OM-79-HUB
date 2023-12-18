@@ -1,0 +1,34 @@
+﻿@using OM_79_HUB.Controllers
+
+@model PJ103V3.Models.ViewModels.Aclvl
+
+<br />
+<br />
+
+<h2>Railroad Section</h2>
+<div class="row">
+
+    @* Start of RR *@
+    <div class="col-md-4">
+        <label asp-for="CrossingName" class="control-label">@Html.DisplayNameFor(model => model.CrossingName)<span class="required-asterisk">*</span></label>
+        <input asp-for="CrossingName" class="form-control" />
+        <span asp-validation-for="CrossingName" class="text-danger"></span>
+        <div id="crossingNameError" class="text-danger"></div>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="RailRoadMP" class="control-label">@Html.DisplayNameFor(model => model.RailRoadMP)<span class="required-asterisk">*</span></label>
+        <input asp-for="RailRoadMP" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" /> @*Only allows positive ints*@
+        <span asp-validation-for="RailRoadMP" class="text-danger"></span>
+        <div id="railroadMPError" class="text-danger"></div>
+    </div>
+</div>
+
+<style>
+    .button-container {
+        margin-top: 10px; /* Add desired margin value */
+    }
+
+    .required-asterisk {
+        color: red;
+    }
+</style>

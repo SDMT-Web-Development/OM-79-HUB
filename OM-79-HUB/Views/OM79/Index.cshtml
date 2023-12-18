@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OM79.Models.DB.OMTable>
+﻿@model IEnumerable<OMTable>
 
 @{
     ViewData["Title"] = "Index";
@@ -21,15 +21,15 @@
             <th>
                 @Html.DisplayNameFor(model => model.SubmissionDate)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Routing)
-            </th>
+
             <th>
                 @Html.DisplayNameFor(model => model.RoadChangeType)
             </th>
+            @*
             <th>
-                @Html.DisplayNameFor(model => model.Otherbox)
+            @Html.DisplayNameFor(model => model.Otherbox)
             </th>
+            *@
             <th>
                 @Html.DisplayNameFor(model => model.RouteAssignment)
             </th>
@@ -45,201 +45,106 @@
             <th>
                 @Html.DisplayNameFor(model => model.RequestedBy)
             </th>
+            @*
             <th>
-                @Html.DisplayNameFor(model => model.Comments)
+            @Html.DisplayNameFor(model => model.Comments)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AdjacentProperty)
+            @Html.DisplayNameFor(model => model.AdjacentProperty)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.APHouses)
+            @Html.DisplayNameFor(model => model.APHouses)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.APBusinesses)
+            @Html.DisplayNameFor(model => model.APBusinesses)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.APSchools)
+            @Html.DisplayNameFor(model => model.APSchools)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.APOther)
+            @Html.DisplayNameFor(model => model.APOther)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.APOtherIdentify)
+            @Html.DisplayNameFor(model => model.APOtherIdentify)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Attachments)
+            @Html.DisplayNameFor(model => model.Attachments)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DESignature)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Preparer)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RequestedByName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Route)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SubRoute)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CoDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CoDateTwo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RAddition)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RRedesignation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RMapCorrection)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RAbandonment)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RInventoryRemoval)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RAmend)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RRescind)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ROther)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RightOther)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HubId)
-            </th>
+            *@
+
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DistrictNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.County)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SubmissionDate)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.RoadChangeType)
+                </td>
+                @*
             <td>
-                @Html.DisplayFor(modelItem => item.DistrictNumber)
+            @Html.DisplayFor(modelItem => item.Otherbox)
+            </td>
+            *@
+                <td>
+                    @Html.DisplayFor(modelItem => item.RouteAssignment)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RightOfWayWidth)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Railroad)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DOTAARNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RequestedBy)
+                </td>
+                @*
+            <td>
+            @Html.DisplayFor(modelItem => item.Comments)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.County)
+            @Html.DisplayFor(modelItem => item.AdjacentProperty)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.SubmissionDate)
+            @Html.DisplayFor(modelItem => item.APHouses)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Routing)
+            @Html.DisplayFor(modelItem => item.APBusinesses)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.RoadChangeType)
+            @Html.DisplayFor(modelItem => item.APSchools)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Otherbox)
+            @Html.DisplayFor(modelItem => item.APOther)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.RouteAssignment)
+            @Html.DisplayFor(modelItem => item.APOtherIdentify)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.RightOfWayWidth)
+            @Html.DisplayFor(modelItem => item.Attachments)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Railroad)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DOTAARNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RequestedBy)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Comments)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AdjacentProperty)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.APHouses)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.APBusinesses)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.APSchools)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.APOther)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.APOtherIdentify)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Attachments)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DESignature)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Preparer)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RequestedByName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Route)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SubRoute)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CoDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CoDateTwo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RAddition)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RRedesignation)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RMapCorrection)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RAbandonment)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RInventoryRemoval)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RAmend)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RRescind)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ROther)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RightOther)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HubId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+            *@
+
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

@@ -13,12 +13,6 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.ProjectKey)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReportDate)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.County)
             </th>
             <th>
@@ -39,93 +33,53 @@
             <th>
                 @Html.DisplayNameFor(model => model.MaintOrg)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.YearOfSurvey)
+
+            @*  <th>
+            @Html.DisplayNameFor(model => model.YearOfSurvey)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UserID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.OtherBox)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SignSystem)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartingMilePoint)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndingMilePoint)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RailroadInv)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BridgeInv)
-            </th>
+            *@
+
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.County)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RouteNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SubRouteNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProjectNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DateComplete)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NatureOfChange)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MaintOrg)
+
+                </td>
+                @*
             <td>
-                @Html.DisplayFor(modelItem => item.ProjectKey)
+            @Html.DisplayFor(modelItem => item.YearOfSurvey)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReportDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.County)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RouteNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SubRouteNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProjectNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateComplete)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NatureOfChange)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaintOrg)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.YearOfSurvey)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OtherBox)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SignSystem)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartingMilePoint)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndingMilePoint)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RailroadInv)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BridgeInv)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.SubmissionID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.SubmissionID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.SubmissionID">Delete</a>
-            </td>
-        </tr>
-}
+            *@
+
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.SubmissionID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.SubmissionID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.SubmissionID">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
