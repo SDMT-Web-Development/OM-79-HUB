@@ -11,6 +11,7 @@ namespace PJ103V3.Models.ViewModels
         public int ID { get; set; }
 
         public int? SubmissionID { get; set; }
+        public int? OM79ID { get; set; }
         //   [DisplayName("Number of Spans")]
         //    public string? NumberOfSpans { get; set; }
 

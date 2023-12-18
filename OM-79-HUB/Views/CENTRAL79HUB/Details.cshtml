@@ -1,4 +1,5 @@
 ﻿@model CENTRAL79HUB
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     ViewData["Title"] = "Details";
@@ -23,8 +24,21 @@
             @Html.DisplayFor(model => model.Otherbox)
         </dd>
     </dl>
+    <input type="hidden" name="OM79ID" value="@ViewBag.testUniqueID" />
+    @{
+        // Replace 'yourPrimaryKey' with the actual primary key you want to pass
+        var ID = ViewBag.testUniqueID; // Replace with your actual primary key value
+
+    }
+    <div id="OMContainer">
+        @Html.Action("LinkedOM", "OM79", new {hubId = ID})
+    </div>
+
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+@section Scripts {
+
+}

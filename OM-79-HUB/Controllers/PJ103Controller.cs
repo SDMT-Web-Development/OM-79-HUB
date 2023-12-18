@@ -284,8 +284,9 @@ namespace OM_79_HUB.Data
         }
         */
         // GET: Submissions/Create
-        public IActionResult Create()
+        public IActionResult Create([FromQuery] int uniqueID)
         {
+            ViewBag.TestUniqueID = uniqueID;
             DropDowns();
             return View();
         }
@@ -962,6 +963,7 @@ namespace OM_79_HUB.Data
             // Redirect to the Index action of the Home controller
             return RedirectToAction("Index", "Home");
         }
+
 
         /*  public IActionResult GetSpanPartial(string NumberOfSpans)
           {

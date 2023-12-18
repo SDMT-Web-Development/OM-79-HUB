@@ -1,0 +1,10 @@
+﻿@model IEnumerable<OMTable>
+
+<h4>OM79 Forms</h4>
+<ul>
+    @foreach (var entry in Model)
+    {
+        <li>@entry.HubId </li>
+        <!-- Adjust the properties based on your EntryModel -->
+    }
+</ul>
