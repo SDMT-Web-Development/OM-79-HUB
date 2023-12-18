@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OM_79_HUB.Data;
@@ -15,7 +16,19 @@ builder.Services.AddDbContext<OM79Context>(options =>
 builder.Services.AddDbContext<Pj103Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection3") ?? throw new InvalidOperationException("Connection string 'John' not found.")));
 
+
+
+//Enumber authentication
+builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
+
+builder.Services.AddAuthorization(options =>
+// By default, all incoming requests will be authorized according to the default policy.  
+{ options.FallbackPolicy = options.DefaultPolicy; });
 // Add services to the container.
+
+
+
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -33,6 +46,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+//Enumber stuff
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
