@@ -34,7 +34,7 @@
 
 
     <div id="OMContainer">
-        @Url.Action("LinkedOM", "OM79", new { hubID = ViewBag.testUniqueID })
+        @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
     </div>
 
 

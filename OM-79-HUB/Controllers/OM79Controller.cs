@@ -23,7 +23,6 @@ namespace OM_79_HUB.Data
             _context = context;
             _webHostEnvironment = webHostEnvironment;
         }
-
         // GET: OMTables
         public async Task<IActionResult> Index()
         {
@@ -451,7 +450,7 @@ namespace OM_79_HUB.Data
 
 
 
-
+        /*
         public IActionResult LinkedOM(int hubId)
         {
             Console.WriteLine(hubId);
@@ -460,7 +459,7 @@ namespace OM_79_HUB.Data
             // Redirect to the Index action of the Home controller
             return PartialView("_LinkedOM", entries);
         }
-        
+        */
         public IEnumerable<OMTable> GetEntriesByUserId(int userid)
         {
             return _context.OMTable.Where(entry => entry.HubId == userid).ToList();

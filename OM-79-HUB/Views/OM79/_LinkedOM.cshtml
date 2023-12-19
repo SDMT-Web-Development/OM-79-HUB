@@ -4,7 +4,10 @@
 <ul>
     @foreach (var entry in Model)
     {
-        <li>@entry.HubId </li>
-        <!-- Adjust the properties based on your EntryModel -->
+        <li>
+            <a href="https://localhost:7056/OM79/details/@entry.Id">
+                This is each om connected to this hub's id
+            </a>
+        </li>
     }
 </ul>
