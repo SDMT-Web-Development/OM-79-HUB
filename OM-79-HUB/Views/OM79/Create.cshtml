@@ -25,7 +25,7 @@
                 <span asp-validation-for="County" class="text-danger"></span>
             </div>
 
-            </br>
+            <br>
             <p>To:      HO(through CT From TI,OM)</p>
             <p> It is hereby requested that a Commissioner's Order be entered for the following described section of roadway to the State Road System</p>
             <h4><br />Road Change Type (Check multiple if needed)<br /></h4>
@@ -150,7 +150,7 @@
 
             </div>
             <div class="col-md-4">
-                <label asp-for="AdjacentProperty" class="control-label">@Html.DisplayNameFor(model => model.AdjacentProperty) <span id="asteriskContainer" </span></label>
+                <label asp-for="AdjacentProperty" class="control-label">@Html.DisplayNameFor(model => model.AdjacentProperty) <span id="asteriskContainer"> </span></label>
                 <input asp-for="AdjacentProperty" class="form-control" type="number" min="0" readonly onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
             </div>
@@ -179,7 +179,7 @@
                 <input asp-for="APOtherIdentify" class="form-control" />
                 <span asp-validation-for="APOtherIdentify" class="text-danger"></span>
             </div>
-            <input type="hidden" name="HubID" value="@ViewBag.testUniqueID" />
+            <input type="hidden" name="OM79ID" value="@ViewBag.testUniqueID" />
 
 
             <h4><br />Attachments<br /></h4>
@@ -193,9 +193,10 @@
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
+        </div>
     </form>
 </div>
-</div>
+
 
 <div>
     <a asp-action="Index">Back to List</a>
@@ -356,7 +357,7 @@
         });
     </script>   *@
 
-    </script>
+
     <script>
         $(document).ready(function () {
             // Assuming checkboxes have IDs "AdditionCheckbox", "AbandonmentCheckbox", and "RedesignationCheckbox"

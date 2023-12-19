@@ -8,6 +8,7 @@ namespace OM_79_HUB.DTOs
         public int ID { get; set; }
 
         public int? SubmissionID { get; set; }
+        public int? OM79ID { get; set; }
 
    //     public string? NumberOfSpans { get; set; }
 
@@ -358,6 +359,7 @@ namespace OM_79_HUB.DTOs
                 return new Submission
                 {
                     SubmissionID = this.SUSubmissionID,
+                    OM79Id = this.OM79ID,
                     ProjectKey = this.ProjectKey,
                     ReportDate = this.ReportDate,
                     County = this.County,

@@ -1,4 +1,6 @@
 ﻿@model CENTRAL79HUB
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc;
 
 @{
     ViewData["Title"] = "Details";
@@ -23,8 +25,64 @@
             @Html.DisplayFor(model => model.Otherbox)
         </dd>
     </dl>
+    <input type="hidden" name="OM79ID" value="@ViewBag.testUniqueID" />
+    @{
+        // Replace 'yourPrimaryKey' with the actual primary key you want to pass
+        var ID = ViewBag.testUniqueID; // Replace with your actual primary key value
+            
+    }
+
+
+    <div id="OMContainer">
+        @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
+    </div>
+
+
+    @*
+
+    <div id="OMContainer">
+    <a href="@Url.Action("LinkedOM", "OM79", new { hubID = ViewBag.testUniqueID })">Click me</a>
+    </div>
+
+
+    <div id="OMContainer">
+        <a href="@Html.Raw(Url.Action("LinkedOM", "OM79", new { id = ViewBag.testUniqueID }))">Click me</a>
+        @Html.Raw(Url.Action("LinkedOM", "OM79", new {ID}))  @*Calls the linkedom function and passes the hub id to the om79 controller
+        
+    </div>*@
+    
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+@*
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+            // Trigger the AJAX call on page load
+            loadOMPartial();
+
+            function loadOMPartial() {
+
+                var testUniqueID = @ViewBag.testUniqueID; //Set id
+
+                $.ajax({
+                    url: '@Url.Action("LinkedOM", "OM79")',
+                    type: 'GET',
+                    data: { RailroadInv: true, testUniqueID: testUniqueID }, // added the unique id to be passed here
+                    success: function (result) {
+                        $('#OMContainer').html(result);
+                        $.validator.unobtrusive.parse('#OMContainer form');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            }
+        });
+    </script>
+
+}
+*@
