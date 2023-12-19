@@ -448,14 +448,19 @@ namespace OM_79_HUB.Data
             RequestDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
             ViewBag.RequestDropdown = RequestDropdown;
         }
-        public IActionResult LinkedOM( int hubId)
+
+
+
+
+        public IActionResult LinkedOM(int hubId)
         {
-            Console.WriteLine (hubId);
+            Console.WriteLine(hubId);
             var entries = _context.OMTable.Where(entry => entry.HubId == hubId);
             // var entries = IEnumerable.GetEntriesByHubId(hubId);
             // Redirect to the Index action of the Home controller
             return PartialView("_LinkedOM", entries);
         }
+        
         public IEnumerable<OMTable> GetEntriesByUserId(int userid)
         {
             return _context.OMTable.Where(entry => entry.HubId == userid).ToList();
