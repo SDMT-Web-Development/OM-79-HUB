@@ -26,6 +26,9 @@
         </dd>
     </dl>
     <input type="hidden" name="OM79ID" value="@ViewBag.testUniqueID" />
+
+
+
     @{
         // Replace 'yourPrimaryKey' with the actual primary key you want to pass
         var ID = ViewBag.testUniqueID; // Replace with your actual primary key value
@@ -52,6 +55,13 @@
     </div>*@
     
 </div>
+
+
+<div>
+    <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Create New OM79 Attached to OM79-HUB-ID</a>
+</div>
+
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
     <a asp-action="Index">Back to List</a>

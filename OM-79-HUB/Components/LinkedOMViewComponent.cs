@@ -18,5 +18,6 @@ namespace OM_79_HUB.Components
             var entries = _context.OMTable.Where(entry => entry.HubId == hubId).ToList();
             return View("~/Views/OM79/_LinkedOM.cshtml", entries); // Specify the correct view path here
         }
+
     }
 }
