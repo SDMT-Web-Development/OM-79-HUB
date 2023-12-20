@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Models;
 using OM79.Models.DB;
@@ -21,7 +23,6 @@ namespace OM_79_HUB.Data
             _context = context;
             _webHostEnvironment = webHostEnvironment;
         }
-
         // GET: OMTables
         public async Task<IActionResult> Index()
         {
@@ -57,7 +58,7 @@ namespace OM_79_HUB.Data
 
 
             ViewBag.TestUniqueID = uniqueID;
-            oMTable.HubId = uniqueID;
+           // oMTable.HubId = uniqueID;
 
             return View(oMTable);
         }
@@ -137,7 +138,8 @@ namespace OM_79_HUB.Data
 
                 // Save all changes to the database
                 await _context.SaveChangesAsync();
-                return Redirect($"https://dotappstest.transportation.wv.gov/PJ-103/Submissions/Create?uniqueID={unique79ID}");
+                return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID });
+                //return Redirect($"https://dotappstest.transportation.wv.gov/PJ-103/Submissions/Create?uniqueID={unique79ID}");
             }
             return View(oMTable);
         }
@@ -444,6 +446,23 @@ namespace OM_79_HUB.Data
         };
             RequestDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
             ViewBag.RequestDropdown = RequestDropdown;
+        }
+
+
+
+        /*
+        public IActionResult LinkedOM(int hubId)
+        {
+            Console.WriteLine(hubId);
+            var entries = _context.OMTable.Where(entry => entry.HubId == hubId);
+            // var entries = IEnumerable.GetEntriesByHubId(hubId);
+            // Redirect to the Index action of the Home controller
+            return PartialView("_LinkedOM", entries);
+        }
+        */
+        public IEnumerable<OMTable> GetEntriesByUserId(int userid)
+        {
+            return _context.OMTable.Where(entry => entry.HubId == userid).ToList();
         }
     }
 

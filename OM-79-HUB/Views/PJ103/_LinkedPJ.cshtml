@@ -1,0 +1,13 @@
+﻿@model IEnumerable<PJ103V3.Models.DB.Submission>
+
+<h4>PJ103 Forms</h4>
+<ul>
+    @foreach (var entry in Model)
+    {
+        <li>
+            <a href="https://localhost:7056/PJ103/details/@entry.SubmissionID">
+                This is each PJ103 connected to this hub's id
+            </a>
+        </li>
+    }
+</ul>

@@ -2,6 +2,7 @@
 @model PJ103V3.Models.DB.Submission
 
 @{
+    Layout = "~/Views/Shared/_PJ103Layout.cshtml";
     ViewData["Title"] = "Create";
 }
 
@@ -103,7 +104,7 @@
                 <span asp-validation-for="RailroadInv" class="text-danger"></span>
                 <div id="railroadInvError" class="text-danger"></div>
             </div>
-
+            <input type="hidden" name="HubID" value="@ViewBag.testUniqueID" />
         @*    @Html.Partial("_UnitAsBuilt") *@
                 
 
@@ -123,6 +124,10 @@
                 <label for="attachments">Attach Files:</label>
                 <input type="file" name="attachments" multiple>
             </div>
+
+
+            <input type="hidden" name="OM79Id" value="@ViewBag.testUniqueID" />
+
 
             <div class="form-group button-container">
                 <input type="submit" value="Create"  class="btn btn-primary" />

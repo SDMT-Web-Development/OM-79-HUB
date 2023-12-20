@@ -1,6 +1,7 @@
 ﻿@model PJ103V3.Models.ViewModels.Aclvl
 
 @{
+    Layout = "~/Views/Shared/_PJ103Layout.cshtml";
     ViewData["Title"] = "Details";
 }
 
@@ -437,6 +438,9 @@
         </dd>
     </dl>
 </div>
+
+
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.SubmissionID">Edit</a> |
     <a asp-action="Index">Back to List</a>

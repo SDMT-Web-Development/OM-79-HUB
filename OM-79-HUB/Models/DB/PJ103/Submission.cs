@@ -41,7 +41,7 @@ public partial class Submission
     public string? BridgeInv { get; set; }
 
 
-
+    public int? OM79Id { get; set; }
     public List<Attachments>? Files { get; set; }
     /*  public string? AccessControl { get; set; }
 

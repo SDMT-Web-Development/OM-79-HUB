@@ -42,6 +42,8 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
+            ViewBag.TestUniqueID = id;
+
             return View(cENTRAL79HUB);
         }
 
@@ -63,8 +65,9 @@ namespace OM_79_HUB.Controllers
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
                 int uniqueID = cENTRAL79HUB.OMId;
-                
-                return Redirect ($"https://dotappstest.transportation.wv.gov/OM79/OMTables/Create?uniqueID={uniqueID}");
+
+                return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID });
+                // return Redirect ($"https://dotappstest.transportation.wv.gov/OM79/OMTables/Create?uniqueID={uniqueID}");
                 // return Redirect($"https://dotappstest.transportation.wv.gov/OM79?uniqueID={uniqueID}");
             }
             return View(cENTRAL79HUB);
