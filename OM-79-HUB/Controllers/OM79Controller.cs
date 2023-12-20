@@ -58,7 +58,7 @@ namespace OM_79_HUB.Data
 
 
             ViewBag.TestUniqueID = uniqueID;
-            oMTable.HubId = uniqueID;
+           // oMTable.HubId = uniqueID;
 
             return View(oMTable);
         }

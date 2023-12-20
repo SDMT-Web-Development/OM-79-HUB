@@ -286,7 +286,9 @@ namespace OM_79_HUB.Data
         // GET: Submissions/Create
         public IActionResult Create([FromQuery] int uniqueID)
         {
-            ViewBag.TestUniqueID = uniqueID;
+            ViewBag.testUniqueID = uniqueID;
+
+            Console.WriteLine(ViewBag.testUniqueID);
             DropDowns();
             return View();
         }
