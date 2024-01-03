@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OM_79_HUB.Data;
 using OM79.Models.DB;
+using QuestPDF.Infrastructure;
+
+QuestPDF.Settings.License = LicenseType.Community;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<OM_79_HUBContext>(options =>
