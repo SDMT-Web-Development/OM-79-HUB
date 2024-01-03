@@ -1,13 +1,51 @@
 ﻿@model IEnumerable<PJ103V3.Models.DB.Submission>
 
-<h4>PJ103 Forms</h4>
-<ul>
-    @foreach (var entry in Model)
-    {
-        <li>
-            <a href="https://localhost:7056/PJ103/details/@entry.SubmissionID">
-                This is each PJ103 connected to this hub's id
-            </a>
-        </li>
+<style>
+    .container {
+        padding-left: 40px; /* Consistent indentation with OM79 section */
     }
-</ul>
+
+    .entries {
+        margin-top: 10px;
+    }
+
+    .entry {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f4f4f4; /* Light grey background */
+        border-radius: 5px; /* Rounded corners */
+    }
+
+    .entry-header {
+        font-weight: bold;
+    }
+</style>
+
+<hr />
+<h4>PJ103 Forms</h4>
+<hr />
+
+<div class="container">
+    <div class="entries">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var entry in Model)
+            {
+                <div class="entry">
+                    <div class="entry-header">
+                        <span class="entry-id">Project Key: @entry.ProjectKey</span>
+                        <span class="entry-date">Report Date: @(entry.ReportDate?.ToString("yyyy-MM-dd") ?? "N/A")</span>
+                    </div>
+                    <div class="entry-actions">
+                        <a href="@Url.Action("Details", "PJ103", new { id = entry.SubmissionID })" class="details-link">View Details</a>
+                    </div>
+                </div>
+                <hr />
+            }
+        }
+        else
+        {
+            <div>No Forms Attached.</div>
+        }
+    </div>
+</div>

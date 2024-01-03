@@ -1,13 +1,61 @@
 ﻿@model IEnumerable<OMTable>
 
-<h4>OM79 Forms</h4>
-<ul>
-    @foreach (var entry in Model)
-    {
-        <li>
-            <a href="https://localhost:7056/OM79/details/@entry.Id">
-                This is each om connected to this hub's id
-            </a>
-        </li>
+
+
+
+
+
+<hr />
+<h4>Attached OM79 Forms</h4>
+
+<hr />
+
+<style>
+    .container {
+        padding-left: 40px; /* Adjust as needed for indentation */
     }
-</ul>
+
+    .entries {
+        margin-top: 10px;
+    }
+
+    .entry {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f4f4f4; /* Light grey background */
+        border-radius: 5px; /* Rounded corners */
+    }
+
+    .entry-header {
+        font-weight: bold;
+    }
+</style>
+
+<div class="container">
+    <div class="entries">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var entry in Model)
+            {
+                <div class="entry">
+                    <div class="entry-header">
+                        <span class="entry-id">ID: @entry.Id</span>
+                        <span class="entry-requester">Requested By: @entry.RequestedByName</span>
+                        <span class="entry-date">Date: @(entry.SubmissionDate?.ToShortDateString() ?? "N/A")</span>
+                    </div>
+                    <div class="entry-actions">
+                        <a href="https://localhost:7056/OM79/details/@entry.Id" class="details-link">View Details</a>
+                    </div>
+                </div>
+                <hr />
+            }
+        }
+        else
+        {
+            <div>No Forms Attached.</div>
+        }
+    </div>
+</div>
+
+<hr />
+
