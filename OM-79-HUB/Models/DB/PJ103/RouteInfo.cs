@@ -61,4 +61,6 @@ public partial class RouteInfo
 
     public string? FunctionalClass { get; set; }
     public string? SurfaceTypeN { get; set; }
+    public decimal? MPSegmentStart { get; set; }
+    public decimal? MPSegmentEnd { get; set; }
 }
