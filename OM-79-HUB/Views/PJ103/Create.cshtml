@@ -1,6 +1,7 @@
 ﻿@using PJ103V3.Models.ViewModels
 @model PJ103V3.Models.DB.Submission
 
+
 @{
     Layout = "~/Views/Shared/_PJ103Layout.cshtml";
     ViewData["Title"] = "Create";
@@ -16,7 +17,7 @@
 <hr />
 <div class="row">
     <form asp-action="Create" enctype="multipart/form-data">
-        <h2>General Information</h2>
+      @*  <h2>General Information</h2>
     <div class="row form-group">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="col-md-4">
@@ -59,16 +60,16 @@
                 <label asp-for="DateComplete" class="control-label"></label>
                 <input asp-for="DateComplete" class="form-control" Value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")"/> @*Auto Populates Current Date/Time
                 <span asp-validation-for="DateComplete" class="text-danger"></span>
-            </div>  *@
+            </div>  
             <div class="col-md-4">
                 <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint)<span class="required-asterisk">*</span></label>
-                <input asp-for="StartingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)"/> @*Only allows positive ints*@
+                <input asp-for="StartingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)"/> @*Only allows positive ints
                 <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
                 <div id="startingMilePointError" class="text-danger"></div>
             </div>
             <div class="col-md-4">
                 <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint)<span class="required-asterisk">*</span></label>
-                <input asp-for="EndingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" /> @*Only allows positive ints*@
+                <input asp-for="EndingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" /> @*Only allows positive ints
                 <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
                 <div id="endingMilePointError" class="text-danger"></div>
             </div>
@@ -78,7 +79,7 @@
                 <span asp-validation-for="MaintOrg" class="text-danger"></span>
                 <div id="maintOrgError" class="text-danger"></div>
             </div>
-          @*  <div class="col-md-4">
+            <div class="col-md-4">
                 <label asp-for="YearOfSurvey" class="control-label"></label>
                 <select asp-for="YearOfSurvey" class="form-control" style="color: #000;">
                     <option value="">Select Year</option>
@@ -106,6 +107,10 @@
             </div>
             <input type="hidden" name="HubID" value="@ViewBag.testUniqueID" />
         @*    @Html.Partial("_UnitAsBuilt") *@
+        
+
+        
+       
                 
 
 
@@ -253,29 +258,21 @@
 
     <script>
         $(document).ready(function () {
-            $('#NatureOfChange').change(function () {
-                var selectedValue = $(this).val();
-                if (selectedValue !== "") {
-                    $.ajax({
-                        url: '@Url.Action("GetUnitAsBuiltPartial", "PJ103")',
-                        type: 'GET',
-                        data: { natureOfChange: selectedValue },
-                        success: function (result) {
-                            $('#unitAsBuiltContainer').html(result);
-                            $.validator.unobtrusive.parse('#unitAsBuiltContainer');
-        
-                        },
-                        error: function (xhr, status, error) {
-                            console.error(error);
-                        }
-        
-                    });
-                } else {
-                    $('#unitAsBuiltContainer').empty();
+            // Load the partial view on document ready
+            $.ajax({
+                url: '@Url.Action("GetUnitAsBuiltPartial", "PJ103")',
+                type: 'GET',
+                success: function (result) {
+                    $('#unitAsBuiltContainer').html(result);
+                    $.validator.unobtrusive.parse('#unitAsBuiltContainer');
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
                 }
             });
         });
     </script>
+    
 
     <script>
         $(document).ready(function () {
