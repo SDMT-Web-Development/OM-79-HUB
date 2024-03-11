@@ -90,6 +90,21 @@ namespace OM_79_HUB.Data
                 oMTable.SubmissionDate = DateTime.Now;
                 int unique79ID = oMTable.Id;
 
+
+
+
+                string baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OM79HubAttachments");
+                string hubDir = Path.Combine(baseDir, "Hub-" + oMTable.HubId + "-Attachments");
+                string om79Dir = Path.Combine(hubDir, "OM79-" + unique79ID + "-Attachments");
+
+                // Check if the directory exists and if not, create it
+                if (!Directory.Exists(om79Dir))
+                {
+                    Directory.CreateDirectory(om79Dir);
+                }
+
+
+
                 //Console.WriteLine("UniqueID " + $"Query Parameter: {HttpContext.Request.Query["uniqueID"]}");
                 /*   if (int.TryParse(HttpContext.Request.Query["uniqueID"], out int uniqueID))
                    {

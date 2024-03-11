@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IO;
@@ -22,13 +23,167 @@ namespace OM_79_HUB.Controllers
         private readonly OM_79_HUBContext _hubContext;
         private readonly OM79Context _om79Context;
         private readonly Pj103Context _pj103Context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public FileGenerationAndPackagingController(OM_79_HUBContext hubContext, OM79Context om79Context, Pj103Context pj103Context)
+
+        public FileGenerationAndPackagingController(OM_79_HUBContext hubContext, OM79Context om79Context, Pj103Context pj103Context, IWebHostEnvironment hostingEnvironment)
         {
             _hubContext = hubContext;
             _om79Context = om79Context;
             _pj103Context = pj103Context;
+            _webHostEnvironment = hostingEnvironment;
         }
+
+        //This section is for renaming, deleting, and deleting files attached to any hub om or pj
+
+        public async Task<IActionResult> DeleteFile(string fileName, int hubId, int om79Id, int? pj103Id = null)
+        {
+            try
+            {
+                var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OM79HubAttachments");
+                var hubDir = Path.Combine(baseDir, "Hub-" + hubId + "-Attachments");
+                var om79Dir = Path.Combine(hubDir, "OM79-" + om79Id + "-Attachments");
+
+                string filePath;
+
+                if (pj103Id.HasValue)
+                {
+                    // File is in a PJ103 subdirectory
+                    var pj103Dir = Path.Combine(om79Dir, "PJ103-" + pj103Id.Value + "-Attachments");
+                    filePath = Path.Combine(pj103Dir, fileName);
+                }
+                else
+                {
+                    // File is directly in the OM79 directory
+                    filePath = Path.Combine(om79Dir, fileName);
+                }
+
+                Console.WriteLine($"Attempting to delete file: {fileName} at path: {filePath}");
+
+
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine(filePath);
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+
+
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                    Console.WriteLine("File deleted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("File not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during file deletion: {ex.Message}");
+                // Optionally, add more error handling logic here
+            }
+
+            return RedirectToAction("Details", "Central79Hub", new { id = hubId });
+        }
+
+
+
+        public async Task<IActionResult> RenameFile(string newName, string oldName, int id)
+        {
+            // Optional: Find the record in your database if needed using 'id'
+            // var record = await _context.YourModel.FirstOrDefaultAsync(m => m.Id == id);
+
+            var source = Path.Combine(_webHostEnvironment.WebRootPath, "YourFolderPath", oldName);
+            var destination = Path.Combine(_webHostEnvironment.WebRootPath, "YourFolderPath", newName);
+
+            if (System.IO.File.Exists(destination))
+            {
+                return BadRequest("A file with this name already exists.");
+            }
+
+            if (System.IO.File.Exists(source))
+            {
+                System.IO.File.Move(source, destination);
+            }
+
+            return RedirectToAction("Details", "Central79Hub", new { id = id }); // Redirect to the specific detail view
+        }
+
+        public async Task<IActionResult> DownloadFile(string fileName, int hubId, int om79Id, int? pj103Id = null)
+        {
+            try
+            {
+
+
+              
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine(pj103Id);
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OM79HubAttachments");
+                var hubDir = Path.Combine(baseDir, "Hub-" + hubId + "-Attachments");
+                var om79Dir = Path.Combine(hubDir, "OM79-" + om79Id + "-Attachments");
+
+                string filePath;
+
+                if (pj103Id.HasValue)
+                {
+                    // File is in a PJ103 subdirectory
+                    var pj103Dir = Path.Combine(om79Dir, "PJ103-" + pj103Id.Value + "-Attachments");
+                    filePath = Path.Combine(pj103Dir, fileName);
+                }
+                else
+                {
+                    // File is directly in the OM79 directory
+                    filePath = Path.Combine(om79Dir, fileName);
+                }
+
+
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine(filePath);
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine($"Attempting to Download file: {fileName} at path: {filePath}");
+
+
+                if (System.IO.File.Exists(filePath))
+                {
+                    byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+                    return File(fileBytes, "application/octet-stream", fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during file deletion: {ex.Message}");
+                // Optionally, add more error handling logic here
+            }
+
+            return RedirectToAction("Details", "Central79Hub", new { id = hubId }); // Redirect to the specific detail view
+        }
+
+
+
+
         // Packaging & Exporting Section
         //
         //|<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79File" asp-route-id="@entry.Id" class="btn btn-primary">Export OM79</a>

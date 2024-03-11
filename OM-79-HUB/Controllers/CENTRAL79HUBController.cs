@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting.Internal;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
 
@@ -12,10 +13,12 @@ namespace OM_79_HUB.Controllers
 {
     public class CENTRAL79HUBController : Controller
     {
+        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly OM_79_HUBContext _context;
 
-        public CENTRAL79HUBController(OM_79_HUBContext context)
+        public CENTRAL79HUBController(IWebHostEnvironment hostingEnvironment, OM_79_HUBContext context)
         {
+            _hostingEnvironment = hostingEnvironment;
             _context = context;
         }
 
@@ -65,6 +68,18 @@ namespace OM_79_HUB.Controllers
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
                 int uniqueID = cENTRAL79HUB.OMId;
+
+
+                // Create directories
+                string baseDir = Path.Combine(_hostingEnvironment.WebRootPath, "OM79HubAttachments");
+                string hubDir = Path.Combine(baseDir, "Hub-" + uniqueID + "-Attachments");
+                
+
+                // Check if the directories exist and if not, create them
+                if (!Directory.Exists(hubDir))
+                {
+                    Directory.CreateDirectory(hubDir);
+                }
 
                 return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID });
                 // return Redirect ($"https://dotappstest.transportation.wv.gov/OM79/OMTables/Create?uniqueID={uniqueID}");

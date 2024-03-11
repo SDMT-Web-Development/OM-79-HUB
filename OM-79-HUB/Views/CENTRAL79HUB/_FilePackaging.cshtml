@@ -1,0 +1,145 @@
+﻿@using OM_79_HUB.Models.FileInformation
+@model List<DirectoryModel>
+
+<hr />
+<h4>File Packaging / Attachments</h4>
+<hr />
+
+@if (Model.Any())
+{
+    <ul class="file-list">
+        @foreach (var om79Dir in Model)
+        {
+            <li class="directory-item">
+                <strong>@om79Dir.DirectoryName</strong> <!-- OM79 Directory Name -->
+                <ul class="file-sublist">
+                    @foreach (var file in om79Dir.Files)
+                    {
+                        <li class="file-item">
+                            @file <!-- File in OM79 Directory -->
+                            <!-- Download and Delete action links -->
+                            @Html.ActionLink("Download", "DownloadFile", "FileGenerationAndPackaging", new { fileName = file, hubId = om79Dir.HubId, om79Id = om79Dir.OM79Id, pj103Id = (int?)null }, new { @class = "action-link" })
+                            <span class="separator"> | </span>
+                            @Html.ActionLink("Delete", "DeleteFile", "FileGenerationAndPackaging",new { fileName = file, hubId = om79Dir.HubId, om79Id = om79Dir.OM79Id, pj103Id = (int?)null }, new { @class = "action-link" })
+                            <span class="separator"> | </span>
+                            <!-- Rename form -->
+                            <button class="btn-rename action-button">Rename</button>
+                            <span class="rename-box" style="display: none;">
+                                @using (Html.BeginForm("RenameFile", "FileGenerationAndPackaging", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                {
+                                    <input type="hidden" name="oldName" value="@file" />
+                                    <input type="hidden" name="hubId" value="@om79Dir.HubId" />
+                                    <input type="hidden" name="om79Id" value="@om79Dir.OM79Id" />
+                                    <input type="hidden" name="pj103Id" value=null />
+                                    <input type="text" name="newName" class="new-name mr-10" placeholder="New file name" />
+                                    <button type="submit" class="btn btn-success mr-10 save-btn">Save</button>
+                                    <button type="button" class="btn btn-danger cancel-btn">Cancel</button>
+                                }
+                            </span>
+                        </li>
+                    }
+
+                    @foreach (var pj103Dir in om79Dir.SubDirectories)
+                    {
+                        <li class="pj103-folder directory-item">
+                            <strong>@pj103Dir.DirectoryName</strong> <!-- PJ103 Directory Name -->
+                            <ul class="file-sublist">
+                                @foreach (var pjFile in pj103Dir.Files)
+                                {
+                                    <li class="file-item">
+                                        @pjFile <!-- File in PJ103 Directory -->
+                                        <!-- Action links and Rename form for PJ103 files -->
+                                        @Html.ActionLink("Download", "DownloadFile", "FileGenerationAndPackaging", new { fileName = pjFile, hubId = om79Dir.HubId, om79Id = om79Dir.OM79Id, pj103Id = pj103Dir.PJ103Id  }, new { @class = "action-link" })
+                                        <span class="separator"> | </span>
+                                        @Html.ActionLink("Delete", "DeleteFile", "FileGenerationAndPackaging", new { fileName = pjFile, hubId = om79Dir.HubId, om79Id = om79Dir.OM79Id, pj103Id = pj103Dir.PJ103Id }, new { @class = "action-link" })
+                                        <span class="separator"> | </span>
+                                        <button class="btn-rename action-button">Rename</button>
+                                        <span class="rename-box" style="display: none;">
+                                            @using (Html.BeginForm("RenameFile", "FileGenerationAndPackaging", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                            {
+                                                <input type="hidden" name="oldName" value="@pjFile" />
+                                                <input type="hidden" name="hubId" value="@om79Dir.HubId" />
+                                                <input type="hidden" name="om79Id" value="@om79Dir.OM79Id" />
+                                                <input type="hidden" name="pj103Id" value="@pj103Dir.PJ103Id" />
+                                                <input type="text" name="newName" class="new-name mr-10" placeholder="New file name" />
+                                                <button type="submit" class="btn btn-success mr-10 save-btn">Save</button>
+                                                <button type="button" class="btn btn-danger cancel-btn">Cancel</button>
+                                            }
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No attachments found.</p>
+}
+
+<hr />
+
+<style>
+    .file-list {
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .directory-item, .pj103-folder {
+        margin-bottom: 10px;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .file-sublist {
+        padding-left: 20px;
+    }
+
+    .action-link, .btn-action {
+        margin-left: 10px;
+        cursor: pointer;
+    }
+
+    .separator {
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .rename-box {
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+    }
+
+    .new-name {
+        margin-right: 10px;
+    }
+
+    .btn-rename {
+        background: none;
+        border: none;
+        color: blue;
+        cursor: pointer;
+        padding: 0;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('.btn-rename').click(function () {
+            $(this).next('.rename-box').show();
+        });
+
+        $('.cancel-btn').click(function () {
+            $(this).closest('.rename-box').hide();
+        });
+    });
+</script>

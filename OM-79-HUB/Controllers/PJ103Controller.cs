@@ -10,18 +10,21 @@ using PJ103V3.Models.DB;
 using PJ103V3.Models.ViewModels;
 
 using OM_79_HUB.DTOs;
+using OM79.Models.DB;
 
 namespace OM_79_HUB.Data
 {
     public class PJ103Controller : Controller
     {
         private readonly Data.Pj103Context _context;
+        private readonly OM79Context _om79Context;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public PJ103Controller(Data.Pj103Context context, IWebHostEnvironment webHostEnvironment)
+        public PJ103Controller(Data.Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context om79Context)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _om79Context = om79Context;
         }
         // GET: Submissions
         public async Task<IActionResult> Index()
@@ -303,10 +306,43 @@ namespace OM_79_HUB.Data
                 _context.Add(submission);
                 await _context.SaveChangesAsync();
 
+                //------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------
+                // This creates a pj103 attachment folder inside of the om79 folder it is attached to, which is inside the specific hub folder
+                //------------------------------------------------------------------------------------------------
+                // Fetch the related OM79 entity to get the HubId
+                var relatedOM79 = await _om79Context.OMTable.FirstOrDefaultAsync(om => om.Id == submission.OM79Id);
+                if (relatedOM79 == null)
+                {
+                    // Handle the case where the related OM79 is not found
+                    // This could be returning an error view or similar
+                    return NotFound("Related OM79 entity not found.");
+                }
+
+                // Construct the paths for the directories
+                string hubDir = Path.Combine(_webHostEnvironment.WebRootPath, "OM79HubAttachments", "Hub-" + relatedOM79.HubId + "-Attachments");
+                string om79Dir = Path.Combine(hubDir, "OM79-" + submission.OM79Id + "-Attachments");
+                string pj103Dir = Path.Combine(om79Dir, "PJ103-" + submission.SubmissionID + "-Attachments");
+
+                // Create the PJ103 directory if it does not exist
+                if (!Directory.Exists(pj103Dir))
+                {
+                    Directory.CreateDirectory(pj103Dir);
+                }
+                //------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------
+
+
                 // Update additional properties and sync tables after getting SubmissionID
                 submission.DateComplete = DateTime.Now;
                 dto.SubmissionID = submission.SubmissionID;
                 synctables(submission.SubmissionID);
+
+
+
+
 
                 // Save the attachments
                 foreach (var attachmentFile in attachments)
