@@ -145,6 +145,71 @@
                 <input asp-for="AdjacentProperty" class="form-control" type="number" min="0" readonly onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
             </div>
+            <h2>General Information</h2>
+            <div class="row form-group">
+                
+               
+                <div class="col-md-4">
+                    <label asp-for="SignSystem" class="control-label">@Html.DisplayNameFor(model => model.SignSystem)<span class="required-asterisk">*</span></label>
+                    <select asp-for="SignSystem" name="SignSystem" class="form-control" asp-items="@ViewBag.SignDropdown"></select>
+                    <span asp-validation-for="SignSystem" class="text-danger"></span>
+                    <div id="signError" class="text-danger"></div>
+                </div>
+                
+                <div class="col-md-4">
+                    <label asp-for="ProjectNumber" class="control-label"></label>
+                    <input asp-for="ProjectNumber" class="form-control" />
+                    <span asp-validation-for="ProjectNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="RouteNumber" class="control-label">@Html.DisplayNameFor(model => model.RouteNumber)<span class="required-asterisk">*</span></label>
+                    <input asp-for="RouteNumber" class="form-control" type="number" step="1" min="0" max="9999" onkeydown="validatePositiveNumber(event)" />
+                    <span asp-validation-for="RouteNumber" class="text-danger"></span>
+                    <div id="routeNumberError" class="text-danger"></div>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="SubRouteNumber" class="control-label">@Html.DisplayNameFor(model => model.SubRouteNumber)<span class="required-asterisk">*</span></label>
+                    <input asp-for="SubRouteNumber" class="form-control" type="number" step="1" min="0" max="99" onkeydown="validatePositiveNumber(event)" />
+                    <span asp-validation-for="SubRouteNumber" class="text-danger"></span>
+                    <div id="subRouteNumberError" class="text-danger"></div>
+                </div>
+
+                 <div class="col-md-4">
+                <label asp-for="DateComplete" class="control-label"></label>
+                <input asp-for="DateComplete" class="form-control" Value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")"/> 
+                <span asp-validation-for="DateComplete" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint)<span class="required-asterisk">*</span></label>
+                <input asp-for="StartingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)"/> 
+                <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
+                <div id="startingMilePointError" class="text-danger"></div>
+                </div>
+                <div class="col-md-4">
+                <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint)<span class="required-asterisk">*</span></label>
+                <input asp-for="EndingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" /> 
+                <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
+                <div id="endingMilePointError" class="text-danger"></div>
+                </div>
+                <div class="col-md-4">
+                <label asp-for="MaintOrg" class="control-label">@Html.DisplayNameFor(model => model.MaintOrg)</label>
+                <select asp-for="MaintOrg" name="MaintOrg" class="form-control" asp-items="@ViewBag.DOHDropdown"></select>
+                <span asp-validation-for="MaintOrg" class="text-danger"></span>
+                <div id="maintOrgError" class="text-danger"></div>
+                </div>
+                <div class="col-md-4">
+                <label asp-for="YearOfSurvey" class="control-label"></label>
+                <select asp-for="YearOfSurvey" class="form-control" style="color: #000;">
+                <option value="">Select Year</option>
+                @for (int year = 2025; year >= 1950; year--)
+                {
+                <option value="@year">@year</option>
+                }
+                </select>
+                <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
+
+
+                </div>
             <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
 
 
@@ -173,6 +238,16 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+
+    <script>
+        // Function to validate positive numbers
+        function validatePositiveNumberAndDecimal(event) {
+            if (event.keyCode === 189 || event.keyCode === 109 || event.key === ".") {
+                event.preventDefault(); // Doesn't allow -
+            }
+        }
+    </script>
 
 
     <script>
