@@ -28,32 +28,32 @@
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@bridgesig" />
-    <button class="btn btn-primary" asp-action="SignOMHub" asp-route-type="bridgeeng">Sign</button>
+    <button class="btn btn-primary sign" value="Bridge Engineer">Sign</button>
 </div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Traffic Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@trafficsig" />
-    <button class="btn btn-primary" asp-action="SignOMHub" asp-route-type="trafficeng">Sign</button>
+    <button class="btn btn-primary sign" value="Traffic Engineer">Sign</button>
 </div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Maintenance Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@maintenancesig" />
-    <button class="btn btn-primary" asp-action="SignOMHub" asp-route-type="maintenanceeng">Sign</button>
+    <button class="btn btn-primary sign" value="Maintenance Engineer">Sign</button>
 </div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Construction Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@constructionsig" />
-    <button class="btn btn-primary sign"  value="constructionman">Sign</button>
+    <button class="btn btn-primary sign" value="Construction Engineer">Sign</button>
 </div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Right of Way Manager</span>
     <input type="text" class="form-control" readonly placeholder="@rightofwaysig" />
-    <button class="btn btn-primary sign"  id="signbutton" value="rightofwayman">Sign</button>
+    <button class="btn btn-primary sign" id="signbutton" value="Right of Way Manager">Sign</button>
 </div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">District Manager</span>
     <input type="text" class="form-control" readonly placeholder="@districtsig" />
-    <button class="sign" id="signbutton" value="districtman">Sign</button>
+    <button class="btn btn-primary sign" id="signbutton" value="District Manager">Sign</button>
 </div>
 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signModal">SignModal</button>
 <div class="modal" id="signModal">
@@ -69,13 +69,25 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMHub">
+                        <form asp-action="SignOMHub" asp-controller="CENTRAL79HUB">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID " />
-                            <input type="hidden" value=""  id="sigtype"/>
-                            <label for="approve">Approve</label>
-                            @Html.RadioButton("approve", "Approve") 
-                            <label for="approve">Deny</label>
-                            @Html.RadioButton("approve", "Deny") 
+                            <input type="hidden" value="" name="sigtype" id="sigtype" />
+
+                            
+                                <label for="approve">Approve</label>
+
+                                <input type="radio" id="approve" name="apradio" value="approve" />
+
+                                <label for="deny">Deny</label>&nbsp;
+
+                                <input type="radio" id="deny" name="denradio" value="deny" />
+                                <br />
+                                <label class="form-label" for="signaturemodal" >Signature</label>
+                                <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                                <br />
+                            <label class="form-label" for="commentsmodal">Signature</label>
+                            <input type="text" id="comments" name="commentsmodal" class="form-control" />
+                            <br />
                             <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
                         </form>
                     </div>

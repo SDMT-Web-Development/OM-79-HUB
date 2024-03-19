@@ -42,8 +42,18 @@
         <script>
             $(document).ready(function () {
                 $(".sign").click(function () {
-                    console.log(this.value)
-                })
+                    $("#sigtype").val(this.value)
+                    $("#signModal").modal('toggle')
+                });
+                $('.sign').siblings(':text').each(function () {
+                    // there's a better way to do this
+                    if ($(this).attr('placeholder') != "Traffic Engineer" && $(this).attr('placeholder') != "Maintenance Engineer" && $(this).attr('placeholder') != "Construction Engineer" && $(this).attr('placeholder') != "Right of Way Manager" && $(this).attr('placeholder') != "District Manager" && $(this).attr('placeholder') != "Bridge Engineer") 
+                        {
+                       $(this).siblings().addClass('disabled')
+                    
+                        }
+
+                });
             })
 
         </script>
