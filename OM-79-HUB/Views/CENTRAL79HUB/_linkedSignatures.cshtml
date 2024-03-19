@@ -1,0 +1,87 @@
+﻿@using OM_79_HUB.Models;
+@model IEnumerable<OM_79_HUB.Models.DB.OM79Hub.SignatureData>
+@{
+    string trafficsig, constructionsig, rightofwaysig, districtsig, bridgesig, maintenancesig;
+    var temp = Model.Where(t => t.SigType == "Traffic Engineer").ToList();
+
+    //Added the null coalescing operator with string to solve warning, idk if this is actually useful or if there's a better way to handle
+    //nullability warnings (probably with !)
+    trafficsig = temp.Count < 1 ? "Traffic Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "Maintenance Engineer").ToList();
+    maintenancesig = temp.Count < 1 ? "Maintenance Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "Construction Engineer").ToList();
+    constructionsig = temp.Count < 1 ? "Construction Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "Right of Way Manager").ToList();
+    rightofwaysig = temp.Count < 1 ? "Right of Way Manager" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "District Manager").ToList();
+    districtsig = temp.Count < 1 ? "District Manager" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "Bridge Engineer").ToList();
+    bridgesig = temp.Count < 1 ? "Bridge Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+}
+
+<div class="input-group">
+    <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@bridgesig" />
+    <button class="btn btn-primary" asp-action="SignOMHub" asp-route-type="bridgeeng">Sign</button>
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="bridgesiglabel">Traffic Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@trafficsig" />
+    <button class="btn btn-primary" asp-action="SignOMHub" asp-route-type="trafficeng">Sign</button>
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="bridgesiglabel">Maintenance Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@maintenancesig" />
+    <button class="btn btn-primary" asp-action="SignOMHub" asp-route-type="maintenanceeng">Sign</button>
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="bridgesiglabel">Construction Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@constructionsig" />
+    <button class="btn btn-primary sign"  value="constructionman">Sign</button>
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="bridgesiglabel">Right of Way Manager</span>
+    <input type="text" class="form-control" readonly placeholder="@rightofwaysig" />
+    <button class="btn btn-primary sign"  id="signbutton" value="rightofwayman">Sign</button>
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="bridgesiglabel">District Manager</span>
+    <input type="text" class="form-control" readonly placeholder="@districtsig" />
+    <button class="sign" id="signbutton" value="districtman">Sign</button>
+</div>
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signModal">SignModal</button>
+<div class="modal" id="signModal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Requisition</h3>
+                <div class="justify-content-end">
+
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body" id="containedform">
+                <div class="row">
+                    <div class="col-md-4">
+                        <form asp-action="SignOMHub">
+                            <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID " />
+                            <input type="hidden" value=""  id="sigtype"/>
+                            <label for="approve">Approve</label>
+                            @Html.RadioButton("approve", "Approve") 
+                            <label for="approve">Deny</label>
+                            @Html.RadioButton("approve", "Deny") 
+                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

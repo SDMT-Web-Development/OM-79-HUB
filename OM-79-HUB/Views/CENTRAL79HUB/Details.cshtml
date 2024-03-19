@@ -33,6 +33,24 @@
             
     }
 
+    @*I'm putting my script here bc jquery done be broke
+        I'm sure there's a smart way to load this and someone else knows it. ~nick
+    *@
+
+    @section scripts {
+
+        <script>
+            $(document).ready(function () {
+                $(".sign").click(function () {
+                    console.log(this.value)
+                })
+            })
+
+        </script>
+    }
+    <div id="signContainer" class="container">
+       @await Component.InvokeAsync("LinkedSignatures", new {hubId = ViewBag.testUniqueID})
+    </div>
 
     <div id="OMContainer">
         @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })

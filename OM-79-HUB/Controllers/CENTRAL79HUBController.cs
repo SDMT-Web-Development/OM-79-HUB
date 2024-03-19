@@ -41,7 +41,7 @@ namespace OM_79_HUB.Controllers
             {
                 return NotFound();
             }
-
+            
             ViewBag.TestUniqueID = id;
 
             return View(cENTRAL79HUB);
@@ -164,6 +164,14 @@ namespace OM_79_HUB.Controllers
         private bool CENTRAL79HUBExists(int id)
         {
           return (_context.CENTRAL79HUB?.Any(e => e.OMId == id)).GetValueOrDefault();
+        }
+
+        public  async Task<IActionResult> SignOMHub(string type)
+        {
+
+
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
