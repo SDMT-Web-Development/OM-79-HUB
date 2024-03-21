@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
+using OM_79_HUB.Models.DB.OM79Hub;
 
 namespace OM_79_HUB.Controllers
 {
@@ -41,7 +42,7 @@ namespace OM_79_HUB.Controllers
             {
                 return NotFound();
             }
-
+            
             ViewBag.TestUniqueID = id;
 
             return View(cENTRAL79HUB);
@@ -164,6 +165,47 @@ namespace OM_79_HUB.Controllers
         private bool CENTRAL79HUBExists(int id)
         {
           return (_context.CENTRAL79HUB?.Any(e => e.OMId == id)).GetValueOrDefault();
+        }
+
+        public  async Task<IActionResult> SignOMHub()
+        {
+            var app = Request.Form["apradio"];
+            var den = Request.Form["denradio"];
+            if(app.FirstOrDefault() == "approve")
+            {
+                var signature = new SignatureData();
+                signature.HubKey = int.Parse(Request.Form["HubKey"]);
+                signature.IsApprove = true;
+                signature.IsDenied = false;
+                signature.Comments = Request.Form["commentsmodal"];
+                signature.Signatures = Request.Form["signaturemodal"];
+                signature.SigType = Request.Form["sigtype"];
+                signature.ENumber = HttpContext.User.Identity.Name;
+
+
+                
+                _context.Add(signature);
+                await _context.SaveChangesAsync();
+            }
+            if (den.FirstOrDefault() == "deny")
+            {
+                var signature = new SignatureData();
+                signature.HubKey = int.Parse(Request.Form["HubKey"]);
+                signature.IsApprove = false;
+                signature.IsDenied = true;
+                signature.Comments = Request.Form["commentsmodal"];
+                signature.Signatures = Request.Form["signaturemodal"];
+                signature.SigType = Request.Form["sigtype"];
+                signature.ENumber = HttpContext.User.Identity.Name;
+
+
+
+                _context.Add(signature);
+                await _context.SaveChangesAsync();
+            }
+            var hubkey = int.Parse(Request.Form["HubKey"]);
+
+            return RedirectToAction(nameof(Details), new { id = hubkey });
         }
     }
 }
