@@ -90,5 +90,15 @@ public partial class OMTable
 
 
     public int? HubId { get; set; }
+    public string? SignSystem { get; set; }
+    public string? ProjectNumber { get; set; }
+    public int? RouteNumber { get; set; }
+    public int? SubRouteNumber { get; set; }
+    public DateTime? DateComplete { get; set; }
+    public decimal? StartingMilePoint {  get; set; }
+    public decimal? EndingMilePoint { get; set; }
+    public string? MaintOrg {  get; set; }
+    public int? YearOfSurvey {  get; set; }
+
 
 }

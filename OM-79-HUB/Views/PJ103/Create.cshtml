@@ -92,7 +92,7 @@
                 
              
             </div>
-            *@
+           
             <div class="col-md-4">
                 <label asp-for="BridgeInv" class="control-label">@Html.DisplayNameFor(model => model.BridgeInv)<span class="required-asterisk">*</span></label>
                 <select asp-for="BridgeInv" name="BridgeInv" class="form-control" asp-items="@ViewBag.BridgeDropdown"></select>
@@ -125,10 +125,6 @@
             </div>
 
 
-            <div class="form-group">
-                <label for="attachments">Attach Files:</label>
-                <input type="file" name="attachments" multiple>
-            </div>
 
 
             <input type="hidden" name="OM79Id" value="@ViewBag.testUniqueID" />
