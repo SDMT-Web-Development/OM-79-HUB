@@ -7,9 +7,9 @@
 }
 
 <h1>Details</h1>
-
+<hr />
 <div>
-    <h4>CENTRAL79HUB</h4>
+    <h4>OM-79 HUB</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -27,8 +27,6 @@
     </dl>
     <input type="hidden" name="OM79ID" value="@ViewBag.testUniqueID" />
 
-
-
     @{
         // Replace 'yourPrimaryKey' with the actual primary key you want to pass
         var ID = ViewBag.testUniqueID; // Replace with your actual primary key value
@@ -40,59 +38,24 @@
         @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
     </div>
 
-
-    @*
-
-    <div id="OMContainer">
-    <a href="@Url.Action("LinkedOM", "OM79", new { hubID = ViewBag.testUniqueID })">Click me</a>
-    </div>
-
-
-    <div id="OMContainer">
-        <a href="@Html.Raw(Url.Action("LinkedOM", "OM79", new { id = ViewBag.testUniqueID }))">Click me</a>
-        @Html.Raw(Url.Action("LinkedOM", "OM79", new {ID}))  @*Calls the linkedom function and passes the hub id to the om79 controller
-        
-    </div>*@
-    
 </div>
 
 
+<h4>Create New OM79</h4>
+<hr />
 <div>
-    <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Create New OM79 Attached to OM79-HUB-ID</a>
+    <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New OM79 Attached to OM79-HUB</a>
 </div>
+
+<hr />
+<h4>Export to PDF</h4>
+<hr />
+
+<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-primary">Export Packaged OM79(s) w/ Attached PJ103(s)</a>
+<hr />
 
 
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
-@*
-@section Scripts {
-
-    <script>
-        $(document).ready(function () {
-            // Trigger the AJAX call on page load
-            loadOMPartial();
-
-            function loadOMPartial() {
-
-                var testUniqueID = @ViewBag.testUniqueID; //Set id
-
-                $.ajax({
-                    url: '@Url.Action("LinkedOM", "OM79")',
-                    type: 'GET',
-                    data: { RailroadInv: true, testUniqueID: testUniqueID }, // added the unique id to be passed here
-                    success: function (result) {
-                        $('#OMContainer').html(result);
-                        $.validator.unobtrusive.parse('#OMContainer form');
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(error);
-                    }
-                });
-            }
-        });
-    </script>
-
-}
-*@

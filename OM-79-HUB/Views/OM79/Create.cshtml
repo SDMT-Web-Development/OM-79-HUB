@@ -28,46 +28,11 @@
             <br>
             <p>To:      HO(through CT From TI,OM)</p>
             <p> It is hereby requested that a Commissioner's Order be entered for the following described section of roadway to the State Road System</p>
-            <h4><br />Road Change Type (Check multiple if needed)<br /></h4>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RAddition" id="AdditionCheckbox" />  @Html.DisplayNameFor(model => model.RAddition)
-                </label>
-            </div>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RRedesignation" id="RedesignationCheckbox" />  @Html.DisplayNameFor(model => model.RRedesignation)
-                </label>
-            </div>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RMapCorrection" />  @Html.DisplayNameFor(model => model.RMapCorrection)
-                </label>
-            </div>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RAbandonment" id="AbandonmentCheckbox" />  @Html.DisplayNameFor(model => model.RAbandonment)
-                </label>
-            </div>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RInventoryRemoval" />  @Html.DisplayNameFor(model => model.RInventoryRemoval)
-                </label>
-            </div>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input id="AmendCheckbox" class="form-check-input" asp-for="RAmend" />  @Html.DisplayNameFor(model => model.RAmend)
-                </label>
-            </div>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="RRescind" />  @Html.DisplayNameFor(model => model.RRescind)
-                </label>
-            </div>
-            <div class="col-md-3">
-                <label class="form-check-label">
-                    <input id="ROtherCheckbox" class="form-check-input" asp-for="ROther" />  @Html.DisplayNameFor(model => model.ROther)
-                </label>
+            <h4><br />Road Change Type<br /></h4>
+            <div class="col-md-4">
+                <label asp-for="RoadChangeType" class="control-label">@Html.DisplayNameFor(model => model.RoadChangeType) <span class="required-asterisk">*</span></label>
+                <select asp-for="RoadChangeType" name="RoadChangeType" class="form-control" id="RoadChangeType" asp-items=@ViewBag.RCTDropdown></select>
+                <span asp-validation-for="RoadChangeType" class="text-danger"></span>
             </div>
             <div class="col-md-4" id="RoadContainer" style="display:none;">
                 <label asp-for="CoDate" class="control-label">@Html.DisplayNameFor(model => model.CoDate) <span class="required-asterisk">*</span></label>
@@ -149,11 +114,7 @@
                 <br />
 
             </div>
-            <div class="col-md-4">
-                <label asp-for="AdjacentProperty" class="control-label">@Html.DisplayNameFor(model => model.AdjacentProperty) <span id="asteriskContainer"> </span></label>
-                <input asp-for="AdjacentProperty" class="form-control" type="number" min="0" readonly onkeydown="validatePositiveNumber(event)" />
-                <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
-            </div>
+            
             <div class="col-md-4">
                 <label asp-for="APHouses" class="control-label"></label>
                 <input asp-for="APHouses" class="form-control calculate-sum" min="0" onkeydown="validatePositiveNumber(event)" />
@@ -178,6 +139,11 @@
                 <label asp-for="APOtherIdentify" class="control-label">@Html.DisplayNameFor(model => model.APOtherIdentify) <span class="required-asterisk">*</span></label>
                 <input asp-for="APOtherIdentify" class="form-control" />
                 <span asp-validation-for="APOtherIdentify" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="AdjacentProperty" class="control-label">@Html.DisplayNameFor(model => model.AdjacentProperty) <span id="asteriskContainer"> </span></label>
+                <input asp-for="AdjacentProperty" class="form-control" type="number" min="0" readonly onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
             </div>
             <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
 
@@ -292,9 +258,10 @@
     </script>
     <script>
         $(document).ready(function () {
-            // Assuming the checkbox has an ID of "AmendCheckbox"
-            $("#AmendCheckbox").change(function () {
-                if ($(this).prop("checked")) {
+            // Assuming the dropdown has an ID of "RoadChangeType"
+            $("#RoadChangeType").change(function () {
+                // Assuming "Amend" is one of the values in the dropdown
+                if ($(this).val() === "Amend") {
                     $("#RoadContainer").show();
                     $("#CoDate").attr("required", "required");
                     $("#CoDateTwoContainer").show();
@@ -310,9 +277,10 @@
 
     <script>
         $(document).ready(function () {
-            // Assuming the checkbox has an ID of "ROtherCheckbox"
-            $("#ROtherCheckbox").change(function () {
-                if ($(this).prop("checked")) {
+            // Assuming the dropdown has an ID of "RoadChangeType"
+            $("#RoadChangeType").change(function () {
+                // Assuming "Other" is one of the values in the dropdown
+                if ($(this).val() === "Other") {
                     $("#OtherboxContainer").show();
                     $("#Otherbox").attr("required", "required");
                 } else {

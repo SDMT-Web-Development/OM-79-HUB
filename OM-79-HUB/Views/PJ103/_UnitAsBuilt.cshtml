@@ -118,6 +118,16 @@
             <select asp-for="NHS" name="NHS" class="form-control" asp-items="@ViewBag.NHSDropdown"></select>
             <span asp-validation-for="NHS" class="text-danger"></span>
         </div>
+        <div class="col-md-4">
+            <label asp-for="MPSegmentStart" class="control-label"></label>
+            <input asp-for="MPSegmentStart" class="form-control" />
+            <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="MPSegmentEnd" class="control-label"></label>
+            <input asp-for="MPSegmentEnd" class="form-control" />
+            <span asp-validation-for="MPSegmentEnd" class="text-danger"></span>
+        </div>
     </div>
 
 }
