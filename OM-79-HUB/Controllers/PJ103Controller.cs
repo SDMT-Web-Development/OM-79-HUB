@@ -27,7 +27,7 @@ namespace OM_79_HUB.Data
         public async Task<IActionResult> Index()
         {
             // Define the list of admin enums
-            List<string> AdminEnums = new List<string> { "EXECUTIVE\\E07395", "EXECUTIVE\\E115477", "EXECUTIVE\\E006518", "EXECUTIVE\\E107097",
+            List<string> AdminEnums = new List<string> { "EXECUTIVE\\E073953", "EXECUTIVE\\E115477", "EXECUTIVE\\E006518", "EXECUTIVE\\E107097",
                 "EXECUTIVE\\E029937", "EXECUTIVE\\E039503", "EXECUTIVE\\E101121", "EXECUTIVE\\E122059" };
 
             // Get the user's identity name
@@ -309,121 +309,121 @@ namespace OM_79_HUB.Data
                 synctables(submission.SubmissionID);
 
                 // Save the attachments
-                foreach (var attachmentFile in attachments)
+                /*   foreach (var attachmentFile in attachments)
+                  {
+                      if (attachmentFile.Length > 0)
+                      {
+                          var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "PJAttachments");
+                          var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
+                          var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                          using (var fileStream = new FileStream(filePath, FileMode.Create))
+                          {
+                              await attachmentFile.CopyToAsync(fileStream);
+                          }
+
+                          var attachment = new Attachments
+                          {
+                              FileName = attachmentFile.FileName,
+                              FilePath = filePath,
+                              SubmissionID = submission.SubmissionID  // Use the SubmissionID from the saved submission
+                          };
+                          _context.Attachments.Add(attachment);
+                      }
+                  }
+                */
+                // Save all changes to the database
+                await _context.SaveChangesAsync();
+                  return RedirectToAction(nameof(Index));
+              }
+
+              void synctables(int ID)
+              {
+                  _context.BridgeRR.Add(dto.ToBridgeRR());
+                  _context.RouteInfo.Add(dto.ToRouteInfo());
+              }
+
+              return View(submission);
+          }
+          /*
+          [HttpPost]
+          [ValidateAntiForgeryToken]
+          public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments)
+          {
+              if (ModelState.IsValid)
+              {
+                  // Save the submission first to get an ID
+                  _context.Add(submission);
+                  await _context.SaveChangesAsync();
+
+                  // Update additional properties and sync tables after getting SubmissionID
+                  submission.DateComplete = DateTime.Now;
+                  dto.SubmissionID = submission.SubmissionID;
+                  synctables(submission.SubmissionID);
+
+                  // Save the attachments
+                  foreach (var attachmentFile in attachments)
+                  {
+                      var filePath = "~/wwwroot/PJAttachments"; // Save your file and get the path
+                      var attachment = new Attachments
+                      {
+                          FileName = attachmentFile.FileName,
+                          FilePath = filePath,
+                          SubmissionID = submission.SubmissionID  // Use the SubmissionID from the saved submission
+                      };
+                      _context.Attachments.Add(attachment);
+                  }
+
+                  // Save all changes to the database
+                  await _context.SaveChangesAsync();
+                  return RedirectToAction(nameof(Index));
+              }
+
+              void synctables(int ID)
+              {
+                  _context.BridgeRR.Add(dto.ToBridgeRR());
+                  _context.RouteInfo.Add(dto.ToRouteInfo());
+              }
+
+              return View(submission);
+          }
+          */
+
+
+                /*
+                // POST: Submissions/Create
+                // To protect from overposting attacks, enable the specific properties you want to bind to.
+                // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+                //   Create([Bind("SubmissionID,ProjectKey,ReportDate,County,RouteNumber,SubRouteNumber,ProjectNumber,DateComplete,NatureOfChange,MilesOfNewRoad,MaintOrg,YearOfSurvey,AccessControl,ThroughLanes,CounterPeakLanes,PeakLanes,ReverseLanes,LaneWidth,MedianWidth,PavementWidth,SpecialSys,FacilityType,FederalAid,FedForestHighway,MedianType,NHS,TruckRoute,GovIDOwnership,WVlegalClass,FunctionalClass,BridgeNumber,BridgeLocation,StationFrom,StationTo,CrossingName,WeightLimit,SubMaterial,SuperMaterial,FloorMaterial,ArchMaterial,TotalLength,ClearanceRoadway,ClearanceSidewalkRight,ClearanceSidewalkLeft,ClearanceStreamble,ClearancePortal,ClearanceAboveWater,PostedLoadLimits,ConstructionDate,WhomBuilt,HistoricalBridge,UserID,OtherBox,StartingMilePoint,EndingMilePoint,RailroadInv,NumberOfSpans,SignSystem")] Submission submission, AclvlDTOs dto)
+                [HttpPost]
+                [ValidateAntiForgeryToken]
+                public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto)
                 {
-                    if (attachmentFile.Length > 0)
+                    if (ModelState.IsValid)
                     {
-                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "PJAttachments");
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await attachmentFile.CopyToAsync(fileStream);
-                        }
-
-                        var attachment = new Attachments
-                        {
-                            FileName = attachmentFile.FileName,
-                            FilePath = filePath,
-                            SubmissionID = submission.SubmissionID  // Use the SubmissionID from the saved submission
-                        };
-                        _context.Attachments.Add(attachment);
+                        _context.Add(submission);
+                        await _context.SaveChangesAsync();
+                        submission.DateComplete= DateTime.Now;
+                        dto.SubmissionID = submission.SubmissionID;
+                        synctables(submission.SubmissionID);
+                        await _context.SaveChangesAsync();
+                        return RedirectToAction(nameof(Index));
                     }
-                }
-
-                // Save all changes to the database
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            
-            void synctables(int ID)
-            {
-                _context.BridgeRR.Add(dto.ToBridgeRR());
-                _context.RouteInfo.Add(dto.ToRouteInfo());
-            }
-            
-            return View(submission);
-        }
-        /*
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments)
-        {
-            if (ModelState.IsValid)
-            {
-                // Save the submission first to get an ID
-                _context.Add(submission);
-                await _context.SaveChangesAsync();
-
-                // Update additional properties and sync tables after getting SubmissionID
-                submission.DateComplete = DateTime.Now;
-                dto.SubmissionID = submission.SubmissionID;
-                synctables(submission.SubmissionID);
-
-                // Save the attachments
-                foreach (var attachmentFile in attachments)
-                {
-                    var filePath = "~/wwwroot/PJAttachments"; // Save your file and get the path
-                    var attachment = new Attachments
+                    void synctables(int ID)
                     {
-                        FileName = attachmentFile.FileName,
-                        FilePath = filePath,
-                        SubmissionID = submission.SubmissionID  // Use the SubmissionID from the saved submission
-                    };
-                    _context.Attachments.Add(attachment);
+                        _context.BridgeRR.Add(dto.ToBridgeRR());
+                        // Create related objects from dto and add them to the context
+                        //    _context.Spans.Add(dto.ToSpan());
+                        _context.RouteInfo.Add(dto.ToRouteInfo());
+                       // _context.BridgeRR.Add(dto.ToBridgeRR());
+
+
+                    }
+                    return View(submission);
                 }
-
-                // Save all changes to the database
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-
-            void synctables(int ID)
-            {
-                _context.BridgeRR.Add(dto.ToBridgeRR());
-                _context.RouteInfo.Add(dto.ToRouteInfo());
-            }
-
-            return View(submission);
-        }
-        */
-
-
-        /*
-        // POST: Submissions/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //   Create([Bind("SubmissionID,ProjectKey,ReportDate,County,RouteNumber,SubRouteNumber,ProjectNumber,DateComplete,NatureOfChange,MilesOfNewRoad,MaintOrg,YearOfSurvey,AccessControl,ThroughLanes,CounterPeakLanes,PeakLanes,ReverseLanes,LaneWidth,MedianWidth,PavementWidth,SpecialSys,FacilityType,FederalAid,FedForestHighway,MedianType,NHS,TruckRoute,GovIDOwnership,WVlegalClass,FunctionalClass,BridgeNumber,BridgeLocation,StationFrom,StationTo,CrossingName,WeightLimit,SubMaterial,SuperMaterial,FloorMaterial,ArchMaterial,TotalLength,ClearanceRoadway,ClearanceSidewalkRight,ClearanceSidewalkLeft,ClearanceStreamble,ClearancePortal,ClearanceAboveWater,PostedLoadLimits,ConstructionDate,WhomBuilt,HistoricalBridge,UserID,OtherBox,StartingMilePoint,EndingMilePoint,RailroadInv,NumberOfSpans,SignSystem")] Submission submission, AclvlDTOs dto)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(submission);
-                await _context.SaveChangesAsync();
-                submission.DateComplete= DateTime.Now;
-                dto.SubmissionID = submission.SubmissionID;
-                synctables(submission.SubmissionID);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            void synctables(int ID)
-            {
-                _context.BridgeRR.Add(dto.ToBridgeRR());
-                // Create related objects from dto and add them to the context
-                //    _context.Spans.Add(dto.ToSpan());
-                _context.RouteInfo.Add(dto.ToRouteInfo());
-               // _context.BridgeRR.Add(dto.ToBridgeRR());
-                
-
-            }
-            return View(submission);
-        }
-        */
-        // GET: Submissions/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+                */
+                // GET: Submissions/Edit/5
+                public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Submissions == null)
             {
