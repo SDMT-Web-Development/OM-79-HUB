@@ -143,8 +143,8 @@ namespace PJ103V3.Models.ViewModels
         public int ProjectKey { get; set; }
         [DisplayName("Report Date")]
         public DateTime? ReportDate { get; set; }
-       [Required(ErrorMessage = "The County Field is Required")]
-        public string County { get; set; } = null!;
+      // [Required(ErrorMessage = "The County Field is Required")]
+        public string? County { get; set; }
         [DisplayName("Route Number")]
         
         public int? RouteNumber { get; set; }
@@ -156,7 +156,7 @@ namespace PJ103V3.Models.ViewModels
         [DisplayName("Date Complete")]
         public DateTime? DateComplete { get; set; }
         [DisplayName("Nature of Change")]
-        [Required]
+      //  [Required]
         public string? NatureOfChange { get; set; }
 
         public decimal? MilesOfNewRoad { get; set; }
@@ -283,10 +283,10 @@ namespace PJ103V3.Models.ViewModels
         
         public string? SignSystem { get; set; }
         [DisplayName("Is There a Bridge?")]
-        [Required]
+       // [Required]
         public string? BridgeInv { get; set; }
         [DisplayName("Is There a Railroad Crossing?")]
-        [Required]
+       // [Required]
         public string? RailroadInv { get; set; }
         [DisplayName("Bridge Surface Type")]
         public string? BridgeSurfaceType { get; set; }

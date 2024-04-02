@@ -15,7 +15,7 @@ public partial class Submission
     [DisplayName("Report Date")]
     public DateTime? ReportDate { get; set; }
 
-    public string County { get; set; } = null!;
+    public string? County { get; set; } 
     [DisplayName("Route Number")]
     public int? RouteNumber { get; set; }
     [DisplayName("Subroute Number")]

@@ -141,7 +141,7 @@ namespace OM_79_HUB.DTOs
 
         public DateTime? ReportDate { get; set; }
 
-        public string County { get; set; } = null!;
+        public string? County { get; set; }
 
         public int? RouteNumber { get; set; }
 
