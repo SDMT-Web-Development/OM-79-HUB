@@ -300,7 +300,9 @@ namespace PJ103V3.Models.ViewModels
         [DisplayName("Surface Type")]
         public string? SurfaceTypeN { get; set; }
         //End of UnitAsBuilt Table
+        [DisplayName("Starting MP")]
         public decimal? MPSegmentStart { get; set; }
+        [DisplayName("Ending MP")]
         public decimal? MPSegmentEnd { get; set; }
 
 

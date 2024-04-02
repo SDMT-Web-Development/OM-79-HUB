@@ -7,14 +7,14 @@
 
 
 
-<h4>OM-79 Changes to the State Highway System</h4>
+<h4>OM-79 Item; Changes to the State Highway System</h4>
 <hr />
 <div class="row">
 
     <form asp-action="Create" enctype="multipart/form-data">
         <div class="row form-group">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="col-md-4">
+          @*  <div class="col-md-4">
                 <label asp-for="DistrictNumber" class="control-label">@Html.DisplayNameFor(model => model.DistrictNumber) <span class="required-asterisk">*</span></label>
                 <select asp-for="DistrictNumber" name="DistrictNumber" class="form-control" id="districtDropdown" asp-items=@ViewBag.DDropdown> </select>
                 <span asp-validation-for="DistrictNumber" class="text-danger"></span>
@@ -24,7 +24,7 @@
                 <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
                 <span asp-validation-for="County" class="text-danger"></span>
             </div>
-
+            *@
             <br>
             <p>To:      HO(through CT From TI,OM)</p>
             <p> It is hereby requested that a Commissioner's Order be entered for the following described section of roadway to the State Road System</p>
@@ -216,7 +216,7 @@
 
             <h4><br />Attachments<br /></h4>
 
-            <p>Examples: Checklists, Location Maps, PJ-103, and Research</p>
+            <p>Examples: Checklists, Location Maps, and Research</p>
             <div class="form-group">
                 <label for="attachments">Attach Files:</label>
                 <input type="file" name="attachments" multiple>

@@ -1,5 +1,6 @@
 ﻿
 using PJ103V3.Models.DB;
+using System.ComponentModel;
 
 namespace OM_79_HUB.DTOs
 {
@@ -280,6 +281,10 @@ namespace OM_79_HUB.DTOs
         public string? BridgeName { get; set; }
         public int? RailKey { get; set; }
         public string? SurfaceTypeN { get; set; }
+        [DisplayName("Starting MP")]
+        public decimal? MPSegmentStart { get; set; }
+        [DisplayName("Ending MP")]
+        public decimal? MPSegmentEnd { get; set; }
 
 
 
@@ -455,8 +460,10 @@ namespace OM_79_HUB.DTOs
                      WVlegalClass = this.WVlegalClass,
                     FunctionalClass = this.FunctionalClass,
                     SurfaceTypeN = this.SurfaceTypeN,
+                    MPSegmentStart = this.MPSegmentStart,
+                    MPSegmentEnd = this.MPSegmentEnd
 
-            };
+    };
             }
         public BridgeRR ToBridgeRR()
         {
