@@ -10,9 +10,9 @@ public partial class OMTable
     [Key]
     public int Id { get; set; }
     [DisplayName("District Number")]
-    [Required]
+    
     public int? DistrictNumber { get; set; }
-    [Required]
+    
     public string? County { get; set; }
 
     [DisplayName("Date")]
@@ -101,8 +101,10 @@ public partial class OMTable
     [DisplayName("Date Complete")]
     public DateTime? DateComplete { get; set; }
     [DisplayName("Starting MP")]
+    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
     public decimal? StartingMilePoint {  get; set; }
     [DisplayName("Ending MP")]
+    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
     public decimal? EndingMilePoint { get; set; }
     [DisplayName("Org Number")]
     public string? MaintOrg {  get; set; }
