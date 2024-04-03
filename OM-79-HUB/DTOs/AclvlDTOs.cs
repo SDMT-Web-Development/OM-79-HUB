@@ -1,6 +1,7 @@
 ﻿
 using PJ103V3.Models.DB;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace OM_79_HUB.DTOs
 {
@@ -282,8 +283,10 @@ namespace OM_79_HUB.DTOs
         public int? RailKey { get; set; }
         public string? SurfaceTypeN { get; set; }
         [DisplayName("Starting MP")]
+        [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
         public decimal? MPSegmentStart { get; set; }
         [DisplayName("Ending MP")]
+        [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
         public decimal? MPSegmentEnd { get; set; }
 
 

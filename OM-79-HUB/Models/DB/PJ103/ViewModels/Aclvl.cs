@@ -301,8 +301,10 @@ namespace PJ103V3.Models.ViewModels
         public string? SurfaceTypeN { get; set; }
         //End of UnitAsBuilt Table
         [DisplayName("Starting MP")]
+        [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
         public decimal? MPSegmentStart { get; set; }
         [DisplayName("Ending MP")]
+        [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
         public decimal? MPSegmentEnd { get; set; }
 
 
