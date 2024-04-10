@@ -9,7 +9,7 @@
 
 <div>
     <hr />
-    <h4>OM79</h4>
+    <h4>OM-79 Items</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
@@ -214,9 +214,9 @@
 
 
 <hr />
-<h4>Create New PJ103</h4>
+<h4>Create New PJ103 Segment</h4>
 <hr />
-<a href="@Url.Action("Create", "PJ103", new { uniqueID = Model.Id })" class="btn btn-primary">Add New PJ103 Attached to OM79</a>
+<a href="@Url.Action("Create", "PJ103", new { uniqueID = Model.Id })" class="btn btn-primary">Add New PJ103 Segment Attached to OM79</a>
 <hr />
 
 
@@ -224,7 +224,7 @@
 
 <h4>Export to PDF</h4>
 <hr />
-<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79File" asp-route-id="@Model.Id" class="btn btn-primary">Export Only OM79</a>
+<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79File" asp-route-id="@Model.Id" class="btn btn-primary">Export Only OM-79 Item</a>
 <div> <br /> </div>
 <a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79wPJ103" asp-route-id="@Model.Id" class="btn btn-secondary">Export Packaged OM79 w/ Attached PJ103</a>
 <hr />

@@ -6,7 +6,7 @@
 
 <h1>Create</h1>
 
-<h4>CENTRAL79HUB</h4>
+<h4>New OM-79</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -23,13 +23,13 @@
                 <span asp-validation-for="Otherbox" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="District" class="control-label"></label>
-                <input asp-for="District" class="form-control" />
+                <label asp-for="District" class="control-label">@Html.DisplayNameFor(model => model.District) <span class="required-asterisk">*</span></label>
+                <select asp-for="District" name="DistrictNumber" class="form-control" id="districtDropdown" asp-items=@ViewBag.DDropdown> </select>
                 <span asp-validation-for="District" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="County" class="control-label"></label>
-                <input asp-for="County" class="form-control" />
+                <label asp-for="County" class="control-label">@Html.DisplayNameFor(model => model.County) <span class="required-asterisk">*</span></label>
+                <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
                 <span asp-validation-for="County" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -46,4 +46,44 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(document).ready(function () {
+            // Get references to the dropdowns
+            var districtDropdown = $("#districtDropdown");
+            var countyDropdown = $("#countyDropdown");
+
+            // Define a mapping of DistrictNumber to counties
+            var districtToCounties = {
+                "1": ["Boone", "Clay", "Kanawha", "Mason", "Putnam"],
+                "2": ["Cabell", "Lincoln", "Logan", "Mingo", "Wayne"],
+                "3": ["Calhoun", "Jackson", "Pleasants", "Ritchie", "Roane", "Wirt", "Wood"],
+                "4": ["Doddridge", "Harrison", "Marion", "Monongalia", "Preston", "Taylor"],
+                "5": ["Berkeley", "Grant", "Hampshire", "Hardy", "Jefferson", "Mineral", "Morgan"],
+                "6": ["Brooke", "Hancock", "Marshall", "Ohio", "Tyler", "Wetzel"],
+                "7": ["Barbour", "Braxton", "Gilmer", "Lewis", "Upshur", "Webster"],
+                "8": ["Pendleton", "Pocahontas", "Randolph", "Tucker"],
+                "9": ["Fayette", "Greenbrier", "Monroe", "Nicholas", "Summers"],
+                "10": ["McDowell", "Mercer", "Raleigh", "Wyoming"]
+                // Add more mappings as needed
+            };
+
+            // Event handler for DistrictNumber dropdown change
+            districtDropdown.change(function () {
+                var selectedDistrict = districtDropdown.val();
+                var counties = districtToCounties[selectedDistrict] || [];
+
+                // Clear the County dropdown and add the new options
+                countyDropdown.empty();
+                countyDropdown.append('<option value="">Select District First</option>');
+
+                $.each(counties, function (index, county) {
+                    countyDropdown.append('<option value="' + county + '">' + county + '</option>');
+                });
+            });
+
+            // Trigger the change event to populate the County dropdown initially
+            districtDropdown.trigger('change');
+        });
+    </script>
 }
