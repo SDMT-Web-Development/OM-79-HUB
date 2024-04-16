@@ -28,6 +28,13 @@ namespace OM_79_HUB.Controllers
                           Problem("Entity set 'OM_79_HUBContext.CENTRAL79HUB'  is null.");
         }
 
+        public async Task<IActionResult> AdminIndex()
+        {
+            return _context.CENTRAL79HUB != null ?
+                        View(await _context.UserData.ToListAsync()) :
+                        Problem("Entity set 'OM_79_HUBContext.UserData'  is null.");
+        }
+
         // GET: CENTRAL79HUB/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -57,7 +64,7 @@ namespace OM_79_HUB.Controllers
         }
 
         // GET: CENTRAL79HUB/Admin
-        public IActionResult Admin()
+        public IActionResult AdminCreate()
         {
             Dropdowns();
             return View();
@@ -68,7 +75,7 @@ namespace OM_79_HUB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Admin([Bind("ENumber,UserKey, FirstName, LastName, CRU, CRA, HDS, LRS, GISManager, Chief, DistrictReview, District, Email, BridgeEngineer, TrafficEngineer, MaintenanceEngineer, ConstructionEngineer, RightOfWayManager, DistrictManager")] UserData userdata)
+        public async Task<IActionResult> AdminCreate([Bind("ENumber,UserKey, FirstName, LastName, CRU, CRA, HDS, LRS, GISManager, Chief, DistrictReview, District, Email, BridgeEngineer, TrafficEngineer, MaintenanceEngineer, ConstructionEngineer, RightOfWayManager, DistrictManager")] UserData userdata)
         {
             if (ModelState.IsValid)
             {
