@@ -28,6 +28,13 @@ namespace OM_79_HUB.Controllers
                           Problem("Entity set 'OM_79_HUBContext.CENTRAL79HUB'  is null.");
         }
 
+        public async Task<IActionResult> AdminIndex()
+        {
+            return _context.CENTRAL79HUB != null ?
+                        View(await _context.UserData.ToListAsync()) :
+                        Problem("Entity set 'OM_79_HUBContext.UserData'  is null.");
+        }
+
         // GET: CENTRAL79HUB/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -54,6 +61,31 @@ namespace OM_79_HUB.Controllers
             Dropdowns();
             return View();
             
+        }
+
+        // GET: CENTRAL79HUB/Admin
+        public IActionResult AdminCreate()
+        {
+            Dropdowns();
+            return View();
+
+        }
+        // POST: CENTRAL79HUB/Admin
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminCreate([Bind("ENumber,UserKey, FirstName, LastName, CRU, CRA, HDS, LRS, GISManager, Chief, DistrictReview, District, Email, BridgeEngineer, TrafficEngineer, MaintenanceEngineer, ConstructionEngineer, RightOfWayManager, DistrictManager")] UserData userdata)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(userdata);
+                await _context.SaveChangesAsync();
+               
+                return RedirectToAction("Index");
+               
+            }
+            return View(userdata);
         }
 
         // POST: CENTRAL79HUB/Create

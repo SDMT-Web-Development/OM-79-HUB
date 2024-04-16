@@ -20,5 +20,6 @@ namespace OM_79_HUB.Data
         }
         public virtual DbSet<CENTRAL79HUB> CENTRAL79HUB { get; set; }
         public virtual DbSet<SignatureData> SignatureData { get; set; }
+        public virtual DbSet<UserData> UserData { get; set; }
     }
 }
