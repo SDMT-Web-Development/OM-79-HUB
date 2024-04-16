@@ -18,6 +18,12 @@
             <th>
                 @Html.DisplayNameFor(model => model.Otherbox)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.County)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.District)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -30,6 +36,12 @@
             <td>
                     @Html.DisplayFor(modelItem => item.Otherbox)
             </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.County)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.District)
+                </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.OMId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.OMId">Details</a> |

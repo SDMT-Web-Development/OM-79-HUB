@@ -51,6 +51,7 @@ namespace OM_79_HUB.Controllers
         // GET: CENTRAL79HUB/Create
         public IActionResult Create()
         {
+
             Dropdowns();
             return View();
             
@@ -86,8 +87,11 @@ namespace OM_79_HUB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox")] CENTRAL79HUB cENTRAL79HUB)
+        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB)
         {
+            string userIdentity = User.Identity.Name;
+            cENTRAL79HUB.UserId = userIdentity;
+
             if (ModelState.IsValid)
             {
                 _context.Add(cENTRAL79HUB);

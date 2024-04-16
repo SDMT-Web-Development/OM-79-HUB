@@ -68,7 +68,7 @@ namespace OM_79_HUB.Data
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(OMTable oMTable, List<IFormFile> attachments)
+        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers")] OMTable oMTable, List<IFormFile> attachments)
         {
 
             Console.WriteLine("------------------------------------------------------------------------------------------");
@@ -357,6 +357,14 @@ namespace OM_79_HUB.Data
         };
             YNDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
             ViewBag.YNDropdown = YNDropdown;
+            List<SelectListItem> TFDropdown = new()
+        {
+            new SelectListItem { Text = "Yes", Value = "True" },
+            new SelectListItem { Text = "No", Value = "False" }
+
+        };
+            TFDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
+            ViewBag.TFDropdown = TFDropdown;
             List<SelectListItem> CountyDropdown = new()
         {
                 new SelectListItem {Text = "Barbour", Value = "Barbour"},
