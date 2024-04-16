@@ -1,0 +1,163 @@
+﻿@using OM_79_HUB.Models.DB.OM79Hub
+@model UserData
+
+@{
+    ViewData["Title"] = "AdminPage";
+}
+
+<h1>AdminPage</h1>
+
+<h4>OM-79</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Admin" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <div class="form-group">
+                <label asp-for="ENumber" class="control-label"></label>
+                <input asp-for="ENumber" class="form-control" />
+                <span asp-validation-for="ENumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="LastName" class="control-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="CRU" />  @Html.DisplayNameFor(model => model.CRU)
+                </label>
+            </div>
+
+           <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="CRA" class="form-check-input" />
+                    <label asp-for="CRA" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="CRA" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="HDS" class="form-check-input" />
+                    <label asp-for="HDS" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="HDS" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="LRS" class="form-check-input" />
+                    <label asp-for="LRS" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="LRS" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="GISManager" class="form-check-input" />
+                    <label asp-for="GISManager" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="GISManager" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="Chief" class="form-check-input" />
+                    <label asp-for="Chief" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="Chief" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="DistrictReview" class="form-check-input" />
+                    <label asp-for="DistrictReview" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="DistrictReview" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="District" class="control-label"></label>
+                <input asp-for="District" class="form-control" />
+                <span asp-validation-for="District" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="BridgeEngineer" class="form-check-input" />
+                    <label asp-for="BridgeEngineer" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="BridgeEngineer" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="TrafficEngineer" class="form-check-input" />
+                    <label asp-for="TrafficEngineer" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="TrafficEngineer" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="MaintenanceEngineer" class="form-check-input" />
+                    <label asp-for="MaintenanceEngineer" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="MaintenanceEngineer" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="ConstructionEngineer" class="form-check-input" />
+                    <label asp-for="ConstructionEngineer" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="ConstructionEngineer" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="RightOfWayManager" class="form-check-input" />
+                    <label asp-for="RightOfWayManager" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="RightOfWayManager" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input asp-for="DistrictManager" class="form-check-input" />
+                    <label asp-for="DistrictManager" class="form-check-label control-label"></label>
+                </div>
+                <span asp-validation-for="DistrictManager" class="text-danger"></span>
+            </div>
+            
+
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
