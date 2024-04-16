@@ -113,7 +113,7 @@ namespace OM_79_HUB.Data
 
 
                 // Save the attachments
-               /* foreach (var attachmentFile in attachments)
+                foreach (var attachmentFile in attachments)
                 {
                     if (attachmentFile.Length > 0)
                     {
@@ -134,7 +134,7 @@ namespace OM_79_HUB.Data
                         };
                         _context.Attachments.Add(attachment);
                     }
-                }*/
+                }
 
                 // Save all changes to the database
                 await _context.SaveChangesAsync();
