@@ -56,6 +56,31 @@ namespace OM_79_HUB.Controllers
             
         }
 
+        // GET: CENTRAL79HUB/Admin
+        public IActionResult Admin()
+        {
+            Dropdowns();
+            return View();
+
+        }
+        // POST: CENTRAL79HUB/Admin
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Admin([Bind("ENumber,UserKey, FirstName, LastName, CRU, CRA, HDS, LRS, GISManager, Chief, DistrictReview, District, Email, BridgeEngineer, TrafficEngineer, MaintenanceEngineer, ConstructionEngineer, RightOfWayManager, DistrictManager")] UserData userdata)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(userdata);
+                await _context.SaveChangesAsync();
+               
+                return RedirectToAction("Index");
+               
+            }
+            return View(userdata);
+        }
+
         // POST: CENTRAL79HUB/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
