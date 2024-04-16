@@ -61,6 +61,11 @@ public partial class RouteInfo
 
     public string? FunctionalClass { get; set; }
     public string? SurfaceTypeN { get; set; }
+    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+    [DisplayName("Starting MP")]
+    
     public decimal? MPSegmentStart { get; set; }
+    [DisplayName("Ending MP")]
+    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
     public decimal? MPSegmentEnd { get; set; }
 }

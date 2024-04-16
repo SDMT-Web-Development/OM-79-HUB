@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
+using OM_79_HUB.Models.DB.OM79Hub;
 
 namespace OM_79_HUB.Controllers
 {
@@ -41,7 +42,7 @@ namespace OM_79_HUB.Controllers
             {
                 return NotFound();
             }
-
+            
             ViewBag.TestUniqueID = id;
 
             return View(cENTRAL79HUB);
@@ -50,7 +51,9 @@ namespace OM_79_HUB.Controllers
         // GET: CENTRAL79HUB/Create
         public IActionResult Create()
         {
+            Dropdowns();
             return View();
+            
         }
 
         // POST: CENTRAL79HUB/Create
@@ -164,6 +167,128 @@ namespace OM_79_HUB.Controllers
         private bool CENTRAL79HUBExists(int id)
         {
           return (_context.CENTRAL79HUB?.Any(e => e.OMId == id)).GetValueOrDefault();
+        }
+
+        public  async Task<IActionResult> SignOMHub()
+        {
+            var app = Request.Form["apradio"];
+            var den = Request.Form["denradio"];
+            if(app.FirstOrDefault() == "approve")
+            {
+                var signature = new SignatureData();
+                signature.HubKey = int.Parse(Request.Form["HubKey"]);
+                signature.IsApprove = true;
+                signature.IsDenied = false;
+                signature.Comments = Request.Form["commentsmodal"];
+                signature.Signatures = Request.Form["signaturemodal"];
+                signature.SigType = Request.Form["sigtype"];
+                signature.ENumber = HttpContext.User.Identity.Name;
+
+
+                
+                _context.Add(signature);
+                await _context.SaveChangesAsync();
+            }
+            if (den.FirstOrDefault() == "deny")
+            {
+                var signature = new SignatureData();
+                signature.HubKey = int.Parse(Request.Form["HubKey"]);
+                signature.IsApprove = false;
+                signature.IsDenied = true;
+                signature.Comments = Request.Form["commentsmodal"];
+                signature.Signatures = Request.Form["signaturemodal"];
+                signature.SigType = Request.Form["sigtype"];
+                signature.ENumber = HttpContext.User.Identity.Name;
+
+
+
+                _context.Add(signature);
+                await _context.SaveChangesAsync();
+            }
+            var hubkey = int.Parse(Request.Form["HubKey"]);
+
+            return RedirectToAction(nameof(Details), new { id = hubkey });
+        }
+        public void Dropdowns ()
+        {
+            List<SelectListItem> CountyDropdown = new()
+        {
+                new SelectListItem {Text = "Barbour", Value = "Barbour"},
+                new SelectListItem {Text = "Berkeley", Value = "Berkeley"},
+                new SelectListItem {Text = "Boone", Value = "Boone"},
+                new SelectListItem {Text = "Braxton", Value = "Braxton"},
+                new SelectListItem {Text = "Brooke", Value = "Brooke"},
+                new SelectListItem {Text = "Cabell", Value = "Cabell"},
+                new SelectListItem {Text = "Calhoun", Value = "Calhoun"},
+                new SelectListItem {Text = "Clay", Value = "Clay"},
+                new SelectListItem {Text = "Doddridge", Value = "Doddridge"},
+                new SelectListItem {Text = "Fayette", Value = "Fayette"},
+                new SelectListItem {Text = "Gilmer", Value = "Gilmer"},
+                new SelectListItem {Text = "Grant", Value = "Grant"},
+                new SelectListItem {Text = "Greenbrier", Value = "Greenbrier"},
+                new SelectListItem {Text = "Hampshire", Value = "Hampshire"},
+                new SelectListItem {Text = "Hancock", Value = "Hancock"},
+                new SelectListItem {Text = "Hardy", Value = "Hardy"},
+                new SelectListItem {Text = "Harrison", Value = "Harrison"},
+                new SelectListItem {Text = "Jackson", Value = "Jackson"},
+                new SelectListItem {Text = "Jefferson", Value = "Jefferson"},
+                new SelectListItem {Text = "Kanawha", Value = "Kanawha"},
+                new SelectListItem {Text = "Lewis", Value = "Lewis"},
+                new SelectListItem {Text = "Lincoln", Value = "Lincoln"},
+                new SelectListItem {Text = "Logan", Value = "Logan"},
+                new SelectListItem {Text = "McDowell", Value = "McDowell"},
+                new SelectListItem {Text = "Marion", Value = "Marion"},
+                new SelectListItem {Text = "Marshall", Value = "Marshall"},
+                new SelectListItem {Text = "Mason", Value = "Mason"},
+                new SelectListItem {Text = "Mercer", Value = "Mercer"},
+                new SelectListItem {Text = "Mineral", Value = "Mineral"},
+                new SelectListItem {Text = "Mingo", Value = "Mingo"},
+                new SelectListItem {Text = "Monongalia", Value = "Monongalia"},
+                new SelectListItem {Text = "Monroe", Value = "Monroe"},
+                new SelectListItem {Text = "Morgan", Value = "Morgan"},
+                new SelectListItem {Text = "Nicholas", Value = "Nicholas"},
+                new SelectListItem {Text = "Ohio", Value = "Ohio"},
+                new SelectListItem {Text = "Pendleton", Value = "Pendleton"},
+                new SelectListItem {Text = "Pleasants", Value = "Pleasants"},
+                new SelectListItem {Text = "Pocahontas", Value = "Pocahontas"},
+                new SelectListItem {Text = "Preston", Value = "Preston"},
+                new SelectListItem {Text = "Putnam", Value = "Putnam"},
+                new SelectListItem {Text = "Raleigh", Value = "Raleigh"},
+                new SelectListItem {Text = "Randolph", Value = "Randolph"},
+                new SelectListItem {Text = "Ritchie", Value = "Ritchie"},
+                new SelectListItem {Text = "Roane", Value = "Roane"},
+                new SelectListItem {Text = "Summers", Value = "Summers"},
+                new SelectListItem {Text = "Taylor", Value = "Taylor"},
+                new SelectListItem {Text = "Tucker", Value = "Tucker"},
+                new SelectListItem {Text = "Tyler", Value = "Tyler"},
+                new SelectListItem {Text = "Upshur", Value = "Upshur"},
+                new SelectListItem {Text = "Wayne", Value = "Wayne"},
+                new SelectListItem {Text = "Webster", Value = "Webster"},
+                new SelectListItem {Text = "Wetzel", Value = "Wetzel"},
+                new SelectListItem {Text = "Wirt", Value = "Wirt"},
+                new SelectListItem {Text = "Wood", Value = "Wood"},
+                new SelectListItem {Text = "Wyoming", Value = "Wyoming"}
+        };
+            CountyDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
+            ViewBag.CountyDropdown = CountyDropdown;
+
+
+            List<SelectListItem> DDropdown = new()
+        {
+            new SelectListItem { Text = "1", Value = "1" },
+            new SelectListItem { Text = "2", Value = "2" },
+            new SelectListItem { Text = "3", Value = "3" },
+            new SelectListItem { Text = "4", Value = "4" },
+            new SelectListItem { Text = "5", Value = "5" },
+            new SelectListItem { Text = "6", Value = "6" },
+            new SelectListItem { Text = "7", Value = "7" },
+            new SelectListItem { Text = "8", Value = "8" },
+            new SelectListItem { Text = "9", Value = "9" },
+            new SelectListItem { Text = "10", Value = "10" },
+
+        };
+            DDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
+            ViewBag.DDropdown = DDropdown;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿
 using PJ103V3.Models.DB;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace OM_79_HUB.DTOs
 {
@@ -141,7 +143,7 @@ namespace OM_79_HUB.DTOs
 
         public DateTime? ReportDate { get; set; }
 
-        public string County { get; set; } = null!;
+        public string? County { get; set; }
 
         public int? RouteNumber { get; set; }
 
@@ -280,6 +282,12 @@ namespace OM_79_HUB.DTOs
         public string? BridgeName { get; set; }
         public int? RailKey { get; set; }
         public string? SurfaceTypeN { get; set; }
+        [DisplayName("Starting MP")]
+        [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+        public decimal? MPSegmentStart { get; set; }
+        [DisplayName("Ending MP")]
+        [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+        public decimal? MPSegmentEnd { get; set; }
 
 
 
@@ -455,8 +463,10 @@ namespace OM_79_HUB.DTOs
                      WVlegalClass = this.WVlegalClass,
                     FunctionalClass = this.FunctionalClass,
                     SurfaceTypeN = this.SurfaceTypeN,
+                    MPSegmentStart = this.MPSegmentStart,
+                    MPSegmentEnd = this.MPSegmentEnd
 
-            };
+    };
             }
         public BridgeRR ToBridgeRR()
         {

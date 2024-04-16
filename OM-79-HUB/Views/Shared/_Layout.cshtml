@@ -13,7 +13,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
                 <img alt="List View" src="@Url.Content("~/Assets/dot.png")" style="width:50px; height:50px; margin-right: 10px; margin-top: 5px;" />
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">OM-79-HUB</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">OM-79</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -35,9 +35,9 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Indexes</a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="@Url.Action("Index", "Central79Hub")">OM79-HUB Index</a>
-                                <a class="dropdown-item" href="@Url.Action("Index", "OM79")">OM79 Index</a>
-                                <a class="dropdown-item" href="@Url.Action("Index", "PJ103")">PJ103 Index</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Central79Hub")">OM-79 Index</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "OM79")">OM-79 Item Index</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "PJ103")">PJ103 Segment Index</a>
                                 <div class="dropdown-divider"></div>
                             </div>
                         </li>
@@ -64,6 +64,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

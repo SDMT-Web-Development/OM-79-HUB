@@ -9,7 +9,7 @@
 <h1>Details</h1>
 <hr />
 <div>
-    <h4>OM-79 HUB</h4>
+    <h4>OM-79</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -33,6 +33,34 @@
             
     }
 
+    @*I'm putting my script here bc jquery done be broke
+        I'm sure there's a smart way to load this and someone else knows it. ~nick
+    *@
+
+    @section scripts {
+
+        <script>
+            $(document).ready(function () {
+                $(".sign").click(function () {
+                    $("#sigtype").val(this.value)
+                    $("#signModal").modal('toggle')
+                });
+                $('.sign').siblings(':text').each(function () {
+                    // there's a better way to do this
+                    if ($(this).attr('placeholder') != "Traffic Engineer" && $(this).attr('placeholder') != "Maintenance Engineer" && $(this).attr('placeholder') != "Construction Engineer" && $(this).attr('placeholder') != "Right of Way Manager" && $(this).attr('placeholder') != "District Manager" && $(this).attr('placeholder') != "Bridge Engineer") 
+                        {
+                       $(this).siblings().addClass('disabled')
+                    
+                        }
+
+                });
+            })
+
+        </script>
+    }
+    <div id="signContainer" class="container">
+       @await Component.InvokeAsync("LinkedSignatures", new {hubId = ViewBag.testUniqueID})
+    </div>
 
     <div id="OMContainer">
         @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
@@ -41,10 +69,10 @@
 </div>
 
 
-<h4>Create New OM79</h4>
+<h4>Create New OM-79 Item</h4>
 <hr />
 <div>
-    <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New OM79 Attached to OM79-HUB</a>
+    <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New OM-79 Item Attached to OM-79</a>
 </div>
 
 <hr />

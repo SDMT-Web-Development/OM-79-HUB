@@ -10,9 +10,9 @@ public partial class OMTable
     [Key]
     public int Id { get; set; }
     [DisplayName("District Number")]
-    [Required]
+    
     public int? DistrictNumber { get; set; }
-    [Required]
+    
     public string? County { get; set; }
 
     [DisplayName("Date")]
@@ -90,5 +90,26 @@ public partial class OMTable
 
 
     public int? HubId { get; set; }
+    [DisplayName("Sign System")]
+    public string? SignSystem { get; set; }
+    [DisplayName("Project Number")]
+    public string? ProjectNumber { get; set; }
+    [DisplayName("Route Number")]
+    public int? RouteNumber { get; set; }
+    [DisplayName("Subroute Number")]
+    public int? SubRouteNumber { get; set; }
+    [DisplayName("Date Complete")]
+    public DateTime? DateComplete { get; set; }
+    [DisplayName("Starting MP")]
+    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+    public decimal? StartingMilePoint {  get; set; }
+    [DisplayName("Ending MP")]
+    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+    public decimal? EndingMilePoint { get; set; }
+    [DisplayName("Org Number")]
+    public string? MaintOrg {  get; set; }
+    [DisplayName("Year Of Survey")]
+    public int? YearOfSurvey {  get; set; }
+
 
 }

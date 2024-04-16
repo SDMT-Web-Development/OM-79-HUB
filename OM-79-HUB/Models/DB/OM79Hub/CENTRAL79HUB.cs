@@ -11,6 +11,9 @@ namespace OM_79_HUB.Models
 
         public int? OM79Key { get; set; }
         public int? PJ103Key { get; set; }
+        public string? County {  get; set; }
+        public int? District {  get; set; }
+
 
     }
 }
