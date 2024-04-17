@@ -31,11 +31,10 @@ public partial class OMTable
     [DisplayName("Right Of Way Width")]
     [Required]
     public string? RightOfWayWidth { get; set; }
-    [DisplayName("Is there a Railroad?")]
-    [Required]
-    public string? Railroad { get; set; }
-    [DisplayName("Railroad Crossing Number")]
-    public int? DOTAARNumber { get; set; }
+    [DisplayName("dsfasfasdfsf?")]
+        public string? Railroad { get; set; }
+    [DisplayName("Railroad Crossing Numbers (Separate by comma)")]
+    public string? DOTAARNumber { get; set; }
     [DisplayName("Requested By")]
     [Required]
     public string? RequestedBy { get; set; }
@@ -110,6 +109,20 @@ public partial class OMTable
     public string? MaintOrg {  get; set; }
     [DisplayName("Year Of Survey")]
     public int? YearOfSurvey {  get; set; }
+    [DisplayName("Is there a bridge?")]
+    public string? BridgeInv { get; set; }
+    [DisplayName("Is there a railroad?")]
+    public string? RailroadInv { get; set; }
+    [DisplayName("Number of railroad crossings")]
+    public int? RailroadAmount {  get; set; }
+
+    [DisplayName("Number of bridges")]
+    public int? BridgeAmount {  get; set; }
+
+    [DisplayName("Bridge numbers (Separate by comma)")]
+    public string? BridgeNumbers {  get; set; }
+
+
 
 
 }

@@ -30,6 +30,44 @@
     <input type="text" class="form-control" readonly placeholder="@bridgesig" />   @*@bridgesig*@
     <button class="btn btn-primary sign" value="Bridge Engineer">Sign</button>
 </div>
+@foreach (var item in Model)
+{
+    if (item.SigType == "Bridge Engineer")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Bridge Engineer")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    
+
+    // Check if IsApprove is true
+    if (item.IsApprove)
+    {
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied)
+    {
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Traffic Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@trafficsig" />
@@ -85,10 +123,11 @@
                                 <label class="form-label" for="signaturemodal" >Signature</label>
                                 <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
                                 <br />
-                            <label class="form-label" for="commentsmodal">Signature</label>
-                            <input type="text" id="comments" name="commentsmodal" class="form-control" />
+                            <label class="form-label" for="commentsmodal">Comments</label>
+<textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" /> 
                         </form>
                     </div>
                 </div>

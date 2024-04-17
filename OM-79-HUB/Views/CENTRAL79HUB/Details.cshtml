@@ -24,6 +24,18 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Otherbox)
         </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.District)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.District)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.County)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.County)
+        </dd>
     </dl>
     <input type="hidden" name="OM79ID" value="@ViewBag.testUniqueID" />
 
@@ -58,9 +70,7 @@
 
         </script>
     }
-    <div id="signContainer" class="container">
-       @await Component.InvokeAsync("LinkedSignatures", new {hubId = ViewBag.testUniqueID})
-    </div>
+    
 
     <div id="OMContainer">
         @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
@@ -69,10 +79,10 @@
 </div>
 
 
-<h4>Create New OM-79 Item</h4>
+<h4>Add New Item</h4>
 <hr />
 <div>
-    <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New OM-79 Item Attached to OM-79</a>
+    <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New Item Attached to OM-79</a>
 </div>
 
 <hr />
@@ -82,6 +92,9 @@
 <a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-primary">Export Packaged OM79(s) w/ Attached PJ103(s)</a>
 <hr />
 
+<div id="signContainer" class="container">
+    @await Component.InvokeAsync("LinkedSignatures", new { hubId = ViewBag.testUniqueID })
+</div>
 
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |

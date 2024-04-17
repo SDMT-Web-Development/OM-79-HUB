@@ -26,9 +26,11 @@
             </div>
             *@
             <br>
-            <p>To:      HO(through CT From TI,OM)</p>
-            <p> It is hereby requested that a Commissioner's Order be entered for the following described section of roadway to the State Road System</p>
-            <h4><br />Road Change Type<br /></h4>
+            
+            <p> The District requests a Commissioner's Order be entered to implement the following road changes:</p>
+            </br>
+            <h2>Road Change Type</h2>
+            
             <div class="col-md-4">
                 <label asp-for="RoadChangeType" class="control-label">@Html.DisplayNameFor(model => model.RoadChangeType) <span class="required-asterisk">*</span></label>
                 <select asp-for="RoadChangeType" name="RoadChangeType" class="form-control" id="RoadChangeType" asp-items=@ViewBag.RCTDropdown></select>
@@ -93,16 +95,8 @@
                 <span asp-validation-for="RightOther" class="text-danger"></span>
 
             </div>
-            <div class="col-md-4">
-                <label asp-for="Railroad" class="control-label">@Html.DisplayNameFor(model => model.Railroad) <span class="required-asterisk">*</span></label>
-                <select asp-for="Railroad" name="Railroad" class="form-control" asp-items=@ViewBag.YNDropdown></select>
-                <span asp-validation-for="Railroad" class="text-danger"></span>
-            </div>
-            <div class="col-md-4" id="DOTAARNumberContainer" style="display:none;">
-                <label asp-for="DOTAARNumber" class="control-label">@Html.DisplayNameFor(model => model.DOTAARNumber) <span class="required-asterisk">*</span></label>
-                <input asp-for="DOTAARNumber" class="form-control" />
-                <span asp-validation-for="DOTAARNumber" class="text-danger"></span>
-            </div>
+            
+            
 
 
             <div class="col-md-12">
@@ -110,8 +104,8 @@
                 <input asp-for="Comments" class="form-control" />
                 <span asp-validation-for="Comments" class="text-danger"></span>
                 <br />
-                <h4>Adjacent Property</h4>
-                <br />
+                <h2>Adjacent Property</h2>
+                
 
             </div>
             
@@ -145,7 +139,45 @@
                 <input asp-for="AdjacentProperty" class="form-control" type="number" min="0" readonly onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
             </div>
+            </br>
+            <h2>Bridge/Railroad Information</h2>
+            
+            <div class="col-md-4">
+                <label asp-for="BridgeInv" class="control-label">@Html.DisplayNameFor(model => model.BridgeInv)<span class="required-asterisk">*</span></label>
+                <select asp-for="BridgeInv" name="BridgeInv" class="form-control" asp-items="@ViewBag.TFDropdown"></select>
+                <span asp-validation-for="BridgeInv" class="text-danger"></span>
+                <div id="bridgeInvError" class="text-danger"></div>
+            </div>
+            <div class="col-md-4" id="BridgeAmountContainer" style ="display:none;">
+                <label asp-for="BridgeAmount" class="control-label">@Html.DisplayNameFor(model => model.BridgeAmount)<span class="required-asterisk">*</span></label>
+                <input asp-for="BridgeAmount" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="BridgeAmount" class="text-danger"></span>
+            </div>
+            <div class="col-md-4" id="BridgeNumbersContainer" style="display:none;">
+                <label asp-for="BridgeNumbers" class="control-label">@Html.DisplayNameFor(model => model.BridgeNumbers) <span class="required-asterisk">*</span></label>
+                <input asp-for="BridgeNumbers" class="form-control" />
+                <span asp-validation-for="BridgeNumbers" class="text-danger"></span>
+            </div>
+            <div class="row"></div>
+            <div class="col-md-4">
+                <label asp-for="RailroadInv" class="control-label">@Html.DisplayNameFor(model => model.RailroadInv)<span class="required-asterisk">*</span></label>
+                <select asp-for="RailroadInv" name="RailroadInv" class="form-control" asp-items="@ViewBag.TFDropdown"></select>
+                <span asp-validation-for="RailroadInv" class="text-danger"></span>
+                <div id="railroadInvError" class="text-danger"></div>
+            </div>
+            <div class="col-md-4" id="RailroadAmountContainer" style="display:none;">
+                <label asp-for="RailroadAmount" class="control-label">@Html.DisplayNameFor(model => model.RailroadAmount) <span class="required-asterisk">*</span></label>
+                <input asp-for="RailroadAmount" class="form-control" />
+                <span asp-validation-for="RailroadAmount" class="text-danger"></span>
+            </div>
+            <div class="col-md-4" id="DOTAARNumberContainer" style="display:none;">
+                <label asp-for="DOTAARNumber" class="control-label">@Html.DisplayNameFor(model => model.DOTAARNumber) <span class="required-asterisk">*</span></label>
+                <input asp-for="DOTAARNumber" class="form-control" />
+                <span asp-validation-for="DOTAARNumber" class="text-danger"></span>
+            </div>
+            </br>
             <h2>General Information</h2>
+            
             <div class="row form-group">
                 
                
@@ -223,8 +255,11 @@
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                    <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
             </div>
+                <div class="form-group">
+                    <input type="submit" name="Datsubmit" value="Save and Create PJ103 Segment" class="btn btn-primary" />
+                </div>
         </div>
     </form>
 </div>
@@ -296,13 +331,52 @@
     </script>
     <script>
         $(document).ready(function () {
-            $("#Railroad").change(function () {
-                if ($(this).val() === "Yes") {
+            $("#RailroadInv").change(function () {
+                if ($(this).val() === "True") {
                     $("#DOTAARNumberContainer").show();
                     $("#DOTAARNumber").attr("required", "required");
                 } else {
                     $("#DOTAARNumberContainer").hide();
                     $("#DOTAARNumber").removeAttr("required");
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $("#BridgeInv").change(function () {
+                if ($(this).val() === "True") {
+                    $("#BridgeNumbersContainer").show();
+                    $("#BridgeNumber").attr("required", "required");
+                } else {
+                    $("#BridgeNumbersContainer").hide();
+                    $("#BridgeNumber").removeAttr("required");
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $("#RailroadInv").change(function () {
+                if ($(this).val() === "True") {
+                    $("#RailroadAmountContainer").show();
+                    $("#RailroadAmount").attr("required", "required");
+                } else {
+                    $("#RailroadAmountContainer").hide();
+                    $("#RailroadAmount").removeAttr("required");
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $("#BridgeInv").change(function () {
+                if ($(this).val() === "True") {
+                    $("#BridgeAmountContainer").show();
+                    $("#BridgeAmount").attr("required", "required");
+                } else {
+                    $("#BridgeAmountContainer").hide();
+                    $("#BridgeAmount").removeAttr("required");
                 }
             });
         });
