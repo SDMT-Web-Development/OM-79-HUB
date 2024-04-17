@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace OM_79_HUB.Models
 {
@@ -7,6 +8,7 @@ namespace OM_79_HUB.Models
         [Key]
         public int OMId { get; set; }
         public string? UserId { get; set; }
+        [DisplayName("Comment Box")]
         public string? Otherbox { get; set; }
 
         public int? OM79Key { get; set; }
