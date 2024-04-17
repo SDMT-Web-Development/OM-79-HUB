@@ -70,9 +70,7 @@
 
         </script>
     }
-    <div id="signContainer" class="container">
-       @await Component.InvokeAsync("LinkedSignatures", new {hubId = ViewBag.testUniqueID})
-    </div>
+    
 
     <div id="OMContainer">
         @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
@@ -94,6 +92,9 @@
 <a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-primary">Export Packaged OM79(s) w/ Attached PJ103(s)</a>
 <hr />
 
+<div id="signContainer" class="container">
+    @await Component.InvokeAsync("LinkedSignatures", new { hubId = ViewBag.testUniqueID })
+</div>
 
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
