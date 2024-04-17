@@ -68,7 +68,7 @@ namespace OM_79_HUB.Data
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers")] OMTable oMTable, List<IFormFile> attachments)
+        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers")] OMTable oMTable, List<IFormFile> attachments, String Datsubmit)
         {
 
             Console.WriteLine("------------------------------------------------------------------------------------------");
@@ -135,21 +135,22 @@ namespace OM_79_HUB.Data
                         _context.Attachments.Add(attachment);
                     }
                 }
-
+                if (Datsubmit == "Save and Create PJ103 Segment") { 
                 // Save all changes to the database
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID });
-                //return Redirect($"https://dotappstest.transportation.wv.gov/PJ-103/Submissions/Create?uniqueID={unique79ID}");
+                    //return Redirect($"https://dotappstest.transportation.wv.gov/PJ-103/Submissions/Create?uniqueID={unique79ID}");
+                }
+                else if(Datsubmit == "Save")
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+
+                
             }
             return View(oMTable);
         }
-
-
-
-
-
-
-
 
         /**
         // GET: OMTables/Create
