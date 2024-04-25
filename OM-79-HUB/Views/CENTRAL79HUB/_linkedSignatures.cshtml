@@ -50,19 +50,19 @@
 }
 @foreach (var item in Model)
 {
-    
-
     // Check if IsApprove is true
-    if (item.IsApprove)
+    if (item.IsApprove && item.SigType == "Bridge Engineer")
     {
+        // Render approval information
         <div class="approval-info">
             <p><strong>Approval Status:</strong> Approved</p>
         </div>
     }
 
     // Check if IsDenied is true
-    if (item.IsDenied)
+    if (item.IsDenied && item.SigType == "Bridge Engineer")
     {
+        // Render denial information
         <div class="denial-info">
             <p><strong>Denial Status:</strong> Denied</p>
         </div>
@@ -73,26 +73,216 @@
     <input type="text" class="form-control" readonly placeholder="@trafficsig" />
     <button class="btn btn-primary sign" value="Traffic Engineer">Sign</button>
 </div>
+@foreach (var item in Model)
+{
+    if (item.SigType == "Traffic Engineer")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Traffic Engineer")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Traffic Engineer")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Traffic Engineer")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Maintenance Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@maintenancesig" />
     <button class="btn btn-primary sign" value="Maintenance Engineer">Sign</button>
 </div>
+@foreach (var item in Model)
+{
+    if (item.SigType == "Maintenance Engineer")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Maintenance Engineer")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Maintenance Engineer")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Maintenance Engineer")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Construction Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@constructionsig" />
     <button class="btn btn-primary sign" value="Construction Engineer">Sign</button>
 </div>
+@foreach (var item in Model)
+{
+    if (item.SigType == "Construction Engineer")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Construction Engineer")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Construction Engineer")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Construction Engineer")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Right of Way Manager</span>
     <input type="text" class="form-control" readonly placeholder="@rightofwaysig" />
     <button class="btn btn-primary sign" id="signbutton" value="Right of Way Manager">Sign</button>
 </div>
+@foreach (var item in Model)
+{
+    if (item.SigType == "Right of Way Manager")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Right of Way Manager")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Right of Way Manager")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Right of Way Manager")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">District Manager</span>
     <input type="text" class="form-control" readonly placeholder="@districtsig" />
     <button class="btn btn-primary sign" id="signbutton" value="District Manager">Sign</button>
 </div>
+@foreach (var item in Model)
+{
+    if (item.SigType == "District Manager")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "District Manager")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "District Manager")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "District Manager")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 @*<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signModal">SignModal</button> *@
 <div class="modal" id="signModal">
     <div class="modal-dialog modal-xl">
