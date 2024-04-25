@@ -146,8 +146,13 @@ namespace OM_79_HUB.Data
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
+                else if (Datsubmit == "Save and Create Additional Item")
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction("Create", "OM79", new { uniqueID = oMTable.HubId });
+                }
 
-                
+
             }
             return View(oMTable);
         }
