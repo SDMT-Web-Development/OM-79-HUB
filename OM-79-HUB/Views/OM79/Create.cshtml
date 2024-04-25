@@ -254,12 +254,22 @@
                 <input type="file" name="attachments" multiple>
             </div>
 
-            <div class="form-group">
+             <div class="form-group">
                     <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
             </div>
-                <div class="form-group">
+            <div class="form-group" style="display:none;" id="pjbutton">
                     <input type="submit" name="Datsubmit" value="Save and Create PJ103 Segment" class="btn btn-primary" />
-                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" name="Datsubmit" value="Save and Create Additional Item" class="btn btn-primary" />
+            </div>
+                @*  <div class="form-group">
+                    <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
+               
+                    <input type="submit" name="Datsubmit" value="Save and Create PJ103 Segment" class="btn btn-primary" style="display:none;" id="Save and Create PJ103 Segment" />
+
+                    <input type="submit" name="Datsubmit" value="Save and Create Additional Item" class="btn btn-primary" />
+                </div>*@
         </div>
     </form>
 </div>
@@ -452,6 +462,20 @@
                 } else {
                     $("#APOtherIdentifyContainer").hide();
                     $("#APOtherIdentify").removeAttr("required");
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $("#RoadChangeType").change(function () {
+                if ($(this).val() === "Addition" || $(this).val() === "Redesignation") {
+                    $("#pjbutton").show();
+                    
+                } else {
+                    $("#pjbutton").hide();
+                    
                 }
             });
         });
