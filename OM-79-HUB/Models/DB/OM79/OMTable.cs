@@ -33,7 +33,7 @@ public partial class OMTable
     public string? RightOfWayWidth { get; set; }
     [DisplayName("dsfasfasdfsf?")]
         public string? Railroad { get; set; }
-    [DisplayName("Railroad Crossing Numbers (Separate by comma)")]
+    [DisplayName("Railroad crossing numbers (Separate by comma)")]
     public string? DOTAARNumber { get; set; }
     [DisplayName("Requested By")]
     [Required]
@@ -119,7 +119,7 @@ public partial class OMTable
     [DisplayName("Number of bridges")]
     public int? BridgeAmount {  get; set; }
 
-    [DisplayName("Bridge numbers (Separate by comma)")]
+    [DisplayName("BARS numbers (Separate by comma)")]
     public string? BridgeNumbers {  get; set; }
 
 
