@@ -45,58 +45,54 @@
             
     }
 
-    @*I'm putting my script here bc jquery done be broke
-        I'm sure there's a smart way to load this and someone else knows it. ~nick
-    *@
 
-    @section scripts {
 
-        <script>
-            $(document).ready(function () {
-                $(".sign").click(function () {
-                    $("#sigtype").val(this.value)
-                    $("#signModal").modal('toggle')
-                });
-                $('.sign').siblings(':text').each(function () {
-                    // there's a better way to do this
-                    if ($(this).attr('placeholder') != "Traffic Engineer" && $(this).attr('placeholder') != "Maintenance Engineer" && $(this).attr('placeholder') != "Construction Engineer" && $(this).attr('placeholder') != "Right of Way Manager" && $(this).attr('placeholder') != "District Manager" && $(this).attr('placeholder') != "Bridge Engineer") 
-                        {
-                       $(this).siblings().addClass('disabled')
-                    
-                        }
-
-                });
-            })
-
-        </script>
-    }
     
-
     <div id="OMContainer">
         @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
     </div>
 
-</div>
 
 
-<h4>Add New Item</h4>
-<hr />
 <div>
     <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New Item Attached to OM-79</a>
 </div>
-
-<hr />
-<h4>Export to PDF</h4>
-<hr />
-
-<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-primary">Export Packaged OM79(s) w/ Attached PJ103(s)</a>
+<br />
+<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-secondary">Export Packaged OM79(s) w/ Attached PJ103(s)</a>
 <hr />
 
 <div id="signContainer" class="container">
     @await Component.InvokeAsync("LinkedSignatures", new { hubId = ViewBag.testUniqueID })
 </div>
-
+</div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="OM79 Form list">Back to List</a>
 </div>
+
+
+@section scripts {
+
+    <script>
+        $(document).ready(function () {
+            $(".sign").click(function () {
+                $("#sigtype").val(this.value)
+                $("#signModal").modal('toggle')
+            });
+            $('.sign').siblings(':text').each(function () {
+                // there's a better way to do this
+                if ($(this).attr('placeholder') != "Traffic Engineer" && $(this).attr('placeholder') != "Maintenance Engineer" && $(this).attr('placeholder') != "Construction Engineer" && $(this).attr('placeholder') != "Right of Way Manager" && $(this).attr('placeholder') != "District Manager" && $(this).attr('placeholder') != "Bridge Engineer") {
+                    $(this).siblings().addClass('disabled')
+
+                }
+
+            });
+        })
+
+    </script>
+}
+
+
+@*I'm putting my script here bc jquery done be broke
+        I'm sure there's a smart way to load this and someone else knows it. ~nick
+    *@
