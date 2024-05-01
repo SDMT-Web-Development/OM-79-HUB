@@ -5,7 +5,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>OM-79 Items</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -34,44 +34,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.RouteAssignment)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RightOfWayWidth)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Railroad)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DOTAARNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RequestedBy)
-            </th>
-            @*
-            <th>
-            @Html.DisplayNameFor(model => model.Comments)
-            </th>
-            <th>
-            @Html.DisplayNameFor(model => model.AdjacentProperty)
-            </th>
-            <th>
-            @Html.DisplayNameFor(model => model.APHouses)
-            </th>
-            <th>
-            @Html.DisplayNameFor(model => model.APBusinesses)
-            </th>
-            <th>
-            @Html.DisplayNameFor(model => model.APSchools)
-            </th>
-            <th>
-            @Html.DisplayNameFor(model => model.APOther)
-            </th>
-            <th>
-            @Html.DisplayNameFor(model => model.APOtherIdentify)
-            </th>
-            <th>
-            @Html.DisplayNameFor(model => model.Attachments)
-            </th>
-            *@
+           
 
             <th></th>
         </tr>
@@ -101,49 +64,12 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.RouteAssignment)
                 </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.RightOfWayWidth)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Railroad)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DOTAARNumber)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.RequestedBy)
-                </td>
-                @*
-            <td>
-            @Html.DisplayFor(modelItem => item.Comments)
-            </td>
-            <td>
-            @Html.DisplayFor(modelItem => item.AdjacentProperty)
-            </td>
-            <td>
-            @Html.DisplayFor(modelItem => item.APHouses)
-            </td>
-            <td>
-            @Html.DisplayFor(modelItem => item.APBusinesses)
-            </td>
-            <td>
-            @Html.DisplayFor(modelItem => item.APSchools)
-            </td>
-            <td>
-            @Html.DisplayFor(modelItem => item.APOther)
-            </td>
-            <td>
-            @Html.DisplayFor(modelItem => item.APOtherIdentify)
-            </td>
-            <td>
-            @Html.DisplayFor(modelItem => item.Attachments)
-            </td>
-            *@
+               
 
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                 @*   <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |  *@
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                 @*   <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> *@
                 </td>
             </tr>
         }

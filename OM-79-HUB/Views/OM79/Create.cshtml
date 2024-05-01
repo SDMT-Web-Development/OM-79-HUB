@@ -27,9 +27,10 @@
             *@
             <br>
             
-            <h4> The District requests a Commissioner's Order be entered to implement the following road changes:</h4>
+            <h4> The District requests a Commissioner's Order be entered to implement the following road change(s):</h4>
+            <hr />
             </br>
-            <h2>Road Change Type</h2>
+            <h3>Road Change Type</h3>
             
             <div class="col-md-4">
                 <label asp-for="RoadChangeType" class="control-label">@Html.DisplayNameFor(model => model.RoadChangeType) <span class="required-asterisk">*</span></label>
@@ -74,16 +75,20 @@
                 <span asp-validation-for="RouteAssignment" class="text-danger"></span>
             </div>
             <div class="col-md-4">
-                <label asp-for="Route" class="control-label"></label>
+                <label asp-for="Route" class="control-label">@Html.DisplayNameFor(model => model.Route) <span class="required-asterisk">*</span></label>
                 <input asp-for="Route" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="Route" class="text-danger"></span>
             </div>
             <div class="col-md-4">
-                <label asp-for="SubRoute" class="control-label"></label>
+                <label asp-for="SubRoute" class="control-label">@Html.DisplayNameFor(model => model.SubRoute) <span class="required-asterisk">*</span></label>
                 <input asp-for="SubRoute" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="SubRoute" class="text-danger"></span>
             </div>
-
+            <div class="col-md-4">
+                <label asp-for="Supplemental" class="control-label">@Html.DisplayNameFor(model => model.Supplemental) <span class="required-asterisk">*</span></label>
+                <input asp-for="Supplemental" class="form-control"  />
+                <span asp-validation-for="Supplemental" class="text-danger"></span>
+            </div>
             <div class="col-md-4">
                 <label asp-for="RightOfWayWidth" class="control-label">@Html.DisplayNameFor(model => model.RightOfWayWidth) <span class="required-asterisk">*</span></label>
                 <select asp-for="RightOfWayWidth" name="RightOfWayWidth" class="form-control" asp-items=@ViewBag.ROWDropdown></select>
@@ -104,7 +109,7 @@
                 <input asp-for="Comments" class="form-control" />
                 <span asp-validation-for="Comments" class="text-danger"></span>
                 <br />
-                <h2>Adjacent Property</h2>
+                <h3>Adjacent Property</h3>
                 
 
             </div>
@@ -140,7 +145,7 @@
                 <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
             </div>
             </br>
-            <h2>Bridge/Railroad Information</h2>
+            <h3>Bridge/Railroad Information</h3>
             
             <div class="col-md-4">
                 <label asp-for="BridgeInv" class="control-label">@Html.DisplayNameFor(model => model.BridgeInv)<span class="required-asterisk">*</span></label>
@@ -176,7 +181,7 @@
                 <span asp-validation-for="DOTAARNumber" class="text-danger"></span>
             </div>
             </br>
-            <h2>General Information</h2>
+            <h3>General Information</h3>
             
             <div class="row form-group">
                 
@@ -406,19 +411,7 @@
             });
         });
     </script>
-    <script>
-        $(document).ready(function () {
-            $("#RouteAssignment").change(function () {
-                if ($(this).val() === "Current") {
-                    $("#Route").attr("required", "required");
-                    $("#SubRoute").attr("required", "required");
-                } else {
-                    $("#Route").removeAttr("required");
-                    $("#SubRoute").removeAttr("required");
-                }
-            });
-        });
-    </script>
+   
     <script>
         $(document).ready(function () {
             // Assuming the dropdown has an ID of "RoadChangeType"
@@ -479,6 +472,44 @@
                     $("#pjbutton").hide();
                     
                 }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#RoadChangeType').on('click', function () {
+                $('#RoadChangeType option[value=""]').prop('disabled', true);
+            });
+            $('#RequestedBy').on('click', function () {
+                $('#RequestedBy option[value=""]').prop('disabled', true);
+            });
+
+            $('#RouteAssignment').on('click', function () {
+                $('#RouteAssignment option[value=""]').prop('disabled', true);
+            });
+
+            $('#RightOfWayWidth').on('click', function () {
+                $('#RightOfWayWidth option[value=""]').prop('disabled', true);
+            });
+
+            $('#BridgeInv').on('click', function () {
+                $('#BridgeInv option[value=""]').prop('disabled', true);
+            });
+
+            $('#RailroadInv').on('click', function () {
+                $('#RailroadInv option[value=""]').prop('disabled', true);
+            });
+
+            $('#SignSystem').on('click', function () {
+                $('#SignSystem option[value=""]').prop('disabled', true);
+            });
+
+            $('#MaintOrg').on('click', function () {
+                $('#MaintOrg option[value=""]').prop('disabled', true);
+            });
+
+            $('#YearOfSurvey').on('click', function () {
+                $('#YearOfSurvey option[value=""]').prop('disabled', true);
             });
         });
     </script>
