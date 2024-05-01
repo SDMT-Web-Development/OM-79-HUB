@@ -121,6 +121,7 @@ public partial class OMTable
 
     [DisplayName("BARS numbers (Separate by comma)")]
     public string? BridgeNumbers {  get; set; }
+    
 
 
 
