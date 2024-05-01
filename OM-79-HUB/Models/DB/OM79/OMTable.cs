@@ -21,6 +21,7 @@ public partial class OMTable
 
     public string? Routing { get; set; }
     [DisplayName("Road Change Type")]
+    [Required]
 
     public string? RoadChangeType { get; set; }
     [DisplayName("If Other Please Explain")]
@@ -62,7 +63,9 @@ public partial class OMTable
     public string? Preparer { get; set; }
     [DisplayName("Requester Name")]
     public string? RequestedByName { get; set; }
+    [Required]
     public int? Route { get; set; }
+    [Required]
     public int? SubRoute { get; set; }
     [DisplayName("CO Date")]
     public DateTime? CoDate { get; set; }
@@ -119,9 +122,15 @@ public partial class OMTable
     [DisplayName("Number of bridges")]
     public int? BridgeAmount {  get; set; }
 
-    [DisplayName("BARS numbers (Separate by comma)")]
+    [DisplayName("BARS (Separate by comma)")]
     public string? BridgeNumbers {  get; set; }
+
+    [Required]
+    public string? Supplemental {  get; set; }
+
+
     
+
 
 
 

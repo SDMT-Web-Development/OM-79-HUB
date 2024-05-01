@@ -17,6 +17,7 @@ namespace OM_79_HUB.Models
         public int? District {  get; set; }
         public string? IDNumber {  get; set; }
         public string? RouteID { get; set; }
+        public bool? IsArchive { get; set; }
 
 
         public bool IsArchive { get; set; }
