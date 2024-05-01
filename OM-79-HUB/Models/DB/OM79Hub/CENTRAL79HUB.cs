@@ -20,7 +20,7 @@ namespace OM_79_HUB.Models
         public bool? IsArchive { get; set; }
 
 
-        public bool IsArchive { get; set; }
+        
 
 
     }
