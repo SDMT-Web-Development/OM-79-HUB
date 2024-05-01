@@ -124,8 +124,12 @@ public partial class OMTable
 
     [DisplayName("BARS (Separate by comma)")]
     public string? BridgeNumbers {  get; set; }
+
     [Required]
     public string? Supplemental {  get; set; }
+
+
+    
 
 
 
