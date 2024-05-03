@@ -6,8 +6,8 @@
 }
 
 
-
-<h2>Changes to the State Road System</h2>
+</br>
+<h2 style="font-weight: bold">Changes to the State Road System</h2>
 <hr />
 <div class="row">
 
@@ -86,7 +86,7 @@
             </div>
             <div class="col-md-4">
                 <label asp-for="Supplemental" class="control-label">@Html.DisplayNameFor(model => model.Supplemental) <span class="required-asterisk">*</span></label>
-                <input asp-for="Supplemental" class="form-control"  />
+                <select asp-for="Supplemental" name="Supplemental" class="form-control" asp-items=@ViewBag.SuppDropdown></select>
                 <span asp-validation-for="Supplemental" class="text-danger"></span>
             </div>
             <div class="col-md-4">
