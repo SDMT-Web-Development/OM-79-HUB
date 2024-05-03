@@ -476,6 +476,36 @@ namespace OM_79_HUB.Data
             SignDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
             ViewBag.SignDropdown = SignDropdown;
 
+            List<SelectListItem> SuppDropdown = new()
+            {
+                new SelectListItem {Text = "00 Not Applicable", Value = "00"},
+                new SelectListItem {Text = "01 Alternate", Value = "01"},
+                new SelectListItem {Text = "02 Wye", Value = "02"},
+                new SelectListItem {Text = "03 Spur", Value = "03"},
+                new SelectListItem {Text = "04 North", Value = "04"},
+                new SelectListItem {Text = "05 South", Value = "05"},
+                new SelectListItem {Text = "06 East", Value = "06"},
+                new SelectListItem {Text = "07 West", Value = "07"},
+                new SelectListItem {Text = "08 Business", Value = "08"},
+                new SelectListItem {Text = "09 North Bound (Business)", Value = "09"},
+                new SelectListItem {Text = "10 South Bound (Business)", Value = "10"},
+                new SelectListItem {Text = "11 East Bound (Business)", Value = "11"},
+                new SelectListItem {Text = "12 West Bound (Business)", Value = "12"},
+                new SelectListItem {Text = "13 Truck Route", Value = "13"},
+                new SelectListItem {Text = "14 Bypass", Value = "14"},
+                new SelectListItem {Text = "15 Loop", Value = "15"},
+                new SelectListItem {Text = "16 Toll", Value = "16"},
+                new SelectListItem {Text = "21 Footbridge", Value = "21"},
+                new SelectListItem {Text = "22 Historical Bridge", Value = "22"},
+                new SelectListItem {Text = "23 Connector", Value = "23"},
+
+
+
+
+            };
+            SuppDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
+            ViewBag.SuppDropdown = SuppDropdown;
+
             List<SelectListItem> DOHDropdown = new()
             {
                 new SelectListItem {Text = "0103", Value = "0103"},
