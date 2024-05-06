@@ -79,6 +79,18 @@ namespace OM_79_HUB.Data
             Console.WriteLine("------------------------------------------------------------------------------------------");
             Console.WriteLine("------------------------------------------------------------------------------------------");
 
+            Console.WriteLine("==========================================================================================");
+            Console.WriteLine("==========================================================================================");
+            // Log information about each file
+            foreach (var file in attachments)
+            {
+                Console.WriteLine("File Name: " + file.FileName);
+                Console.WriteLine("Content Type: " + file.ContentType);
+                Console.WriteLine("File Size: " + file.Length + " bytes");
+            }
+            Console.WriteLine("==========================================================================================");
+            Console.WriteLine("==========================================================================================");
+
             if (ModelState.IsValid)
             {
                 _context.Add(oMTable);
@@ -112,14 +124,29 @@ namespace OM_79_HUB.Data
                 }
 
 
+
+
+                // Create a folder for attachments based on the unique ID
+                var uploadsRootFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+                var uniqueFolderName = $"OM79-{unique79ID}-Attachments"; // Folder name based on unique ID
+                var uniqueFolderPath = Path.Combine(uploadsRootFolder, uniqueFolderName);
+
+                // Ensure the directory exists
+                if (!Directory.Exists(uniqueFolderPath))
+                {
+                    Directory.CreateDirectory(uniqueFolderPath);
+                }
+
+
                 // Save the attachments
                 foreach (var attachmentFile in attachments)
                 {
                     if (attachmentFile.Length > 0)
                     {
-                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+                        //var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+
                         var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        var filePath = Path.Combine(uniqueFolderPath, uniqueFileName);  // Use uniqueFolderPath here
 
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
