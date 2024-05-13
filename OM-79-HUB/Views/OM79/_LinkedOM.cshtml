@@ -1,11 +1,72 @@
 ﻿@model IEnumerable<OMTable>
 
 
-
-
-
-
 <hr />
+<h4>Attached OM79 Item(s)</h4>
+<hr />
+
+<style>
+    .container {
+        padding-left: 40px; /* Adjust as needed for indentation */
+    }
+
+</style>
+
+<div class="container">
+    <div class="entries">
+        @if (Model != null && Model.Any())
+        {
+            <div class="accordion" id="accordionExample">
+                @foreach (var entry in Model)
+                {
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-@entry.Id">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@entry.Id" aria-expanded="false" aria-controls="collapse-@entry.Id">
+                                ID: @entry.Id - Requested By: @entry.RequestedByName - Date: @(entry.SubmissionDate?.ToShortDateString() ?? "N/A")
+                            </button>
+                        </h2>
+                        <div id="collapse-@entry.Id" class="accordion-collapse collapse" aria-labelledby="heading-@entry.Id" data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <div class="entry">
+                                    <div class="entry-header" style="background-color: transparent; color: black;">
+                                        <hr />
+                                        <h4>OM79 Item</h4>
+                                        <hr />
+                                        <span calss="entry-OMItemdetails">  <a href="https://localhost:7056/OM79/details/@entry.Id" class="details-link">View Details</a> </span>
+
+                                        <div id="AttachmentContainer">
+                                            @{
+                                                ViewBag.testUniqueID = entry.Id;
+                                            }
+                                            @await Component.InvokeAsync("OMAttachment", new { PJhubID = ViewBag.testUniqueID })
+                                        </div>
+
+                                        <div id="PJContainer">
+                                            @{
+                                                ViewBag.testUniqueID = entry.Id;
+                                            }
+                                            @await Component.InvokeAsync("LinkedPJ", new { PJhubID = ViewBag.testUniqueID })
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div>No Forms Attached.</div>
+        }
+    </div>
+</div>
+<hr />
+
+
+
+@*<hr />
 <h4>Attached OM79 Item(s)</h4>
 
 <hr />
@@ -57,4 +118,4 @@
     </div>
 </div>
 <hr />
-
+*@
