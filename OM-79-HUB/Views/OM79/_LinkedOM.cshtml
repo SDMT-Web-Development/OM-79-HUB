@@ -38,7 +38,7 @@
                                             @{
                                                 ViewBag.testUniqueID = entry.Id;
                                             }
-                                            @await Component.InvokeAsync("OMAttachment", new { PJhubID = ViewBag.testUniqueID })
+                                            @await Component.InvokeAsync("OMAttachment", new { OMItemID = ViewBag.testUniqueID })
                                         </div>
 
                                         <div id="PJContainer">

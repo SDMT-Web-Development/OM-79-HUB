@@ -9,6 +9,8 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 builder.Services.AddDbContext<OM_79_HUBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection") ?? throw new InvalidOperationException("Connection string 'OM_79_HUBContext' not found.")));
 
