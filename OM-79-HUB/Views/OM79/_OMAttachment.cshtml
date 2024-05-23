@@ -1,0 +1,125 @@
+﻿@model OM_79_HUB.Components.OMAttachmentViewModel
+
+<hr />
+<h4>OM79 Item Attachments</h4>
+<hr />
+
+@if (Model.Files.Any())
+{
+    <ul class="directory-list">
+        @for (var i = 0; i < Model.Files.Count; i++)
+        {
+            var file = Model.Files[i];
+            var displayName = file.Substring(file.IndexOf('_') + 1);
+            <li class="file-item">
+                @displayName <!-- File in OM79 Directory -->
+                <!-- Download and Delete action links -->
+                @Html.ActionLink("Download", "DownloadFile", "FileGenerationAndPackaging", new { fileName = file, om79Id = Model.OMITEMID }, new { @class = "action-link" })
+                <span class="separator"> | </span>
+                <a href="#" class="action-link delete-link" data-filename="@file" data-om79id="@Model.OMITEMID" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</a>
+            </li>
+            @if (i < Model.Files.Count - 1)
+            {
+                <hr />
+            }
+        }
+    </ul>
+}
+else
+{
+    <div>No Attachments.</div>
+}
+
+@*@model OM_79_HUB.Components.OMAttachmentViewModel
+
+<hr />
+<h4>OM79 Item Attachments</h4>
+<hr />
+
+@if (Model.Files.Any())
+{
+    <ul class="directory-list">
+        @for (var i = 0; i < Model.Files.Count; i++)
+        {
+            var file = Model.Files[i];
+            var displayName = file.Substring(file.IndexOf('_') + 1);
+            <li class="file-item">
+                @displayName <!-- File in OM79 Directory -->
+                <!-- Download and Delete action links -->
+                @Html.ActionLink("Download", "DownloadFile", "FileGenerationAndPackaging", new { fileName = file, om79Id = Model.OMITEMID }, new { @class = "action-link" })
+                <span class="separator"> | </span>
+                <a href="#" class="action-link delete-link" data-filename="@file" data-om79id="@Model.OMITEMID" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</a>
+            </li>
+            @if (i < Model.Files.Count - 1)
+            {
+                <hr />
+            }
+        }
+    </ul>
+}
+else
+{
+    <div>No Attachments.</div>
+}
+
+<!-- Modal HTML -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this file?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a id="confirmDeleteButton" href="#" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5+5hb7Mr4l5fB1Ld0n0evuHVFCOmFfpMtdD4ldZ1" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.body.addEventListener('click', function (event) {
+            if (event.target.classList.contains('delete-link')) {
+                event.preventDefault();
+                var deleteLink = event.target;
+                var fileName = deleteLink.getAttribute('data-filename');
+                var om79Id = deleteLink.getAttribute('data-om79id');
+                var deleteUrl = '@Url.Action("DeleteFile", "FileGenerationAndPackaging")?fileName=' + encodeURIComponent(fileName) + '&om79Id=' + encodeURIComponent(om79Id);
+                document.getElementById('confirmDeleteButton').href = deleteUrl;
+            }
+        });
+    });
+</script>
+
+<style>
+    .button-container {
+        margin-top: 10px; /* Add desired margin value */
+    }
+
+    .required-asterisk {
+        font-size: 24px;
+        color: red;
+    }
+
+    .success-message {
+        color: green;
+        font-weight: bold;
+    }
+
+    .checkmark {
+        color: green;
+        margin-right: 5px;
+    }
+</style>
+*@

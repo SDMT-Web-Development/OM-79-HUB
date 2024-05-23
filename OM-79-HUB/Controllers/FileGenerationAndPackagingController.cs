@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.IO;
 using OM_79_HUB.Data; // Assuming your DbContexts are in this namespace
 using OM_79_HUB.Models;
@@ -9,6 +12,7 @@ using PJ103V3.Models.DB;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using SkiaSharp;
 using System;
 using System.ComponentModel;
 using System.Composition;
@@ -22,13 +26,157 @@ namespace OM_79_HUB.Controllers
         private readonly OM_79_HUBContext _hubContext;
         private readonly OM79Context _om79Context;
         private readonly Pj103Context _pj103Context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public FileGenerationAndPackagingController(OM_79_HUBContext hubContext, OM79Context om79Context, Pj103Context pj103Context)
+
+        public FileGenerationAndPackagingController(OM_79_HUBContext hubContext, OM79Context om79Context, Pj103Context pj103Context, IWebHostEnvironment hostingEnvironment)
         {
             _hubContext = hubContext;
             _om79Context = om79Context;
             _pj103Context = pj103Context;
+            _webHostEnvironment = hostingEnvironment;
+
         }
+
+
+
+
+
+        //This section is for renaming, deleting, and deleting files attached to any hub om or pj
+        //
+        //
+        //
+        //
+        //
+        [HttpPost]
+        public async Task<IActionResult> UploadFiles(IFormFile[] attachments, int om79Id)
+        {
+            if (attachments == null || attachments.Length == 0)
+            {
+                return BadRequest("No files uploaded.");
+            }
+
+            var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+            var omDir = Path.Combine(baseDir, "OM79-" + om79Id + "-Attachments");
+
+            if (!Directory.Exists(omDir))
+            {
+                Directory.CreateDirectory(omDir);
+            }
+
+            foreach (var file in attachments)
+            {
+                if (file.Length > 0)
+                {
+                    var filePath = Path.Combine(omDir, file.FileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+                }
+            }
+            var omItem = await _om79Context.OMTable.FindAsync(om79Id);
+            if (omItem == null)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction("Details", "Central79Hub", new { id = omItem.HubId });
+        }
+
+
+        public async Task<IActionResult> DeleteFile(string fileName, int om79Id)
+        {
+            try
+            {
+                var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+                var omDir = Path.Combine(baseDir, "OM79-" + om79Id + "-Attachments");
+                string filePath = Path.Combine(omDir, fileName);
+
+                Console.WriteLine($"Attempting to delete file: {fileName} at path: {filePath}");
+
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine(filePath);
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
+
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                    Console.WriteLine("File deleted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("File not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during file deletion: {ex.Message}");
+                // Optionally, add more error handling logic here
+            }
+
+            var omItem = await _om79Context.OMTable.FindAsync(om79Id);
+            if (omItem == null)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction("Details", "Central79Hub", new { id = omItem.HubId });
+        }
+
+        public async Task<IActionResult> DownloadFile(string fileName, int om79Id)
+        {
+            try
+            {
+                var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+                var omDir = Path.Combine(baseDir, "OM79-" + om79Id + "-Attachments");
+                string filePath = Path.Combine(omDir, fileName);
+
+                Console.WriteLine($"Attempting to download file: {fileName} at path: {filePath}");
+
+                if (System.IO.File.Exists(filePath))
+                {
+                    var memory = new MemoryStream();
+                    using (var stream = new FileStream(filePath, FileMode.Open))
+                    {
+                        await stream.CopyToAsync(memory);
+                    }
+                    memory.Position = 0;
+                    var contentType = "application/octet-stream";
+                    return File(memory, contentType, fileName);
+                }
+                else
+                {
+                    Console.WriteLine("File not found.");
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during file download: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
         // Packaging & Exporting Section
         //
         //|<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79File" asp-route-id="@entry.Id" class="btn btn-primary">Export OM79</a>
