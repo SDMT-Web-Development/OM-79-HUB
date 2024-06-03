@@ -17,6 +17,8 @@ using System;
 using System.ComponentModel;
 using System.Composition;
 using System.Diagnostics;
+using System.Drawing;
+using System.Security.Cryptography;
 using IContainer = QuestPDF.Infrastructure.IContainer;
 
 namespace OM_79_HUB.Controllers
@@ -193,7 +195,7 @@ namespace OM_79_HUB.Controllers
             }
 
             var omHUB = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == id.Value);
-            if(omHUB == null)
+            if (omHUB == null)
             {
                 return NotFound();
             }
@@ -220,11 +222,16 @@ namespace OM_79_HUB.Controllers
                 var om79Report = new OM79DocumentGeneration(om79);
                 reports.Add((IDocument)om79Report);
 
-                var pj103sAttachedToOM79 = await _pj103Context.Submissions
-                                                .Where(submission => submission.OM79Id == om79.Id)
-                                                .ToListAsync();
-
-                foreach (var pj103 in pj103sAttachedToOM79)
+                // Fetch the PJ103 submissions attached to the OM79 entry
+                var pj103AttachedToOMSubmission = await _pj103Context.Submissions
+                                            .Where(submission => submission.OM79Id == om79.Id)
+                                            .ToListAsync();
+                var submissionIds = pj103AttachedToOMSubmission.Select(s => s.SubmissionID).ToList();
+                // Fetch the related RouteInfo entries
+                var pj103AttachedToOM = await _pj103Context.RouteInfo
+                                            .Where(routeInfo => submissionIds.Contains(routeInfo.SubmissionID.Value))
+                                            .ToListAsync();
+                foreach (var pj103 in pj103AttachedToOM)
                 {
                     var pj103Report = new PJ103DocumentGeneration(pj103);
                     reports.Add((IDocument)pj103Report);
@@ -263,7 +270,7 @@ namespace OM_79_HUB.Controllers
         {
             if (id == null)
             {
-                return NotFound();  
+                return NotFound();
             }
 
             var omTableEntry = await _om79Context.OMTable.FirstOrDefaultAsync(e => e.Id == id.Value);
@@ -272,14 +279,51 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
-            var pj103AttachedToOM = await _pj103Context.Submissions
-                                    .Where(submission => submission.OM79Id == id.Value)
-                                    .ToListAsync();
 
+            var OMID = omTableEntry.Id;
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++" + OMID + "++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+
+            // Fetch the PJ103 submissions attached to the OM79 entry
+            var pj103AttachedToOMSubmission = await _pj103Context.Submissions
+                                        .Where(submission => submission.OM79Id == OMID)
+                                        .ToListAsync();
+
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("+++++++++++++++++" + pj103AttachedToOMSubmission.Count + "++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            // Ensure there are related submissions
+            if (!pj103AttachedToOMSubmission.Any())
+            {
+                // If no PJ103 submissions are found, generate only the OM79 file
+                await PrintOM79File(id);
+                return RedirectToAction("Details", "OM79", new { id = id.Value });
+            }
+
+            // Extract SubmissionIDs
+            var submissionIds = pj103AttachedToOMSubmission.Select(s => s.SubmissionID).ToList();
+
+            // Fetch the related RouteInfo entries
+            var pj103AttachedToOM = await _pj103Context.RouteInfo
+                                        .Where(routeInfo => submissionIds.Contains(routeInfo.SubmissionID.Value))
+                                        .ToListAsync();
+
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++" + submissionIds + "+++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+
+            // If no RouteInfo entries are found, generate only the OM79 file
             if (!pj103AttachedToOM.Any())
             {
-                //There are no PJs attached to this OM79
-                //Call OM79 File Generation Instead
                 await PrintOM79File(id);
                 return RedirectToAction("Details", "OM79", new { id = id.Value });
             }
@@ -331,7 +375,7 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
-            var pjTableEntry = await _pj103Context.Submissions.FirstOrDefaultAsync(e => e.SubmissionID == id.Value);
+            var pjTableEntry = await _pj103Context.RouteInfo.FirstOrDefaultAsync(e => e.SubmissionID == id.Value);
             if (pjTableEntry == null)
             {
                 return NotFound();
@@ -418,6 +462,160 @@ namespace OM_79_HUB.Controllers
         //
         public class PJ103DocumentGeneration : IDocument
         {
+            public RouteInfo RouteInfo { get; }
+
+            public PJ103DocumentGeneration(RouteInfo routeInfo)
+            {
+                RouteInfo = routeInfo;
+            }
+
+            public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+
+            public void Compose(IDocumentContainer container)
+            {
+                container
+                    .Page(page =>
+                    {
+                        page.Margin(50);
+                        page.Header().Element(ComposeHeader);
+                        page.Content().Element(ComposeContent);
+                        page.Footer().Height(10).Background(Colors.Grey.Lighten1);
+                    });
+            }
+
+            void ComposeHeader(IContainer container)
+            {
+                container.Row(row =>
+                {
+                    var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
+                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle);
+                    row.ConstantItem(50).Height(50).Image("wwwroot/Assets/dot.png");
+
+                    row.RelativeItem().Column(column =>
+                    {
+                        column.Item().AlignCenter().Text(text =>
+                        {
+                            text.Span("PJ103").Style(titleStyle);
+                        });
+
+                        column.Item().AlignRight().Text(text =>
+                        {
+                            string formattedDate = RouteInfo.SubmissionID.HasValue
+                                                   ? RouteInfo.SubmissionID.Value.ToString()
+                                                   : "N/A";
+                            text.Span("Submission ID: " + formattedDate).Style(titleStyle);
+                        });
+                    });
+                });
+            }
+
+            void ComposeContent(IContainer container)
+            {
+                var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
+                var tableStyle = TextStyle.Default.FontSize(10).FontColor(Colors.Black).Fallback(fallbackStyle);
+                var boldTableStyle = TextStyle.Default.FontSize(13).Bold().FontColor(Colors.Black).Fallback(fallbackStyle);
+
+                container
+                    .Background(Colors.White)
+                    .AlignLeft()
+                    .AlignCenter()
+                    .Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                        });
+
+                        table.Cell().Row(1).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+                        table.Cell().Row(2).ColumnSpan(3).Column(1).Text("Nature of Change Section").Style(boldTableStyle);
+                        table.Cell().Row(3).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+
+                        // First Row
+                        table.Cell().Row(4).Column(1).Element(CellStyle)
+                            .Text("Access Control:\n" + (RouteInfo.AccessControl ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(4).Column(2).Element(CellStyle)
+                            .Text("Through Lanes:\n" + (RouteInfo.ThroughLanes?.ToString() ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(4).Column(3).Element(CellStyle)
+                            .Text("Counter Peak Lanes:\n" + (RouteInfo.CounterPeakLanes?.ToString() ?? "N/A")).Style(tableStyle);
+
+                        // Second Row
+                        table.Cell().Row(5).Column(1).Element(CellStyle)
+                            .Text("Peak Lanes:\n" + (RouteInfo.PeakLanes?.ToString() ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(5).Column(2).Element(CellStyle)
+                            .Text("Reversible Lanes:\n" + (RouteInfo.ReverseLanes ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(5).Column(3).Element(CellStyle)
+                            .Text("Median Width (ft.):\n" + (RouteInfo.MedianWidth?.ToString() ?? "N/A")).Style(tableStyle);
+
+                        // Third Row
+                        table.Cell().Row(6).Column(1).Element(CellStyle)
+                            .Text("Lane Width (ft.) (round to whole number):\n" + (RouteInfo.LaneWidth?.ToString() ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(6).Column(2).Element(CellStyle)
+                            .Text("Grade Width (ft.) (round to whole number):\n" + (RouteInfo.GradeWidth?.ToString() ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(6).Column(3).Element(CellStyle)
+                            .Text("Roadway Width (ft.) (round to whole number):\n" + (RouteInfo.PavementWidth?.ToString() ?? "N/A")).Style(tableStyle);
+
+                        // Fourth Row
+                        table.Cell().Row(7).Column(1).Element(CellStyle)
+                            .Text("Surface Type:\n" + (RouteInfo.SurfaceType1 ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(7).Column(2).Element(CellStyle)
+                            .Text("Facility Type:\n" + (RouteInfo.FacilityType ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(7).Column(3).Element(CellStyle)
+                            .Text("Median Type:\n" + (RouteInfo.MedianType ?? "N/A")).Style(tableStyle);
+
+                        // Fifth Row
+                        table.Cell().Row(8).Column(1).Element(CellStyle)
+                            .Text("Gov ID Ownership:\n" + (RouteInfo.GovIDOwnership ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(8).Column(2).Element(CellStyle)
+                            .Text("WV Functional Class:\n" + (RouteInfo.WVlegalClass ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(8).Column(3).Element(CellStyle)
+                            .Text("Federal Functional Class:\n" + (RouteInfo.FunctionalClass ?? "N/A")).Style(tableStyle);
+
+                        // Sixth Row
+                        table.Cell().Row(9).Column(1).Element(CellStyle)
+                            .Text("Federal Aid:\n" + (RouteInfo.FederalAid ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(9).Column(2).Element(CellStyle)
+                            .Text("Special System:\n" + (RouteInfo.SpecialSys ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(9).Column(3).Element(CellStyle)
+                            .Text("Federal Forest Highway:\n" + (RouteInfo.FedForestHighway ?? "N/A")).Style(tableStyle);
+
+                        // Seventh Row
+                        table.Cell().Row(10).Column(1).Element(CellStyle)
+                            .Text("Truck Route:\n" + (RouteInfo.TruckRoute ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(10).Column(2).Element(CellStyle)
+                            .Text("NHS:\n" + (RouteInfo.NHS ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(10).Column(3).Element(CellStyle)
+                            .Text("Starting MP:\n" + (RouteInfo.MPSegmentStart?.ToString() ?? "N/A")).Style(tableStyle);
+
+                        // Eighth Row
+                        table.Cell().Row(11).Column(1).Element(CellStyle)
+                            .Text("Ending MP:\n" + (RouteInfo.MPSegmentEnd?.ToString() ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(11).Column(2).Element(CellStyle)
+                            .Text("Surface Type N:\n" + (RouteInfo.SurfaceTypeN ?? "N/A")).Style(tableStyle);
+                        table.Cell().Row(11).Column(3).Element(CellStyle)
+                            .Text("Depth:\n" + (RouteInfo.Depth?.ToString() ?? "N/A")).Style(tableStyle);
+
+                        // Additional Comments Section
+                        table.Cell().Row(12).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+                        table.Cell().Row(13).ColumnSpan(3).Column(1).Text("Additional Comments").Style(boldTableStyle).Underline();
+                        table.Cell().Row(14).ColumnSpan(3).Column(1).Element(CellStyle)
+                            .Text(RouteInfo.SubmissionIDUAB?.ToString() ?? "N/A").Style(tableStyle);
+                    });
+            }
+
+            IContainer CellStyle(IContainer container) => container
+                .Border(1)
+                .BorderColor(Colors.Black)
+                .Padding(5);
+        }
+
+
+
+
+        /*
+        public class PJ103DocumentGeneration : IDocument
+        {
             public Submission Submission { get; }
 
 
@@ -446,7 +644,9 @@ namespace OM_79_HUB.Controllers
             {
                 container.Row(row =>
                 {
-                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black);
+                    var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
+                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Specify fallback font
+                    
                     row.ConstantItem(50).Height(50).Image("wwwroot/Assets/dot.png");
                     row.RelativeItem().Column(column =>
                     {
@@ -462,6 +662,7 @@ namespace OM_79_HUB.Controllers
                 });
             }
         }
+        */
 
 
         // OM79 QUEST PDF Section
@@ -492,7 +693,7 @@ namespace OM_79_HUB.Controllers
                         page.Margin(50);
 
                         page.Header().Element(ComposeHeader);
-                        //page.Content().Element(ComposeContent);
+                        page.Content().Element(ComposeContent);
                         page.Footer().Height(10).Background(Colors.Grey.Lighten1);
                     });
             }
@@ -501,7 +702,8 @@ namespace OM_79_HUB.Controllers
             {
                 container.Row(row =>
                 {
-                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black);
+                    var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
+                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Apply fallback style
                     row.ConstantItem(50).Height(50).Image("wwwroot/Assets/dot.png");
 
 
@@ -515,13 +717,163 @@ namespace OM_79_HUB.Controllers
                         column.Item().AlignRight().Text(text =>
                         {
                             string formattedDate = OMTable.SubmissionDate.HasValue
-                                                   ? OMTable.SubmissionDate.Value.ToString("MM/dd/yyyy") // or "MM/dd/yyyy" or any other format you prefer
-                                                   : "N/A"; // In case the date is null
+                                                   ? OMTable.SubmissionDate.Value.ToString("MM/dd/yyyy") 
+                                                   : "N/A"; 
                             text.Span(formattedDate).Style(titleStyle);
                         });
 
                     });
                 });
+            }
+
+
+
+            void ComposeContent(IContainer container)
+            {
+                var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
+                var tableStyle = TextStyle.Default.FontSize(10).FontColor(Colors.Black).Fallback(fallbackStyle); // Apply fallback style;
+                var boldTableStyle = TextStyle.Default.FontSize(13).Bold().FontColor(Colors.Black).Fallback(fallbackStyle);
+
+
+                container
+                        .Background(Colors.White)
+                        .AlignLeft()
+                        .AlignCenter()
+                        .Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn();
+                                columns.RelativeColumn();
+                                columns.RelativeColumn();
+                            });
+                            // More Title Info 
+                            table.Cell().Row(1).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+                            table.Cell().Row(2).ColumnSpan(3).Column(1).Text("Changes to the State Road System").Style(boldTableStyle);
+                            table.Cell().Row(3).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+                            table.Cell().Row(4).ColumnSpan(3).Column(1).Text("The District requests a Commissioner's Order be entered to implement the following road change(s):").Style(tableStyle);
+                            table.Cell().Row(5).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+
+
+
+                            // Road Change Type Section with Textbox Outline
+                            table.Cell().Row(6).ColumnSpan(3).Column(1).Text("Road Change Type").Style(boldTableStyle).Underline();
+
+                            table.Cell().Row(7).Column(1).Element(CellStyle)
+                                .Text("Road Change Type:\n" + (OMTable?.RoadChangeType ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(7).Column(2).Element(CellStyle)
+                                .Text("Requested By:\n" + (OMTable?.RequestedBy ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(7).Column(3).Element(CellStyle)
+                                .Text("Requester Name:\n" + (OMTable?.RequestedByName ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(8).ColumnSpan(3).Column(1).Element(CellStyle)
+                                .PaddingVertical(10).Text("Description:\n" + (OMTable?.Attachments ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(9).Column(1).Element(CellStyle)
+                                .Text("Route Assignment:\n" + (OMTable?.RouteAssignment ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(9).Column(2).Element(CellStyle)
+                                .Text("Route:\n" + (OMTable?.Route?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(9).Column(3).Element(CellStyle)
+                                .Text("SubRoute:\n" + (OMTable?.SubRoute?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(10).Column(1).Element(CellStyle)
+                                .Text("Supplemental Code:\n" + (OMTable?.Supplemental ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(10).Column(2).Element(CellStyle)
+                                .Text("Right Of Way Width:\n" + (OMTable?.RightOfWayWidth ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(11).ColumnSpan(3).Column(1).Element(CellStyle)
+                                .PaddingVertical(10).Text("Explanation:\n" + (OMTable?.Comments ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(12).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+
+
+                            // Adjacent Property Section
+                            table.Cell().Row(13).ColumnSpan(3).Column(1).Text("Adjacent Property Information").Style(boldTableStyle).Underline();
+
+                            table.Cell().Row(14).Column(1).Element(CellStyle)
+                                .Text("Number of Houses:\n" + (OMTable?.APHouses?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(14).Column(2).Element(CellStyle)
+                                .Text("Number of Businesses:\n" + (OMTable?.APBusinesses?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(14).Column(3).Element(CellStyle)
+                                .Text("Number of Schools:\n" + (OMTable?.APSchools?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(15).Column(1).Element(CellStyle)
+                                .Text("Number of Other:\n" + (OMTable?.APOther?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(15).Column(2).Element(CellStyle)
+                                .Text("Total Adjacent Property:\n" + (OMTable?.AdjacentProperty?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(15).Column(3).Element(CellStyle)
+                                .Text("Other Properties Explanation:\n" + (OMTable?.APOtherIdentify ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(16).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+
+                            // Bridge/Railroad Information Section
+                            table.Cell().Row(17).ColumnSpan(3).Column(1)
+                                .Text("Bridge/Railroad Information").Style(boldTableStyle).Underline();
+
+                            table.Cell().Row(18).Column(1).Element(CellStyle)
+                                .Text("Is there a bridge?:\n" + (OMTable?.BridgeInv == null ? "N/A" : OMTable.BridgeInv = true ? "Yes" : "No")).Style(tableStyle);
+
+                            table.Cell().Row(18).Column(2).Element(CellStyle)
+                                .Text("Number of bridges:\n" + (OMTable?.BridgeAmount?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(18).Column(3).Element(CellStyle)
+                                .Text("BARS (Separate by comma):\n" + (OMTable?.BridgeNumbers ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(19).Column(1).Element(CellStyle)
+                                .Text("Is there a railroad?:\n" + (OMTable?.RailroadInv == null ? "N/A" : OMTable.RailroadInv = true ? "Yes" : "No")).Style(tableStyle);
+
+                            table.Cell().Row(19).Column(2).Element(CellStyle)
+                                .Text("Number of railroad crossings:\n" + (OMTable?.RailroadAmount?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(19).Column(3).Element(CellStyle)
+                                .Text("Railroad crossing numbers:\n" + (OMTable?.DOTAARNumber ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(20).ColumnSpan(3).Column(1).PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Medium);
+
+
+                            // General Information Section
+                            table.Cell().Row(21).ColumnSpan(3).Column(1).Text("General Information").Style(boldTableStyle).Underline();
+
+                            table.Cell().Row(22).Column(1).Element(CellStyle)
+                                .Text("Sign System:\n" + (OMTable?.SignSystem ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(22).Column(2).Element(CellStyle)
+                                .Text("Project Number:\n" + (OMTable?.ProjectNumber ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(22).Column(3).Element(CellStyle)
+                                .Text("Date Complete:\n" + (OMTable?.DateComplete?.ToString("MM/dd/yyyy") ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(23).Column(1).Element(CellStyle)
+                                .Text("Route Number:\n" + (OMTable?.RouteNumber?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(23).Column(2).Element(CellStyle)
+                                .Text("Subroute Number:\n" + (OMTable?.SubRouteNumber?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(23).Column(3).Element(CellStyle)
+                                .Text("Org Number:\n" + (OMTable?.MaintOrg ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(24).Column(1).Element(CellStyle)
+                                .Text("Starting MP:\n" + (OMTable?.StartingMilePoint?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(24).Column(2).Element(CellStyle)
+                                .Text("Ending MP:\n" + (OMTable?.EndingMilePoint?.ToString() ?? "N/A")).Style(tableStyle);
+
+                            table.Cell().Row(24).Column(3).Element(CellStyle)
+                                .Text("Year Of Survey:\n" + (OMTable?.YearOfSurvey?.ToString() ?? "N/A")).Style(tableStyle);
+                        });
+                IContainer CellStyle(IContainer container) => container
+                    .Border(1)
+                    .BorderColor(Colors.Black)
+                    .Padding(5);
             }
         }
     }
