@@ -105,19 +105,20 @@
             <span asp-validation-for="FedForestHighway" class="text-danger"></span>
         </div>
         <div class="col-md-4">
-            <label asp-for="TruckRoute" class="control-label"></label>
-            <select asp-for="TruckRoute" name="TruckRoute" class="form-control" asp-items="@ViewBag.TruckDropdown"></select>
-            <span asp-validation-for="TruckRoute" class="text-danger"></span>
+            <label asp-for="MPSegmentStart" class="control-label"></label>
+            <input asp-for="MPSegmentStart" class="form-control" />
+            <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
         </div>
+        
         <div class="col-md-4">
             <label asp-for="NHS" class="control-label"></label>
             <select asp-for="NHS" name="NHS" class="form-control" asp-items="@ViewBag.NHSDropdown"></select>
             <span asp-validation-for="NHS" class="text-danger"></span>
         </div>
         <div class="col-md-4">
-            <label asp-for="MPSegmentStart" class="control-label"></label>
-            <input asp-for="MPSegmentStart" class="form-control" />
-            <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
+            <label asp-for="TruckRoute" class="control-label"></label>
+            <select asp-for="TruckRoute" name="TruckRoute" class="form-control" asp-items="@ViewBag.TruckDropdown"></select>
+            <span asp-validation-for="TruckRoute" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="MPSegmentEnd" class="control-label"></label>
