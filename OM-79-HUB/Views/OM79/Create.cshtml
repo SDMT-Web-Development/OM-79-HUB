@@ -90,7 +90,7 @@
                 <span asp-validation-for="Supplemental" class="text-danger"></span>
             </div>
             <div class="col-md-4">
-                <label asp-for="RightOfWayWidth" class="control-label">@Html.DisplayNameFor(model => model.RightOfWayWidth) <span class="required-asterisk">*</span></label>
+                <label asp-for="RightOfWayWidth" class="control-label">@Html.DisplayNameFor(model => model.RightOfWayWidth)</label>
                 <select asp-for="RightOfWayWidth" name="RightOfWayWidth" class="form-control" asp-items=@ViewBag.ROWDropdown></select>
                 <span asp-validation-for="RightOfWayWidth" class="text-danger"></span>
             </div>
@@ -668,6 +668,27 @@
                     $("#pjbutton").hide();
                     
                 }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Function to check the value of RoadChangeType and set required attribute
+            function checkRoadChangeType() {
+                var roadChangeType = $('#RoadChangeType').val();
+                if (roadChangeType === 'Addition' || roadChangeType === 'Redesignation') {
+                    $('#RightOfWayWidth').attr('required', 'required');
+                } else {
+                    $('#RightOfWayWidth').removeAttr('required');
+                }
+            }
+
+            // Check on page load
+            checkRoadChangeType();
+
+            // Check on change of the dropdown
+            $('#RoadChangeType').change(function () {
+                checkRoadChangeType();
             });
         });
     </script>

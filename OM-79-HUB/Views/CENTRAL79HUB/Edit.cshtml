@@ -23,6 +23,16 @@
                 <input asp-for="Otherbox" class="form-control" />
                 <span asp-validation-for="Otherbox" class="text-danger"></span>
             </div>
+            <div class="col-md-4">
+                <label asp-for="District" class="control-label">@Html.DisplayNameFor(model => model.District) <span class="required-asterisk">*</span></label>
+                <select asp-for="District" name="District" class="form-control" id="districtDropdown" asp-items=@ViewBag.DDropdown> </select>
+                <span asp-validation-for="District" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="County" class="control-label">@Html.DisplayNameFor(model => model.County) <span class="required-asterisk">*</span></label>
+                <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
+                <span asp-validation-for="County" class="text-danger"></span>
+            </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
