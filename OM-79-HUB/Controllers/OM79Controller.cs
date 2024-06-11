@@ -165,13 +165,13 @@ namespace OM_79_HUB.Data
                 if (Datsubmit == "Save and Create PJ103 Segment") { 
                 // Save all changes to the database
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID });
+                return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID, HubID = oMTable.HubId });
                     //return Redirect($"https://dotappstest.transportation.wv.gov/PJ-103/Submissions/Create?uniqueID={unique79ID}");
                 }
                 else if(Datsubmit == "Save")
                 {
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Details", "CENTRAL79HUB", new {id = oMTable.HubId});
                 }
                 else if (Datsubmit == "Save and Create Additional Item")
                 {
