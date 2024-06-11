@@ -30,7 +30,7 @@ public partial class OMTable
     [Required]
     public string? RouteAssignment { get; set; }
     [DisplayName("Right Of Way Width")]
-    [Required]
+    
     public string? RightOfWayWidth { get; set; }
     [DisplayName("dsfasfasdfsf?")]
         public string? Railroad { get; set; }

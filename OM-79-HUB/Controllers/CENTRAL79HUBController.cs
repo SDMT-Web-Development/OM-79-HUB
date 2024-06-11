@@ -115,6 +115,7 @@ namespace OM_79_HUB.Controllers
         // GET: CENTRAL79HUB/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            Dropdowns();
             if (id == null || _context.CENTRAL79HUB == null)
             {
                 return NotFound();
@@ -133,7 +134,7 @@ namespace OM_79_HUB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OMId,USERID,CBOX")] CENTRAL79HUB cENTRAL79HUB)
+        public async Task<IActionResult> Edit(int id, [Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB)
         {
             if (id != cENTRAL79HUB.OMId)
             {
