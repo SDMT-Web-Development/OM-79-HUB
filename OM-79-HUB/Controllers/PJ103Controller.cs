@@ -10,6 +10,7 @@ using PJ103V3.Models.DB;
 using PJ103V3.Models.ViewModels;
 
 using OM_79_HUB.DTOs;
+using OM_79_HUB.Models;
 
 namespace OM_79_HUB.Data
 {
@@ -284,9 +285,10 @@ namespace OM_79_HUB.Data
         }
         */
         // GET: Submissions/Create
-        public IActionResult Create([FromQuery] int uniqueID)
+        public IActionResult Create([FromQuery] int uniqueID, int HubID)
         {
             ViewBag.testUniqueID = uniqueID;
+            ViewBag.testHubID = HubID;
 
             Console.WriteLine(ViewBag.testUniqueID);
             DropDowns();
@@ -295,7 +297,7 @@ namespace OM_79_HUB.Data
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments)
+        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments, int testHubID)
         {
             if (ModelState.IsValid)
             {
@@ -334,8 +336,8 @@ namespace OM_79_HUB.Data
                 */
                 // Save all changes to the database
                 await _context.SaveChangesAsync();
-                  return RedirectToAction(nameof(Index));
-              }
+                return RedirectToAction("Details", "CENTRAL79HUB", new { id = testHubID });
+            }
 
               void synctables(int ID)
               {
