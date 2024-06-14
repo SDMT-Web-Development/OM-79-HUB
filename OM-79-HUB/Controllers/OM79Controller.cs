@@ -16,11 +16,13 @@ namespace OM_79_HUB.Data
     public class OM79Controller : Controller
     {
         private readonly OM79Context _context;
+        private readonly OM_79_HUBContext _context2; 
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public OM79Controller(OM79Context context, IWebHostEnvironment webHostEnvironment)
+        public OM79Controller(OM79Context context, OM_79_HUBContext context2, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _context2 = context2;
             _webHostEnvironment = webHostEnvironment;
         }
         // GET: OMTables
@@ -49,140 +51,148 @@ namespace OM_79_HUB.Data
             return View(oMTable);
         }
 
+        
         // GET: OMTables/Create
-        public IActionResult Create([FromQuery] int uniqueID, OMTable oMTable)
+        public IActionResult Create([FromQuery] int uniqueID, string county, OMTable oMTable, CENTRAL79HUB central79hub)
         {
-            DropDowns();
-            Console.WriteLine(uniqueID);
-            TempData["UniqueID"] = uniqueID; // Store uniqueID in TempData
+            DropDowns(); // Assuming this method populates dropdowns or other data for the view
 
+            // Retrieve CENTRAL79HUB record based on uniqueID
+            CENTRAL79HUB central79Hub = _context2.CENTRAL79HUB.FirstOrDefault(c => c.OMId == uniqueID);
 
-            ViewBag.TestUniqueID = uniqueID;
-           // oMTable.HubId = uniqueID;
+            if (central79Hub != null)
+            {
+                // Retrieve county name from central79Hub
+                string countyName = central79Hub.County;
 
-            return View(oMTable);
+                // Check if countyName exists in CountyMappings dictionary
+                if (CountyMappings.ContainsKey(countyName))
+                {
+                    // Map county name to numeric code
+                    int countyCode = CountyMappings[countyName];
+
+                    // Store uniqueID and county code in TempData
+                    TempData["UniqueID"] = uniqueID;
+                    TempData["CountyCode"] = countyCode;
+
+                    ViewBag.TestUniqueID = uniqueID; // Pass uniqueID to the view via ViewBag
+                    ViewBag.CountyCode = countyCode; // Pass county code to the view via ViewBag
+                }
+            }
+
+            return View(oMTable); // Return the view with oMTable object
         }
+
 
         // POST: OMTables/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers, Supplemental")] OMTable oMTable, List<IFormFile> attachments, String Datsubmit)
+        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers, Supplemental")] OMTable oMTable, CENTRAL79HUB central79hub, List<IFormFile> attachments, String Datsubmit)
         {
-
+            // Optional: Log initial information
             Console.WriteLine("------------------------------------------------------------------------------------------");
-            Console.WriteLine("------------------------------------------------------------------------------------------");
-
-            Console.WriteLine(oMTable.HubId);
-
-            Console.WriteLine("------------------------------------------------------------------------------------------");
+            Console.WriteLine("Starting OMTables/Create Action...");
+            Console.WriteLine($"Received Datsubmit: {Datsubmit}");
             Console.WriteLine("------------------------------------------------------------------------------------------");
 
-            Console.WriteLine("==========================================================================================");
-            Console.WriteLine("==========================================================================================");
-            // Log information about each file
-            foreach (var file in attachments)
+            try
             {
-                Console.WriteLine("File Name: " + file.FileName);
-                Console.WriteLine("Content Type: " + file.ContentType);
-                Console.WriteLine("File Size: " + file.Length + " bytes");
-            }
-            Console.WriteLine("==========================================================================================");
-            Console.WriteLine("==========================================================================================");
-
-            if (ModelState.IsValid)
-            {
-                _context.Add(oMTable);
-
-                await _context.SaveChangesAsync();
-                // int wowee = Int32.Parse(uniqueID);
-
-                //    oMTable.HubId = wowee;
-                oMTable.SubmissionDate = DateTime.Now;
-                int unique79ID = oMTable.Id;
-
-                //Console.WriteLine("UniqueID " + $"Query Parameter: {HttpContext.Request.Query["uniqueID"]}");
-                /*   if (int.TryParse(HttpContext.Request.Query["uniqueID"], out int uniqueID))
-                   {
-                       // Use the uniqueID as needed
-                       // For example, you can pass it to a view or use it in your logic
-                       oMTable.HubId = uniqueID;
-                       await _context.SaveChangesAsync();
-                       // Your further logic...
-                   }
-                   else
-                   {
-                       // Handle the case when the uniqueID is not present or not a valid integer
-                       return BadRequest("Invalid or missing uniqueID");
-                   }
-                   */
-                if (TempData["UniqueID"] is int uniqueID)
+                if (ModelState.IsValid)
                 {
-                    oMTable.HubId = uniqueID; // Set the uniqueID to your model's property
-                    await _context.SaveChangesAsync();
-                }
-
-
-
-
-                // Create a folder for attachments based on the unique ID
-                var uploadsRootFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
-                var uniqueFolderName = $"OM79-{unique79ID}-Attachments"; // Folder name based on unique ID
-                var uniqueFolderPath = Path.Combine(uploadsRootFolder, uniqueFolderName);
-
-                // Ensure the directory exists
-                if (!Directory.Exists(uniqueFolderPath))
-                {
-                    Directory.CreateDirectory(uniqueFolderPath);
-                }
-
-
-                // Save the attachments
-                foreach (var attachmentFile in attachments)
-                {
-                    if (attachmentFile.Length > 0)
+                    // Ensure countyCode is correctly set from TempData
+                    if (TempData["CountyCode"] is int countyCode)
                     {
-                        //var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
-
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
-                        var filePath = Path.Combine(uniqueFolderPath, uniqueFileName);  // Use uniqueFolderPath here
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        // Set countyCode to oMTable if it's not already set
+                        if (oMTable.County == null)
                         {
-                            await attachmentFile.CopyToAsync(fileStream);
+                            oMTable.County = CountyMappings.FirstOrDefault(x => x.Value == countyCode).Key;
                         }
 
-                        var attachment = new Attachments
+                        // Add OMTable to _context and save changes
+                        _context.Add(oMTable);
+                        await _context.SaveChangesAsync();
+
+                        // Set SubmissionDate and get unique79ID
+                        oMTable.SubmissionDate = DateTime.Now;
+                        int unique79ID = oMTable.Id;
+
+                        // Set HubId from TempData if available
+                        if (TempData["UniqueID"] is int uniqueID)
                         {
-                            FileName = attachmentFile.FileName,
-                            FilePath = filePath,
-                            SubmissionID = oMTable.Id // Use the SubmissionID from the saved submission
-                        };
-                        _context.Attachments.Add(attachment);
+                            oMTable.HubId = uniqueID;
+                            await _context.SaveChangesAsync(); // Save changes to _context
+                        }
+
+                        // Construct routeIDB using countyCode and other properties
+                        string routeIDB = $"{countyCode}-{oMTable.SignSystem}-{oMTable.Route}-{oMTable.SubRoute}-{oMTable.Supplemental}";
+                        oMTable.RouteIDB = routeIDB;
+
+                        // Create folder for attachments based on unique79ID
+                        var uploadsRootFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+                        var uniqueFolderName = $"OM79-{unique79ID}-Attachments";
+                        var uniqueFolderPath = Path.Combine(uploadsRootFolder, uniqueFolderName);
+
+                        // Ensure the directory exists, create if not
+                        if (!Directory.Exists(uniqueFolderPath))
+                        {
+                            Directory.CreateDirectory(uniqueFolderPath);
+                        }
+
+                        // Save attachments to unique folder
+                        foreach (var attachmentFile in attachments)
+                        {
+                            if (attachmentFile.Length > 0)
+                            {
+                                var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
+                                var filePath = Path.Combine(uniqueFolderPath, uniqueFileName);
+
+                                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await attachmentFile.CopyToAsync(fileStream);
+                                }
+
+                                // Create new Attachment record
+                                var attachment = new Attachments
+                                {
+                                    FileName = attachmentFile.FileName,
+                                    FilePath = filePath,
+                                    SubmissionID = oMTable.Id
+                                };
+                                _context.Attachments.Add(attachment);
+                            }
+                        }
+
+                        // Save changes to _context after processing attachments
+                        await _context.SaveChangesAsync();
+
+                        // Determine action based on Datsubmit value
+                        if (Datsubmit == "Save and Create PJ103 Segment")
+                        {
+                            return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID });
+                        }
+                        else if (Datsubmit == "Save")
+                        {
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+                        else if (Datsubmit == "Save and Create Additional Item")
+                        {
+                            return RedirectToAction("Create", "OM79", new { uniqueID = oMTable.HubId });
+                        }
                     }
                 }
-                if (Datsubmit == "Save and Create PJ103 Segment") { 
-                // Save all changes to the database
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID, HubID = oMTable.HubId });
-                    //return Redirect($"https://dotappstest.transportation.wv.gov/PJ-103/Submissions/Create?uniqueID={unique79ID}");
-                }
-                else if(Datsubmit == "Save")
-                {
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction("Details", "CENTRAL79HUB", new {id = oMTable.HubId});
-                }
-                else if (Datsubmit == "Save and Create Additional Item")
-                {
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction("Create", "OM79", new { uniqueID = oMTable.HubId });
-                }
-
-
             }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+            }
+
+            // Return the view with oMTable if ModelState is not valid or an exception occurred
             return View(oMTable);
         }
+
 
         /**
         // GET: OMTables/Create
@@ -634,7 +644,64 @@ namespace OM_79_HUB.Data
             ViewBag.DOHDropdown = DOHDropdown;
         }
 
-
+        private Dictionary<string, int> CountyMappings = new Dictionary<string, int>
+{
+    { "Barbour", 1 },
+    { "Berkeley", 2 },
+    { "Boone", 3 },
+    { "Braxton", 4 },
+    { "Brooke", 5 },
+    { "Cabell", 6 },
+    { "Calhoun", 7 },
+    { "Clay", 8 },
+    { "Doddridge", 9 },
+    { "Fayette", 10 },
+    { "Gilmer", 11 },
+    { "Grant", 12 },
+    { "Greenbrier", 13 },
+    { "Hampshire", 14 },
+    { "Hancock", 15 },
+    { "Hardy", 16 },
+    { "Harrison", 17 },
+    { "Jackson", 18 },
+    { "Jefferson", 19 },
+    { "Kanawha", 20 },
+    { "Lewis", 21 },
+    { "Lincoln", 22 },
+    { "Logan", 23 },
+    { "McDowell", 24 },
+    { "Marion", 25 },
+    { "Marshall", 26 },
+    { "Mason", 27 },
+    { "Mercer", 28 },
+    { "Mineral", 29 },
+    { "Mingo", 30 },
+    { "Monongalia", 31 },
+    { "Monroe", 32 },
+    { "Morgan", 33 },
+    { "Nicholas", 34 },
+    { "Ohio", 35 },
+    { "Pendleton", 36 },
+    { "Pleasants", 37 },
+    { "Pocahontas", 38 },
+    { "Preston", 39 },
+    { "Putnam", 40 },
+    { "Raleigh", 41 },
+    { "Randolph", 42 },
+    { "Ritchie", 43 },
+    { "Roane", 44 },
+    { "Summers", 45 },
+    { "Taylor", 46 },
+    { "Tucker", 47 },
+    { "Tyler", 48 },
+    { "Upshur", 49 },
+    { "Wayne", 50 },
+    { "Webster", 51 },
+    { "Wetzel", 52 },
+    { "Wirt", 53 },
+    { "Wood", 54 },
+    { "Wyoming", 55 }
+};
 
         /*
         public IActionResult LinkedOM(int hubId)

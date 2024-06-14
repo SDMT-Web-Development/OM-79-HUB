@@ -14,6 +14,11 @@ namespace OM_79_HUB.Data
             : base(options)
         {
         }
+
+        public OM_79_HUBContext()
+        {
+        }
+
         public bool HasChanges()
         {
             return ChangeTracker.HasChanges();
