@@ -19,6 +19,7 @@ using System.ComponentModel;
 using System.Composition;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Security.Cryptography;
 using IContainer = QuestPDF.Infrastructure.IContainer;
 
@@ -201,6 +202,8 @@ namespace OM_79_HUB.Controllers
             }
 
             var omHUB = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == id.Value);
+
+
             if (omHUB == null)
             {
                 return NotFound();
@@ -217,10 +220,22 @@ namespace OM_79_HUB.Controllers
                 //Nothing to export
                 return RedirectToAction("Details", "CENTRAL79HUB", new { id = id.Value });
             }
+            var omSignatures = await _hubContext.SignatureData.Where(e => e.HubKey == id.Value).ToListAsync();
+
+
+            var omItems = await _om79Context.OMTable.Where(e => e.HubId == id.Value).ToListAsync();
+            var omItemIds = omItems.Select(e => e.Id).ToList(); // Extract the IDs from omItems
+
+
+            var pjSegments = await _pj103Context.Submissions.Where(e => e.OM79Id.HasValue && omItemIds.Contains(e.OM79Id.Value)).ToListAsync(); // Convert OM79Id to int
+            var pjSegmentsIds = pjSegments.Select(e => e.SubmissionID).ToList(); // Extract the IDs from omItems
+
 
 
             var reports = new List<IDocument>();
             var fileName = $"Hub_{omHUB.OMId}_Report.pdf";
+            var CoverPage = new CoverPageDocumentGeneration(omHUB, omSignatures, omItems);
+            reports.Add((IDocument)CoverPage);
 
 
             foreach (var om79 in OM79AttachedToHUB)
@@ -475,13 +490,20 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
-            var omSignatures = await _hubContext.SignatureData
-                                    .Where(e => e.HubKey == id.Value)
-                                    .ToListAsync();
+            var omSignatures = await _hubContext.SignatureData.Where(e => e.HubKey == id.Value).ToListAsync();
+
+
+            var omItems = await _om79Context.OMTable.Where(e => e.HubId == id.Value).ToListAsync();
+            var omItemIds = omItems.Select(e => e.Id).ToList(); // Extract the IDs from omItems
+
+
+            var pjSegments = await _pj103Context.Submissions.Where(e => e.OM79Id.HasValue && omItemIds.Contains(e.OM79Id.Value)).ToListAsync(); // Convert OM79Id to int
+            var pjSegmentsIds = pjSegments.Select(e => e.SubmissionID).ToList(); // Extract the IDs from omItems
+
 
 
             var fileName = "OMCover[" + omHUB.OMId + "].pdf";
-            var report = new CoverPageDocumentGeneration(omHUB, omSignatures);
+            var report = new CoverPageDocumentGeneration(omHUB, omSignatures, omItems);
 
 
 
@@ -506,7 +528,7 @@ namespace OM_79_HUB.Controllers
             //      3) Correction to the Map Y/N
             //      4) Abandonment Y/N
             //      5) Removal From Inventory
-            //      6) Amend  , This one will also have to retrieve the 
+            //      6) Amend  , This one will also have to retrieve the date
             //      7) Rescind
             //      8) Other
             //
@@ -531,14 +553,133 @@ namespace OM_79_HUB.Controllers
         public class CoverPageDocumentGeneration : IDocument
         {
             public CENTRAL79HUB CENTRAL79HUB { get; }
-            public List<SignatureData> SignatureDataList { get; } // Change to list
+            public List<SignatureData> SignatureDataList { get; }
+            public List<OMTable> OMTableList { get; } // Change the property to List<OMTable>
 
-            public CoverPageDocumentGeneration(CENTRAL79HUB cENTRAL79HUB, List<SignatureData> signatureDataList) // Change the parameter
+
+            public bool Addition { get; private set; }
+            public bool RemovalFromInventory { get; private set; }
+            public bool Redesignation { get; private set; }
+            public bool CorrectionToMap { get; private set; }
+            public bool Amend { get; private set; }
+            public bool Rescind { get; private set; }
+            public bool Abandonment { get; private set; }
+            public bool Other { get; private set; }
+            public string ConcatenatedDescriptions { get; private set; }
+            public string RouteNumbers { get; private set; }
+            public string RightOfWayWidths { get; private set; }
+            public bool IsRailroadInvolved { get; private set; }
+            public string DOTAARNumber { get; private set; }
+            public string RequestedBy { get; private set; }
+            public string Explanation { get; private set; }
+
+            public CoverPageDocumentGeneration(CENTRAL79HUB cENTRAL79HUB, List<SignatureData> signatureDataList, List<OMTable> oMTableList) // Change the parameter type to List<OMTable>
             {
                 CENTRAL79HUB = cENTRAL79HUB;
-                SignatureDataList = signatureDataList; // Assign to list property
+                SignatureDataList = signatureDataList;
+                OMTableList = oMTableList; // Assign to the list property
+                SetRoadChangeTypeFlags();
+                ConcatenateDescriptions();
+                GetRouteNumbers();
+                GetRightOfWayWidths();
+                CheckRailroadInvolvement();
+                GetDOTAARNumber();
+                GetRequestedBy();
+                GetExplanation();
             }
+            private void GetExplanation()
+            {
+                var comments = OMTableList
+                    .Select((item, index) => $"Item {index + 1}:\n{item.Comments}")
+                    .ToList();
+
+                Explanation = string.Join("\n\n", comments);
+            }
+            private void GetRequestedBy()
+            {
+                var firstItem = OMTableList.FirstOrDefault();
+                if (firstItem != null)
+                {
+                    RequestedBy = $"{firstItem.RequestedBy}, {firstItem.RequestedByName}";
+                }
+            }
+
+            private void CheckRailroadInvolvement()
+            {
+                IsRailroadInvolved = OMTableList.Any(item => item.RailroadInv == "True");
+            }
+
+            private void GetDOTAARNumber()
+            {
+                DOTAARNumber = IsRailroadInvolved
+                               ? OMTableList.FirstOrDefault(item => !string.IsNullOrEmpty(item.DOTAARNumber))?.DOTAARNumber ?? "N/A"
+                               : "N/A";
+            }
+
+            private void GetRightOfWayWidths()
+            {
+                var rightOfWayWidths = OMTableList
+                    .Select(item => item.RightOfWayWidth == "Other" ? item.RightOther : item.RightOfWayWidth)
+                    .Where(width => !string.IsNullOrEmpty(width))
+                    .ToList();
+
+                RightOfWayWidths = string.Join(", ", rightOfWayWidths);
+            }
+
+            private void GetRouteNumbers()
+            {
+                var uniqueRoutes = OMTableList
+                    .Select(item => item.Route + "/" + item.SubRoute)
+                    .Distinct()
+                    .ToList();
+
+                RouteNumbers = string.Join(", ", uniqueRoutes);
+            }
+
+            private void ConcatenateDescriptions()
+            {
+                var descriptions = OMTableList
+                    .Select((item, index) => $"Item {index + 1}:\n{item.Attachments}")
+                    .ToList();
+
+                ConcatenatedDescriptions = string.Join("\n", descriptions);
+            }
+            private void SetRoadChangeTypeFlags()
+            {
+                foreach (var item in OMTableList)
+                {
+                    switch (item.RoadChangeType)
+                    {
+                        case "Addition":
+                            Addition = true;
+                            break;
+                        case "Inventory Removal":
+                            RemovalFromInventory = true;
+                            break;
+                        case "Redesignation":
+                            Redesignation = true;
+                            break;
+                        case "Map Correction":
+                            CorrectionToMap = true;
+                            break;
+                        case "Amend":
+                            Amend = true;
+                            break;
+                        case "Rescind":
+                            Rescind = true;
+                            break;
+                        case "Abandonment":
+                            Abandonment = true;
+                            break;
+                        case "Other":
+                            Other = true;
+                            break;
+                    }
+                }
+            }
+
             public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+
             private bool isFirstPage = true;  // Flag to determine if the current page is the first
 
 
@@ -577,7 +718,7 @@ namespace OM_79_HUB.Controllers
 
                         row.RelativeColumn().AlignRight().Column(col =>
                         {
-                            col.Item().Text("ID:").FontSize(10);
+                            col.Item().Text("ID: " + (CENTRAL79HUB.IDNumber ?? "Not Available")).FontSize(10);
                         });
                     });
 
@@ -653,7 +794,7 @@ namespace OM_79_HUB.Controllers
                         //table.Cell().Row(3).ColumnSpan(7).Column(3).AlignLeft().Text(" HO (through CT, from TI, OM)").Style(underlineStyle); //Change?
                         table.Cell().Row(3).ColumnSpan(4).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("HO (through CT, from TI, OM) (?)").Style(tableStyle);
+                            container.AlignCenter().Text("HO (through CT, from TI, OM)").Style(tableStyle);
                         });
 
                         //Row 4: Add space here
@@ -678,126 +819,63 @@ namespace OM_79_HUB.Controllers
                         table.Cell().Row(8).ColumnSpan(9).Height(20); // Adjust height as needed
 
 
-                        //row 9
+                        // Row 9
                         table.Cell().Row(9).ColumnSpan(2).Column(1).AlignLeft().Text("Addition: ").Style(tableStyle);
-                        bool Addition = true; // Replace with your actual condition
-                        if (Addition)
+                        table.Cell().Row(9).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(9).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(9).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(Addition ? "X" : "").Style(tableStyle);
+                        });
                         table.Cell().Row(9).ColumnSpan(3).Column(6).AlignLeft().Text("Removal From Inventory: ").Style(tableStyle);
-                        if (Addition)
+                        table.Cell().Row(9).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(9).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(9).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(RemovalFromInventory ? "X" : "").Style(tableStyle);
+                        });
 
+                        // Row 10: Add space here
+                        table.Cell().Row(10).ColumnSpan(9).Height(10);
 
-                        //Row 10
-                        table.Cell().Row(10).ColumnSpan(9).Height(10); // Adjust height as needed
-
-
-                        //Row 11
+                        // Row 11
                         table.Cell().Row(11).ColumnSpan(2).Column(1).AlignLeft().Text("Redesignation: ").Style(tableStyle);
-                        if (Addition)
+                        table.Cell().Row(11).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(11).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(11).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(Redesignation ? "X" : "").Style(tableStyle);
+                        });
                         table.Cell().Row(11).ColumnSpan(3).Column(6).AlignLeft().Text("Correction to the Map: ").Style(tableStyle);
-                        if (Addition)
+                        table.Cell().Row(11).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(11).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(11).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(CorrectionToMap ? "X" : "").Style(tableStyle);
+                        });
 
-                        //Row 12
-                        table.Cell().Row(12).ColumnSpan(9).Height(10); // Adjust height as needed
+                        // Row 12: Add space here
+                        table.Cell().Row(12).ColumnSpan(9).Height(10);
 
-
-
-                        //Row 13
+                        // Row 13
                         table.Cell().Row(13).ColumnSpan(2).Column(1).AlignLeft().Text("Amend: ").Style(tableStyle);
-                        if (Addition)
+                        table.Cell().Row(13).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(13).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(13).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(Amend ? "X" : "").Style(tableStyle);
+                        });
                         table.Cell().Row(13).ColumnSpan(3).Column(6).AlignLeft().Text("Rescind: ").Style(tableStyle);
-                        if (Addition)
+                        table.Cell().Row(13).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(13).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(13).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(Rescind ? "X" : "").Style(tableStyle);
+                        });
 
+                        // Row 14: Add space here
+                        table.Cell().Row(14).ColumnSpan(9).Height(10);
 
-                        //Row 14
-                        table.Cell().Row(14).ColumnSpan(9).Height(10); // Adjust height as needed
-
-
-
-                        //Row 15
+                        // Row 15
                         table.Cell().Row(15).ColumnSpan(2).Column(1).AlignLeft().Text("Abandonment: ").Style(tableStyle);
-                        if (Addition)
+                        table.Cell().Row(15).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(15).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(15).ColumnSpan(1).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(Abandonment ? "X" : "").Style(tableStyle);
+                        });
                         table.Cell().Row(15).ColumnSpan(3).Column(6).AlignLeft().Text("Other: ").Style(tableStyle);
-                        if (Addition)
+                        table.Cell().Row(15).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            table.Cell().Row(15).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                            {
-                                container.AlignCenter().Text("X").Style(tableStyle);
-                            });
-                        }
-                        else
-                        {
-                            table.Cell().Row(15).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).Text("").Style(tableStyle);
-                        }
+                            container.AlignCenter().Text(Other ? "X" : "").Style(tableStyle);
+                        });
+
 
 
 
@@ -810,15 +888,17 @@ namespace OM_79_HUB.Controllers
                         //Row 18
                         table.Cell().Row(18).ColumnSpan(9).Height(0); // Adjust height as needed
 
-                        //Row 19
-                        table.Cell().Row(19).ColumnSpan(9).Column(1).AlignLeft()
-                            .Text("Description Placeholder Description PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription " +
-                            "PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription " +
-                            "PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription " +
-                            "PlaceholderDescription PlaceholderDescription PlaceholderDescription PlaceholderDescription " +
-                            "PlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription" +
-                            " PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription PlaceholderPlaceholderDescription Placeholder").Style(tableStyle);
 
+                        //
+                        //
+                        //
+                        //
+                        //Row 19
+                        table.Cell().Row(19).ColumnSpan(9).Column(1).AlignLeft().Text(ConcatenatedDescriptions).Style(tableStyle);
+                        //
+                        //
+                        //
+                        //
                         //Row 20
                         table.Cell().Row(20).ColumnSpan(9).Height(10); // Adjust height as needed
 
@@ -826,7 +906,7 @@ namespace OM_79_HUB.Controllers
                         table.Cell().Row(21).ColumnSpan(2).Column(1).AlignLeft().Text("To be assigned Route No.").Style(tableStyle);
                         table.Cell().Row(21).ColumnSpan(7).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("Route Number Placeholder").Style(tableStyle);
+                            container.AlignCenter().Text(RouteNumbers).Style(tableStyle);
                         });
 
                         //Row 22
@@ -836,23 +916,23 @@ namespace OM_79_HUB.Controllers
                         table.Cell().Row(23).ColumnSpan(2).Column(1).AlignLeft().Text("Right of Way Width: ").Style(tableStyle);
                         table.Cell().Row(23).ColumnSpan(7).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("Right of Way Placeholder").Style(tableStyle);
+                            container.AlignCenter().Text(RightOfWayWidths).Style(tableStyle);
                         });
 
                         //Row 24
                         table.Cell().Row(24).ColumnSpan(9).Height(10); // Adjust height as needed
 
-                        //Row 25
+                        // Row 25
                         table.Cell().Row(25).ColumnSpan(3).Column(1).AlignLeft().Text("Is at Grade R.R. Crossing Involved?").Style(tableStyle);
                         table.Cell().Row(25).ColumnSpan(3).Column(4).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("R/R Placeholder").Style(tableStyle);
+                            container.AlignCenter().Text(IsRailroadInvolved ? "Yes" : "No").Style(tableStyle);
                         });
 
                         table.Cell().Row(25).ColumnSpan(2).Column(7).AlignCenter().Text("If Yes DOT/AAR No. Is: ").Style(tableStyle);
                         table.Cell().Row(25).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("DOT/AAR").Style(tableStyle);
+                            container.AlignCenter().Text(DOTAARNumber).Style(tableStyle);
                         });
 
                         //Row 26
@@ -862,97 +942,21 @@ namespace OM_79_HUB.Controllers
                         table.Cell().Row(27).ColumnSpan(2).Column(1).AlignLeft().Text("Requested By: ").Style(tableStyle);
                         table.Cell().Row(27).ColumnSpan(7).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("Requested By Placeholder").Style(tableStyle);
+                            container.AlignCenter().Text(RequestedBy).Style(tableStyle);
                         });
 
                         //Row 28
                         table.Cell().Row(28).ColumnSpan(9).Height(10); // Adjust height as needed
 
-                        //Row 29
+
                         table.Cell().Row(29).ColumnSpan(2).Column(1).AlignLeft().Text("Explanation (Required):").Style(tableStyle);
-                        table.Cell().Row(29).ColumnSpan(7).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("Explanation Placeholder").Style(tableStyle);
-                        });
+                        //Row 29
+                        table.Cell().Row(30).ColumnSpan(9).Column(1).AlignLeft().Text(Explanation).Style(tableStyle);
 
 
                         //Row 30
-                        table.Cell().Row(30).ColumnSpan(9).Height(20); // Adjust height as needed
-
-
-                        // Row 31
-                        table.Cell().Row(31).ColumnSpan(9).Column(1).AlignLeft().Text("Traffic Estimation Information:").Style(tableStyle);
-
-
-                        //Row 32
-                        table.Cell().Row(32).ColumnSpan(9).Height(10); // Adjust height as needed
-
-
-                        // Row 33
-                        table.Cell().Row(33).ColumnSpan(1).Column(1).AlignLeft().Text("Number of:").Style(tableStyle);
-                        table.Cell().Row(33).ColumnSpan(1).Column(3).AlignRight().Text("Houses: ").Style(tableStyle);
-                        table.Cell().Row(33).ColumnSpan(1).Column(4).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("5").Style(tableStyle);
-                        });
-
-
-
-                        table.Cell().Row(33).ColumnSpan(2).Column(6).AlignLeft().Text("Attachments:").Style(tableStyle);
-                        table.Cell().Row(33).ColumnSpan(1).Column(8).AlignRight().Text("PJ-103: ").Style(tableStyle);
-                        table.Cell().Row(33).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("...").Style(tableStyle);
-                        });
-
-
-                        //Row 34
-                        table.Cell().Row(34).ColumnSpan(9).Height(10); // Adjust height as needed
-
-                        //Row 35
-                        table.Cell().Row(35).ColumnSpan(1).Column(3).AlignRight().Text("Buisness: ").Style(tableStyle);
-                        table.Cell().Row(35).ColumnSpan(1).Column(4).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("5").Style(tableStyle);
-                        });
-
-                        table.Cell().Row(35).ColumnSpan(1).Column(8).AlignRight().Text("Checklist: ").Style(tableStyle);
-                        table.Cell().Row(35).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("...").Style(tableStyle);
-                        });
-
-                        //Row 36
-                        table.Cell().Row(36).ColumnSpan(9).Height(10); // Adjust height as needed
-
-
-                        //Row 37
-                        table.Cell().Row(37).ColumnSpan(1).Column(3).AlignRight().Text("Schools: ").Style(tableStyle);
-                        table.Cell().Row(37).ColumnSpan(1).Column(4).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("5").Style(tableStyle);
-                        });
-                        table.Cell().Row(37).ColumnSpan(1).Column(8).AlignRight().Text("Loc. Maps:").Style(tableStyle);
-                        table.Cell().Row(37).ColumnSpan(1).Column(9).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("...").Style(tableStyle);
-                        });
-
-                        //Row 38
-                        table.Cell().Row(38).ColumnSpan(9).Height(10); // Adjust height as needed
-
-                        //row 39
-                        table.Cell().Row(39).ColumnSpan(1).Column(3).AlignRight().Text("Other: ").Style(tableStyle);
-                        table.Cell().Row(39).ColumnSpan(1).Column(4).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
-                        {
-                            container.AlignCenter().Text("5").Style(tableStyle);
-                        });
-
-                        //row 40
-                        table.Cell().Row(40).ColumnSpan(9).Height(25); // Adjust height as needed
-
-
-
+                        //table.Cell().Row(30).ColumnSpan(9).Height(10); // Adjust height as needed
+                        table.Cell().Row(31).ColumnSpan(9).Height(20).PageBreak(); // Adjust height as needed
 
                         //Row 41
 
@@ -960,13 +964,20 @@ namespace OM_79_HUB.Controllers
                            Signature INFO
 
                         */
-                        table.Cell().Row(41).ColumnSpan(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("DISTRICT RECOMMENDATION").Style(tableStyle);
-                        table.Cell().Row(42).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("").Style(tableStyle);
-                        table.Cell().Row(42).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Signature").Style(tableStyle);
-                        table.Cell().Row(42).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Yes").Style(tableStyle);
-                        table.Cell().Row(42).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("No").Style(tableStyle);
+                        /*
+                         * 
+                         * 
+                         * Add a page break here
+                         * 
+                         * 
+                         */
+                        //container.PageBreak();
 
-
+                        table.Cell().Row(32).ColumnSpan(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("DISTRICT RECOMMENDATION").Style(tableStyle);
+                        table.Cell().Row(33).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(33).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Signature").Style(tableStyle);
+                        table.Cell().Row(33).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Yes").Style(tableStyle);
+                        table.Cell().Row(33).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("No").Style(tableStyle);
 
                         var ROWMaFound = false;
                         var DisAdmFound = false;
@@ -976,241 +987,358 @@ namespace OM_79_HUB.Controllers
                         var TrafEngFound = false;
                         var BridEngFound = false;
 
-
                         foreach (var signatureData in SignatureDataList)
                         {
                             if (signatureData.SigType == "Right of Way Manager")
                             {
                                 ROWMaFound = true;
-                                table.Cell().Row(43).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
-                                table.Cell().Row(43).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
+                                table.Cell().Row(34).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
-                                    table.Cell().Row(43).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(43).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(34).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                                 }
                                 else if (signatureData.IsDenied)
                                 {
-                                    table.Cell().Row(43).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(43).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(34).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
 
                             if (signatureData.SigType == "District Administrator")
                             {
                                 DisAdmFound = true;
-                                table.Cell().Row(44).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
-                                table.Cell().Row(44).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(35).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
+                                table.Cell().Row(35).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
-                                    table.Cell().Row(44).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(44).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                                 }
                                 else if (signatureData.IsDenied)
                                 {
-                                    table.Cell().Row(44).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(44).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
 
                             if (signatureData.SigType == "District Engineer")
                             {
                                 DisEngFound = true;
-                                table.Cell().Row(45).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Engineer").Style(tableStyle);
-                                table.Cell().Row(45).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Engineer").Style(tableStyle);
+                                table.Cell().Row(36).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
-                                    table.Cell().Row(45).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(45).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(36).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(36).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                                 }
                                 else if (signatureData.IsDenied)
                                 {
-                                    table.Cell().Row(45).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(45).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(36).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(36).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
 
                             if (signatureData.SigType == "Maintenance Engineer")
                             {
                                 MainEngFound = true;
-                                table.Cell().Row(46).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Maintenance Engineer").Style(tableStyle);
-                                table.Cell().Row(46).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(37).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Maintenance Engineer").Style(tableStyle);
+                                table.Cell().Row(37).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
-                                    table.Cell().Row(46).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(46).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(37).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(37).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                                 }
                                 else if (signatureData.IsDenied)
                                 {
-                                    table.Cell().Row(46).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(46).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(37).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(37).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
 
                             if (signatureData.SigType == "Construction Engineer")
                             {
                                 ConsEngFound = true;
-                                table.Cell().Row(47).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Construction Engineer").Style(tableStyle);
-                                table.Cell().Row(47).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(38).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Construction Engineer").Style(tableStyle);
+                                table.Cell().Row(38).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
-                                    table.Cell().Row(47).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(47).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(38).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(38).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                                 }
                                 else if (signatureData.IsDenied)
                                 {
-                                    table.Cell().Row(47).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(47).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(38).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(38).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
 
                             if (signatureData.SigType == "Traffic Engineer")
                             {
                                 TrafEngFound = true;
-                                table.Cell().Row(48).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Traffic Engineer").Style(tableStyle);
-                                table.Cell().Row(48).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(39).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Traffic Engineer").Style(tableStyle);
+                                table.Cell().Row(39).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
-                                    table.Cell().Row(48).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(48).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(39).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(39).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                                 }
                                 else if (signatureData.IsDenied)
                                 {
-                                    table.Cell().Row(48).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(48).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(39).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(39).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
 
                             if (signatureData.SigType == "Bridge Engineer")
                             {
                                 BridEngFound = true;
-                                table.Cell().Row(49).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Bridge Engineer").Style(tableStyle);
-                                table.Cell().Row(49).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(40).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Bridge Engineer").Style(tableStyle);
+                                table.Cell().Row(40).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
-                                    table.Cell().Row(49).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(49).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(40).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(40).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                                 }
                                 else if (signatureData.IsDenied)
                                 {
-                                    table.Cell().Row(49).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(49).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                                    table.Cell().Row(40).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                                    table.Cell().Row(40).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
                         }
 
                         if (!ROWMaFound)
                         {
-                            table.Cell().Row(43).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
-                            table.Cell().Row(43).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Not Signed").Style(tableStyle);
-                            table.Cell().Row(43).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(43).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
+                            table.Cell().Row(34).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(34).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
                         if (!DisAdmFound)
                         {
-                            table.Cell().Row(44).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
-                            table.Cell().Row(44).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Not Signed").Style(tableStyle);
-                            table.Cell().Row(44).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(44).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(35).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
+                            table.Cell().Row(35).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
                         if (!DisEngFound)
                         {
-                            table.Cell().Row(45).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Engineer").Style(tableStyle);
-                            table.Cell().Row(45).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Not Signed").Style(tableStyle);
-                            table.Cell().Row(45).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(45).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Engineer").Style(tableStyle);
+                            table.Cell().Row(36).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(36).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(36).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
                         if (!MainEngFound)
                         {
-                            table.Cell().Row(46).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Maintenance Engineer").Style(tableStyle);
-                            table.Cell().Row(46).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Not Signed").Style(tableStyle);
-                            table.Cell().Row(46).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(46).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(37).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Maintenance Engineer").Style(tableStyle);
+                            table.Cell().Row(37).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(37).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(37).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
                         if (!ConsEngFound)
                         {
-                            table.Cell().Row(47).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Construction Engineer").Style(tableStyle);
-                            table.Cell().Row(47).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Not Signed").Style(tableStyle);
-                            table.Cell().Row(47).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(47).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(38).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Construction Engineer").Style(tableStyle);
+                            table.Cell().Row(38).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(38).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(38).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
                         if (!TrafEngFound)
                         {
-                            table.Cell().Row(48).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Traffic Engineer").Style(tableStyle);
-                            table.Cell().Row(48).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Not Signed").Style(tableStyle);
-                            table.Cell().Row(48).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(48).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(39).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Traffic Engineer").Style(tableStyle);
+                            table.Cell().Row(39).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(39).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(39).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
                         if (!BridEngFound)
                         {
-                            table.Cell().Row(49).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Bridge Engineer").Style(tableStyle);
-                            table.Cell().Row(49).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Not Signed").Style(tableStyle);
-                            table.Cell().Row(49).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(49).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(40).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Bridge Engineer").Style(tableStyle);
+                            table.Cell().Row(40).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(40).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(40).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
-                        //table.Cell().Row(43).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
-                        //table.Cell().Row(43).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(43).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(43).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(41).ColumnSpan(9).Height(25); // Adjust height as needed
 
-                        //table.Cell().Row(44).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
-                        //table.Cell().Row(44).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(44).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(44).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(42).ColumnSpan(9).Column(1).AlignLeft().Text("Note: District recommendation comment boxes on next page.").Style(tableStyle);
 
-                        //table.Cell().Row(45).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Engineer").Style(tableStyle);
-                        //table.Cell().Row(45).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(45).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(45).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(43).ColumnSpan(9).Height(25); // Adjust height as needed
 
-                        //table.Cell().Row(46).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Maintenance Engineer").Style(tableStyle);
-                        //table.Cell().Row(46).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(46).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(46).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(44).ColumnSpan(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("CHIEF ENGINEER OF OPERATIONS").Style(tableStyle);
 
-                        //table.Cell().Row(47).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Construction Engineer").Style(tableStyle);
-                        //table.Cell().Row(47).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(47).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(47).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(45).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(45).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Signature").Style(tableStyle);
+                        table.Cell().Row(45).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Date").Style(tableStyle);
 
-                        //table.Cell().Row(48).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Traffic Engineer").Style(tableStyle);
-                        //table.Cell().Row(48).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(48).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(48).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-
-                        //table.Cell().Row(49).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("Bridge Engineer").Style(tableStyle);
-                        //table.Cell().Row(49).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(49).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        //table.Cell().Row(49).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-
-
-                        table.Cell().Row(50).ColumnSpan(9).Height(25); // Adjust height as needed
+                        table.Cell().Row(46).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Approved:").Style(tableStyle);
+                        table.Cell().Row(46).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(46).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
 
 
 
-                        table.Cell().Row(51).ColumnSpan(9).Column(1).AlignLeft().Text("Note: District recommendation comment boxes on next page.").Style(tableStyle);
+                        table.Cell().Row(47).ColumnSpan(9).Height(4); // Adjust height as needed
+                        table.Cell().Row(48).ColumnSpan(9).Height(4); // Adjust height as needed
+                        table.Cell().Row(49).ColumnSpan(9).Height(4); // Adjust height as needed
+                        table.Cell().Row(50).ColumnSpan(9).Height(4); // Adjust height as needed
+                        table.Cell().Row(51).ColumnSpan(9).Height(4).PageBreak(); // Adjust height as needed
 
-                        table.Cell().Row(52).ColumnSpan(9).Height(25); // Adjust height as needed
-
-
-                        table.Cell().Row(53).ColumnSpan(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("CHIEF ENGINEER OF OPERATIONS").Style(tableStyle);
-
-                        table.Cell().Row(54).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("").Style(tableStyle);
-                        table.Cell().Row(54).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Signature").Style(tableStyle);
-                        table.Cell().Row(54).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Date").Style(tableStyle);
-
-                        table.Cell().Row(55).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Approved:").Style(tableStyle);
-                        table.Cell().Row(55).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Signature Placeholder").Style(tableStyle);
-                        table.Cell().Row(55).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("11/11/1111").Style(tableStyle);
+                        table.Cell().Row(52).ColumnSpan(9).PaddingTop(5).PaddingBottom(15).AlignCenter().Text("DISTRICT RECOMMENDATION COMMENTS").Style(tableStyle);
 
 
+
+                        var rowData = SignatureDataList.FirstOrDefault(sd => sd.SigType == "Right Of Way Manager");
+                        if (rowData != null)
+                        {
+                            string comments = string.IsNullOrWhiteSpace(rowData.Comments) ? "No Comments" : rowData.Comments;
+                            string dateSubmitted = rowData.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                            table.Cell().Row(53).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(comments).Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT RIGHT OF WAY").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmitted).Style(tableStyle);
+                        }
+                        else
+                        {
+                            table.Cell().Row(53).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT RIGHT OF WAY").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        }
+
+                        table.Cell().Row(55).ColumnSpan(9).Height(20); // Adjust height as needed
+
+                        var rowDataDistrictManager = SignatureDataList.FirstOrDefault(sd => sd.SigType == "District Manager");
+                        if (rowDataDistrictManager != null)
+                        {
+                            string commentsDistrictManager = string.IsNullOrWhiteSpace(rowDataDistrictManager.Comments) ? "No Comments" : rowDataDistrictManager.Comments;
+                            string dateSubmittedDistrictManager = rowDataDistrictManager.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                            table.Cell().Row(56).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsDistrictManager).Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ADMINISTRATOR").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedDistrictManager).Style(tableStyle);
+                        }
+                        else
+                        {
+                            table.Cell().Row(56).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ADMINISTRATOR").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        }
+
+                        table.Cell().Row(58).ColumnSpan(9).Height(20); // Adjust height as needed
+
+                        var rowDataDistrictEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "District Engineer");
+                        if (rowDataDistrictEngineer != null)
+                        {
+                            string commentsDistrictEngineer = string.IsNullOrWhiteSpace(rowDataDistrictEngineer.Comments) ? "No Comments" : rowDataDistrictEngineer.Comments;
+                            string dateSubmittedDistrictEngineer = rowDataDistrictEngineer.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                            table.Cell().Row(59).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsDistrictEngineer).Style(tableStyle);
+                            table.Cell().Row(60).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ENGINEER").Style(tableStyle);
+                            table.Cell().Row(60).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(60).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedDistrictEngineer).Style(tableStyle);
+                        }
+                        else
+                        {
+                            table.Cell().Row(59).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(60).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ENGINEER").Style(tableStyle);
+                            table.Cell().Row(60).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(60).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        }
+
+                        table.Cell().Row(61).ColumnSpan(9).Height(20); // Adjust height as needed
+
+                        var rowDataMaintenanceEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "Maintenance Engineer");
+                        if (rowDataMaintenanceEngineer != null)
+                        {
+                            string commentsMaintenanceEngineer = string.IsNullOrWhiteSpace(rowDataMaintenanceEngineer.Comments) ? "No Comments" : rowDataMaintenanceEngineer.Comments;
+                            string dateSubmittedMaintenanceEngineer = rowDataMaintenanceEngineer.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                            table.Cell().Row(62).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsMaintenanceEngineer).Style(tableStyle);
+                            table.Cell().Row(63).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("MAINTENANCE ENGINEER").Style(tableStyle);
+                            table.Cell().Row(63).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(63).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedMaintenanceEngineer).Style(tableStyle);
+                        }
+                        else
+                        {
+                            table.Cell().Row(62).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(63).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("MAINTENANCE ENGINEER").Style(tableStyle);
+                            table.Cell().Row(63).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(63).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        }
+
+                        table.Cell().Row(64).ColumnSpan(9).Height(20); // Adjust height as needed
+
+                        var rowDataConstructionEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "Construction Engineer");
+                        if (rowDataConstructionEngineer != null)
+                        {
+                            string commentsConstructionEngineer = string.IsNullOrWhiteSpace(rowDataConstructionEngineer.Comments) ? "No Comments" : rowDataConstructionEngineer.Comments;
+                            string dateSubmittedConstructionEngineer = rowDataConstructionEngineer.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                            table.Cell().Row(65).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsConstructionEngineer).Style(tableStyle);
+                            table.Cell().Row(66).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("CONSTRUCTION ENGINEER").Style(tableStyle);
+                            table.Cell().Row(66).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(66).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedConstructionEngineer).Style(tableStyle);
+                        }
+                        else
+                        {
+                            table.Cell().Row(65).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(66).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("CONSTRUCTION ENGINEER").Style(tableStyle);
+                            table.Cell().Row(66).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(66).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        }
+
+                        table.Cell().Row(67).ColumnSpan(9).Height(20); // Adjust height as needed
+
+                        var rowDataTrafficEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "Traffic Engineer");
+                        if (rowDataTrafficEngineer != null)
+                        {
+                            string commentsTrafficEngineer = string.IsNullOrWhiteSpace(rowDataTrafficEngineer.Comments) ? "No Comments" : rowDataTrafficEngineer.Comments;
+                            string dateSubmittedTrafficEngineer = rowDataTrafficEngineer.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                            table.Cell().Row(68).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsTrafficEngineer).Style(tableStyle);
+                            table.Cell().Row(69).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("TRAFFIC ENGINEER").Style(tableStyle);
+                            table.Cell().Row(69).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(69).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedTrafficEngineer).Style(tableStyle);
+                        }
+                        else
+                        {
+                            table.Cell().Row(68).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(69).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("TRAFFIC ENGINEER").Style(tableStyle);
+                            table.Cell().Row(69).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(69).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        }
+
+                        table.Cell().Row(70).ColumnSpan(9).Height(20); // Adjust height as needed
+
+                        var rowDataBridgeEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "Bridge Engineer");
+                        if (rowDataBridgeEngineer != null)
+                        {
+                            string commentsBridgeEngineer = string.IsNullOrWhiteSpace(rowDataBridgeEngineer.Comments) ? "No Comments" : rowDataBridgeEngineer.Comments;
+                            string dateSubmittedBridgeEngineer = rowDataBridgeEngineer.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                            table.Cell().Row(71).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsBridgeEngineer).Style(tableStyle);
+                            table.Cell().Row(72).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("BRIDGE ENGINEER").Style(tableStyle);
+                            table.Cell().Row(72).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(72).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedBridgeEngineer).Style(tableStyle);
+                        }
+                        else
+                        {
+                            table.Cell().Row(71).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(72).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("BRIDGE ENGINEER").Style(tableStyle);
+                            table.Cell().Row(72).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(72).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        }
+
+                        table.Cell().Row(73).ColumnSpan(9).Height(20); // Adjust height as needed
 
                     });
             }
