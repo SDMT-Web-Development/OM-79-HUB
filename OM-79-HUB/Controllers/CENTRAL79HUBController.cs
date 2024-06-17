@@ -220,7 +220,7 @@ namespace OM_79_HUB.Controllers
                 signature.Signatures = Request.Form["signaturemodal"];
                 signature.SigType = Request.Form["sigtype"];
                 signature.ENumber = HttpContext.User.Identity.Name;
-
+                signature.DateSubmitted = DateTime.Now;
 
                 
                 _context.Add(signature);
@@ -236,6 +236,7 @@ namespace OM_79_HUB.Controllers
                 signature.Signatures = Request.Form["signaturemodal"];
                 signature.SigType = Request.Form["sigtype"];
                 signature.ENumber = HttpContext.User.Identity.Name;
+                signature.DateSubmitted = DateTime.Now;
 
 
 

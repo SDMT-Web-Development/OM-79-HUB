@@ -59,13 +59,17 @@
     <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New Item Attached to OM-79</a>
 </div>
 <br />
-<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-secondary">Export Packaged OM79(s) w/ Attached PJ103(s)</a>
+<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-secondary">Export Packaged Document</a>
 <hr />
 
 <div id="signContainer" class="container">
     @await Component.InvokeAsync("LinkedSignatures", new { hubId = ViewBag.testUniqueID })
 </div>
 </div>
+
+
+
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
     <a asp-action="OM79 Form list">Back to List</a>
