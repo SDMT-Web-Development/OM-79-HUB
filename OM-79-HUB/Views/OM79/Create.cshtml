@@ -202,9 +202,23 @@
                     <input asp-for="ProjectNumber" class="form-control" />
                     <span asp-validation-for="ProjectNumber" class="text-danger"></span>
                 </div>
+
                 <div class="col-md-4">
+                    <label asp-for="YearOfSurvey" class="control-label"></label>
+                    <select asp-for="YearOfSurvey" class="form-control" style="color: #000;">
+                        <option value="">Select Year</option>
+                        @for (int year = 2025; year >= 1950; year--)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                    <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
+
+
+                </div>
+                <div class="col-md-4" style="display:none;">
                     <label asp-for="DateComplete" class="control-label"></label>
-                    <input asp-for="DateComplete" class="form-control" Value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")" />
+                    <input asp-for="DateComplete" type="hidden" class="form-control" Value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")" />
                     <span asp-validation-for="DateComplete" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
@@ -240,19 +254,7 @@
                 <div id="endingMilePointError" class="text-danger"></div>
                 </div>
                 
-                <div class="col-md-4">
-                <label asp-for="YearOfSurvey" class="control-label"></label>
-                <select asp-for="YearOfSurvey" class="form-control" style="color: #000;">
-                <option value="">Select Year</option>
-                @for (int year = 2025; year >= 1950; year--)
-                {
-                <option value="@year">@year</option>
-                }
-                </select>
-                <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
-
-
-                </div>
+                
             <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
 
             
