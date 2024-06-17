@@ -103,12 +103,14 @@ namespace OM_79_HUB.Controllers
             {
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
-                int uniqueID = cENTRAL79HUB.OMId;
 
-                return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID });
-                // return Redirect ($"https://dotappstest.transportation.wv.gov/OM79/OMTables/Create?uniqueID={uniqueID}");
-                // return Redirect($"https://dotappstest.transportation.wv.gov/OM79?uniqueID={uniqueID}");
+                int uniqueID = cENTRAL79HUB.OMId;
+                string countyValue = cENTRAL79HUB.County;
+
+                // Redirect to the Create action of OM79 controller with uniqueID and countyValue
+                return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID, county = countyValue });
             }
+
             return View(cENTRAL79HUB);
         }
 

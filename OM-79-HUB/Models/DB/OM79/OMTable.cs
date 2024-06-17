@@ -136,8 +136,10 @@ public partial class OMTable
     [DisplayName("Supplemental Code")]
     public string? Supplemental {  get; set; }
 
+    [DisplayName("Route ID Builder")]
+    public string? RouteIDB { get; set; }
+    public int? CountyCode { get; set; }
 
-    
 
 
 
