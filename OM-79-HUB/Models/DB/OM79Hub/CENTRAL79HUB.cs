@@ -19,7 +19,7 @@ namespace OM_79_HUB.Models
         public string? RouteID { get; set; }
         public bool? IsArchive { get; set; }
 
-
+        public DateTime? DateSubmitted { get; set; }
         
 
 

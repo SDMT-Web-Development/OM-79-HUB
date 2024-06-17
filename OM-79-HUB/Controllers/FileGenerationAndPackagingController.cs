@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.IO;
 using OM_79_HUB.Data; // Assuming your DbContexts are in this namespace
 using OM_79_HUB.Models;
@@ -779,7 +780,9 @@ namespace OM_79_HUB.Controllers
 
                         table.Cell().Row(1).ColumnSpan(2).Column(8).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("11/11/1111").Style(tableStyle);
+                            container.AlignCenter()
+                                     .Text(CENTRAL79HUB.DateSubmitted == null ? "Not Available" : CENTRAL79HUB.DateSubmitted.ToString())
+                                     .Style(tableStyle);
                         });
 
 

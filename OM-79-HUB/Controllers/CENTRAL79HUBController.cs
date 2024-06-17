@@ -101,6 +101,7 @@ namespace OM_79_HUB.Controllers
 
             if (ModelState.IsValid)
             {
+                cENTRAL79HUB.DateSubmitted = DateTime.Now;
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
                 int uniqueID = cENTRAL79HUB.OMId;
