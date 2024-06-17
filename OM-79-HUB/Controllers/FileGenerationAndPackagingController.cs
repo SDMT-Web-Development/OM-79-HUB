@@ -555,8 +555,6 @@ namespace OM_79_HUB.Controllers
             public CENTRAL79HUB CENTRAL79HUB { get; }
             public List<SignatureData> SignatureDataList { get; }
             public List<OMTable> OMTableList { get; } // Change the property to List<OMTable>
-
-
             public bool Addition { get; private set; }
             public bool RemovalFromInventory { get; private set; }
             public bool Redesignation { get; private set; }
