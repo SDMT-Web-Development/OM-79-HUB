@@ -125,9 +125,18 @@ namespace OM_79_HUB.Data
                             await _context.SaveChangesAsync(); // Save changes to _context
                         }
 
-                        // Construct routeIDB using countyCode and other properties
-                        string routeIDB = $"{countyCode}-{oMTable.SignSystem}-{oMTable.Route}-{oMTable.SubRoute}-{oMTable.Supplemental}";
-                        oMTable.RouteIDB = routeIDB;
+                        if (!string.IsNullOrEmpty(oMTable.SignSystem) && SSMappings.TryGetValue(oMTable.SignSystem, out int signSystemInt))
+                        {
+                            // Construct routeIDB using the mapped integer for SignSystem
+                            string routeIDB = $"{countyCode}{signSystemInt}{oMTable.Route}{oMTable.SubRoute}{oMTable.Supplemental}";
+                            oMTable.RouteIDB = routeIDB;
+                        }
+                        else
+                        {
+                            // Handle case where mapping is not found, if needed
+                            ModelState.AddModelError("SignSystem", "Invalid SignSystem value.");
+                            return View(oMTable);
+                        }
 
                         // Create folder for attachments based on unique79ID
                         var uploadsRootFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
@@ -702,7 +711,18 @@ namespace OM_79_HUB.Data
     { "Wood", 54 },
     { "Wyoming", 55 }
 };
+        private Dictionary<string, int> SSMappings = new Dictionary<string, int>
+        {
+            {"Interstate", 1 },
+            {"US", 2 },
+            {"WV", 3 },
+            {"CO", 4 },
+            {"State Park and Forest Road", 6 },
+            {"FANS", 7 },
+            {"HARP", 8 }
 
+
+        };
         /*
         public IActionResult LinkedOM(int hubId)
         {
