@@ -1,45 +1,49 @@
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using OM_79_HUB.Data;
 using OM79.Models.DB;
 using QuestPDF.Infrastructure;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
+// Add session services
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 builder.Services.AddDbContext<OM_79_HUBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection") ?? throw new InvalidOperationException("Connection string 'OM_79_HUBContext' not found.")));
 
-//Second DB
+// Second DB
 builder.Services.AddDbContext<OM79Context>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection2") ?? throw new InvalidOperationException("Connection string 'UR MOM' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection2") ?? throw new InvalidOperationException("Connection string 'DevConnection2' not found.")));
 
-//Second DB
+// Third DB
 builder.Services.AddDbContext<Pj103Context>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection3") ?? throw new InvalidOperationException("Connection string 'John' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection3") ?? throw new InvalidOperationException("Connection string 'DevConnection3' not found.")));
 
-
-
-//Enumber authentication
+// Enumber authentication
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 
 builder.Services.AddAuthorization(options =>
-// By default, all incoming requests will be authorized according to the default policy.  
-{ options.FallbackPolicy = options.DefaultPolicy; });
-// Add services to the container.
+{
+    // By default, all incoming requests will be authorized according to the default policy.  
+    options.FallbackPolicy = options.DefaultPolicy;
+});
 
-
-
-
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -52,9 +56,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-//Enumber stuff
+// Enumber stuff
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add session middleware
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",

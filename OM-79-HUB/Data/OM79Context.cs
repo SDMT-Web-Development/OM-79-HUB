@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore;
 using OM79.Models;
 using OM_79_HUB.Models;
+using OM_79_HUB.Models.DB.OM79;
+
 
 namespace OM79.Models.DB;
 
@@ -23,6 +25,7 @@ public partial class OM79Context : DbContext
     }
     public virtual DbSet<OMTable> OMTable { get; set; }
     public virtual DbSet<Attachments> Attachments { get; set; }
+    public virtual DbSet<PJ103Workflow> PJ103Workflow { get; set; }    
 
   //  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
