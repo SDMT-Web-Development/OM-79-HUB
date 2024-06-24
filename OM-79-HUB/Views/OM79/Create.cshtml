@@ -4,11 +4,7 @@
     Layout = "~/Views/Shared/_OM79Layout.cshtml";
     ViewData["Title"] = "Create";
 }
-<!-- Example usage of ViewBag.TestUniqueID -->
-<p>Unique ID: @ViewBag.TestUniqueID</p>
 
-<!-- Example usage of ViewBag.County -->
-<p>County: @ViewBag.CountyCode</p>
 
 </br>
 <h2 style="font-weight: bold">Changes to the State Road System</h2>
@@ -43,12 +39,12 @@
             </div>
             <div class="col-md-4" id="RoadContainer" style="display:none;">
                 <label asp-for="CoDate" class="control-label">@Html.DisplayNameFor(model => model.CoDate) <span class="required-asterisk">*</span></label>
-                <input asp-for="CoDate" class="form-control" />
+                <input asp-for="CoDate" type="date" class="form-control" />
                 <span asp-validation-for="CoDate" class="text-danger"></span>
             </div>
             <div class="col-md-4" id="CoDateTwoContainer" style="display:none;">
                 <label asp-for="CoDateTwo" class="control-label">@Html.DisplayNameFor(model => model.CoDateTwo)</label>
-                <input asp-for="CoDateTwo" class="form-control" />
+                <input asp-for="CoDateTwo" type="date" class="form-control" />
                 <span asp-validation-for="CoDateTwo" class="text-danger"></span>
             </div>
 
