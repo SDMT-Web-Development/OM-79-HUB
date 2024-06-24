@@ -5,9 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Models;
+using OM_79_HUB.Models.DB.OM79;
+using OM_79_HUB.Models.DB.OM79Hub;
 using OM79.Models.DB;
 
 
@@ -74,6 +77,7 @@ namespace OM_79_HUB.Data
                     // Store uniqueID and county code in TempData
                     TempData["UniqueID"] = uniqueID;
                     TempData["CountyCode"] = countyCode;
+                    TempData["PageStatus"] = "GoingToCreatePage"; // Set TempData for navigation status
 
                     ViewBag.TestUniqueID = uniqueID; // Pass uniqueID to the view via ViewBag
                     ViewBag.CountyCode = countyCode; // Pass county code to the view via ViewBag
@@ -89,7 +93,7 @@ namespace OM_79_HUB.Data
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers, Supplemental")] OMTable oMTable, CENTRAL79HUB central79hub, List<IFormFile> attachments, String Datsubmit)
+        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers, Supplemental")] OMTable oMTable, CENTRAL79HUB central79hub, List<IFormFile> attachments, String Datsubmit, int? segmentCount)
         {
             // Optional: Log initial information
             Console.WriteLine("------------------------------------------------------------------------------------------");
@@ -167,6 +171,59 @@ namespace OM_79_HUB.Data
                         // Save changes to _context after processing attachments
                         await _context.SaveChangesAsync();
 
+                        var OM79workflowForNextStep = await _context2.OM79Workflow.FirstOrDefaultAsync(c => c.HubID == oMTable.HubId);
+
+
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("---------------------------change type-------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("--------------" + oMTable.RoadChangeType  + "--------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+
+
+
+                        if (oMTable.RoadChangeType == "Addition" || oMTable.RoadChangeType == "Redesignation")
+                        {
+                            PJ103Workflow pJ103Workflow = new PJ103Workflow
+                            {
+                                OMID = oMTable.Id,
+                                NumberOfSegments = segmentCount
+                            };
+                            _context.PJ103Workflow.Add(pJ103Workflow);  
+                            await _context.SaveChangesAsync();
+
+
+                            var OM79workflow = await _context2.OM79Workflow.FirstOrDefaultAsync(c => c.HubID == oMTable.HubId);
+                            OM79workflowForNextStep.NextStep = "AddSegment";
+                            await _context2.SaveChangesAsync();
+
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+
+
+
+                        var items = await _context.OMTable.Where(c => c.HubId == oMTable.HubId).ToListAsync();
+
+                        if (items.Count >= OM79workflowForNextStep.NumberOfItems)
+                        {
+                            OM79workflowForNextStep.NextStep = "FinishSubmit";
+                            await _context2.SaveChangesAsync();
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+                        else
+                        {
+                            OM79workflowForNextStep.NextStep = "AddItem";
+                            await _context2.SaveChangesAsync();
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+                        /*
                         // Determine action based on Datsubmit value
                         if (Datsubmit == "Save and Create PJ103 Segment")
                         {
@@ -180,6 +237,7 @@ namespace OM_79_HUB.Data
                         {
                             return RedirectToAction("Create", "OM79", new { uniqueID = oMTable.HubId });
                         }
+                        */
                     }
                 }
             }

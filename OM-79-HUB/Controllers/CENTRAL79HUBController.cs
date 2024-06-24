@@ -49,7 +49,10 @@ namespace OM_79_HUB.Controllers
             {
                 return NotFound();
             }
-            
+
+
+            HttpContext.Session.SetInt32("UniqueID", id.Value);
+
             ViewBag.TestUniqueID = id;
 
             return View(cENTRAL79HUB);
@@ -89,12 +92,9 @@ namespace OM_79_HUB.Controllers
             return View(userdata);
         }
 
-        // POST: CENTRAL79HUB/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB)
+        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District,IDNumber,RouteID")] CENTRAL79HUB cENTRAL79HUB, int NumberOfItems)
         {
             string userIdentity = User.Identity.Name;
             cENTRAL79HUB.UserId = userIdentity;
@@ -108,12 +108,53 @@ namespace OM_79_HUB.Controllers
                 int uniqueID = cENTRAL79HUB.OMId;
                 string countyValue = cENTRAL79HUB.County;
 
+
+                HttpContext.Session.SetInt32("UniqueID", uniqueID);
+
+                // Create a new OM79Workflow entry with the provided number of items and the newly created key from CENTRAL79HUB
+                OM79Workflow om79Workflow = new OM79Workflow
+                {
+                    HubID = uniqueID,
+                    NumberOfItems = NumberOfItems,
+                    NextStep = "AddFirstItem"
+                };
+                _context.OM79Workflow.Add(om79Workflow);
+                await _context.SaveChangesAsync();
+
                 // Redirect to the Create action of OM79 controller with uniqueID and countyValue
-                return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID, county = countyValue });
+                //return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID, county = countyValue });
+                return RedirectToAction("Details", "CENTRAL79HUB", new { id = uniqueID }); //ChangeLater
+
             }
 
             return View(cENTRAL79HUB);
         }
+
+        //// POST: CENTRAL79HUB/Create
+        //// To protect from overposting attacks, enable the specific properties you want to bind to.
+        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB, int NumberOfItems)
+        //{
+        //    string userIdentity = User.Identity.Name;
+        //    cENTRAL79HUB.UserId = userIdentity;
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        cENTRAL79HUB.DateSubmitted = DateTime.Now;
+        //        _context.Add(cENTRAL79HUB);
+        //        await _context.SaveChangesAsync();
+
+        //        int uniqueID = cENTRAL79HUB.OMId;
+        //        string countyValue = cENTRAL79HUB.County;
+
+        //        // Redirect to the Create action of OM79 controller with uniqueID and countyValue
+        //        return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID, county = countyValue });
+        //    }
+
+        //    return View(cENTRAL79HUB);
+        //}
 
         // GET: CENTRAL79HUB/Edit/5
         public async Task<IActionResult> Edit(int? id)

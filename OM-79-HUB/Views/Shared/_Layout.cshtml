@@ -7,6 +7,218 @@
     <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <img alt="List View" src="@Url.Content("~/Assets/dot.png")" style="width:50px; height:50px; margin-right: 10px; margin-top: 5px;" />
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">OM-79</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy" style="font-weight: bold;">Privacy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Indexes</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">OM79 Forms List</a>
+                            </div>
+                        </li>
+                    </ul>
+                    <p class="nav navbar-text" style="color: white">Hello, @User.Identity?.Name!</p>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="full-width-container">
+        <div class="content-container">
+            <div class="main-content">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+            <div class="right-column">
+                @await Component.InvokeAsync("Workflow")
+            </div>
+        </div>
+    </div>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - West Virginia Department of Transportation - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+
+    .navbar-collapse {
+        padding-right: 20%; /* Adjust based on the width of the right column */
+    }
+
+    .full-width-container {
+        width: 100%;
+        padding-left: 10%;
+        margin: 0;
+    }
+
+    .content-container {
+        display: flex;
+        flex-direction: row;
+        min-height: 100vh; /* Full viewport height */
+    }
+
+    .main-content {
+        flex: 1;
+        padding-right: 25%; /* Ensure the main content does not overlap the fixed right column */
+    }
+
+    .right-column {
+        width: 20%;
+        position: fixed;
+        right: 0;
+        top: 0; /* Ensure it covers the navbar */
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; /* Align to top */
+        /*background-color: #f8f9fa;*/
+        background-color: #87ceeb;
+        height: 100vh; /* Full viewport height */
+        z-index: 2; /* Ensure it stays on top of other elements */
+        overflow: auto; /* Allow scrolling within the right column */
+        border: 2px solid #ccc; /* Add border around the right column */
+    }
+
+    header {
+        height: 70px; /* Adjust to the actual height of your header */
+        z-index: 1; /* Ensure header stays below the right column */
+        position: relative;
+    }
+
+    footer {
+        height: 70px; /* Adjust to the actual height of your footer */
+        z-index: 1; /* Ensure footer stays below the right column */
+        position: relative;
+    }
+</style>
+
+
+@*<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - OM_79_HUB</title>
+    <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
+    <style>
+        .full-width-container {
+            width: 100%;
+            padding-left: 10%;
+            margin: 0;
+        }
+
+        .right-column {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background-color: #f8f9fa; /* Optional: Background color for visibility */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <img alt="List View" src="@Url.Content("~/Assets/dot.png")" style="width:50px; height:50px; margin-right: 10px; margin-top: 5px;" />
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">OM-79</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy" style="font-weight: bold;">Privacy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Indexes</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">OM79 Forms List</a>
+                            </div>
+                        </li>
+                    </ul>
+                    <p class="nav navbar-text" style="color: white">Hello, @User.Identity?.Name!</p>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="full-width-container">
+        <div class="row">
+            <div class="col-md-9">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+            <div class="col-md-3 right-column">
+                @await Component.InvokeAsync("Workflow")
+            </div>
+        </div>
+    </div>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - West Virginia Department of Transportation - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>*@
+
+
+
+
+@*<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - OM_79_HUB</title>
+    <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
@@ -39,7 +251,7 @@
                                @*  <a class="dropdown-item" href="@Url.Action("Index", "OM79")">OM-79 Item Index</a>
                                 <a class="dropdown-item" href="@Url.Action("Index", "PJ103")">PJ103 Segment Index</a> *@
                                @*  <div class="dropdown-divider"></div> *@
-                            </div>
+                            @*</div>
                         </li>
 
                         
@@ -68,3 +280,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+*@

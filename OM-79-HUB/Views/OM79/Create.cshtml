@@ -1,7 +1,9 @@
 ﻿@model OMTable
 
 @{
-    Layout = "~/Views/Shared/_OM79Layout.cshtml";
+    @*Layout = "~/Views/Shared/_OM79Layout.cshtml";*@
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
     ViewData["Title"] = "Create";
 }
 <!-- Example usage of ViewBag.TestUniqueID -->
@@ -68,6 +70,12 @@
                 <input asp-for="RequestedByName" class="form-control" />
                 <span asp-validation-for="RequestedByName" class="text-danger"></span>
             </div>
+
+            <div class="col-md-12" id="segmentCountContainer" style="display:none;">
+                <label for="segmentCount">How many DIFFERENT segments will be with this Item?</label>
+                <input type="number" id="segmentCount" name="segmentCount" class="form-control" />
+            </div>
+
             <div class="col-md-12">
                 <label asp-for="Attachments" class="control-label">@Html.DisplayNameFor(model => model.Attachments) <span class="required-asterisk">*</span></label>
                 <textarea asp-for="Attachments" class="form-control" rows="4"></textarea>
@@ -288,7 +296,23 @@
                 <label for="attachments">Attach Files:</label>
                 <input type="file" name="attachments" multiple>
             </div>
+
+
             *@
+
+
+
+
+
+
+
+
+                <div class="form-group">
+                    <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
+                </div>
+
+
+            @*
              <div class="form-group">
                     <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
             </div>
@@ -300,7 +324,7 @@
             <div class="form-group">
                 <input type="submit" name="Datsubmit" value="Save and Create Additional Item" class="btn btn-primary" />
             </div>
-            <br />
+            <br />*@
 
                 @*  <div class="form-group">
                     <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
@@ -325,7 +349,19 @@
     <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.5.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
-
+    <script>
+        $(document).ready(function () {
+            $("#RoadChangeType").change(function () {
+                if ($(this).val() === "Addition" || $(this).val() === "Redesignation") {
+                    $("#segmentCountContainer").show();
+                    $("#segmentCount").attr("required", "required");
+                } else {
+                    $("#segmentCountContainer").hide();
+                    $("#segmentCount").removeAttr("required");
+                }
+            });
+        });
+    </script>
 @*
     <script>
         let allFiles = []; // Global array to store all files
