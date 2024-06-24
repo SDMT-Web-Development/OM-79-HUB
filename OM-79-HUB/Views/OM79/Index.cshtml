@@ -1,45 +1,54 @@
-﻿@model IEnumerable<OMTable>
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<OMTable>
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Index";
 }
+
 </br>
 <h1 style="font-weight: bold">
-    OM-79 Items</h1>
+    OM-79 Items
+</h1>
 </hr>
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+
+<form asp-controller="OM79" asp-action="Index" method="get" class="form-inline my-2 my-lg-0">
+    <div class="form-row align-items-center">
+        <div class="col-auto">
+            <label for="searchRouteIDB" class="sr-only">Route ID</label>
+            <input type="text" class="form-control mb-2" id="searchRouteIDB" name="searchRouteIDB" value="@ViewData["CurrentFilter"]" placeholder="Search by Route ID" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary mb-2">Search</button>
+        </div>
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
+            <th></th>
             <th>
-                @Html.DisplayNameFor(model => model.DistrictNumber)
+                @Html.DisplayNameFor(model => model.FirstOrDefault().DistrictNumber)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.RouteIDB)
+                @Html.DisplayNameFor(model => model.FirstOrDefault().RouteIDB)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.County)
+                @Html.DisplayNameFor(model => model.FirstOrDefault().County)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.SubmissionDate)
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["SubmissionDateSortParm"]">
+                    @Html.DisplayNameFor(model => model.FirstOrDefault().SubmissionDate)
+                </a>
             </th>
-
             <th>
-                @Html.DisplayNameFor(model => model.RoadChangeType)
+                @Html.DisplayNameFor(model => model.FirstOrDefault().RoadChangeType)
             </th>
-            @*
             <th>
-            @Html.DisplayNameFor(model => model.Otherbox)
+                @Html.DisplayNameFor(model => model.FirstOrDefault().RouteAssignment)
             </th>
-            *@
-            <th>
-                @Html.DisplayNameFor(model => model.RouteAssignment)
-            </th>
-           
-
             <th></th>
         </tr>
     </thead>
@@ -47,6 +56,9 @@
         @foreach (var item in Model)
         {
             <tr>
+                <td>
+                    <a asp-controller="CENTRAL79HUB" asp-action="Details" asp-route-id="@item.HubId" class="btn btn-info">OM79 Details</a>
+                </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DistrictNumber)
                 </td>
@@ -57,28 +69,94 @@
                     @Html.DisplayFor(modelItem => item.County)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.SubmissionDate)
+                    @item.SubmissionDate?.ToString("yyyy-MM-dd")
                 </td>
-
                 <td>
                     @Html.DisplayFor(modelItem => item.RoadChangeType)
                 </td>
-                @*
-            <td>
-            @Html.DisplayFor(modelItem => item.Otherbox)
-            </td>
-            *@
                 <td>
                     @Html.DisplayFor(modelItem => item.RouteAssignment)
                 </td>
-               
-
                 <td>
-                 @*   <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |  *@
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                 @*   <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> *@
+                    <a asp-action="Details" asp-route-id="@item.Id">Item Details</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<div class="d-flex justify-content-between custom-pagination">
+    <div>
+        @Html.PagedListPager(Model, page => Url.Action("Index", new { page, sortOrder = ViewData["CurrentSort"], searchRouteIDB = ViewData["CurrentFilter"] }),
+        new PagedListRenderOptions
+        {
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" },
+        LinkToPreviousPageFormat = "<span>&lsaquo;</span>",
+        LinkToNextPageFormat = "<span>&rsaquo;</span>",
+        LinkToFirstPageFormat = "<span>&laquo;</span>",
+        LinkToLastPageFormat = "<span>&raquo;</span>",
+        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage = PagedListDisplayMode.Always,
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 3 // Adjust this number as needed
+        })
+    </div>
+</div>
+
+<style>
+    .custom-pagination .pagination {
+        display: flex;
+        padding-left: 0;
+        list-style: none;
+        border-radius: 0.25rem;
+    }
+
+    .custom-pagination .page-item {
+        margin: 0 0.25rem;
+    }
+
+    .custom-pagination .page-link {
+        position: relative;
+        display: block;
+        padding: 0.5rem 0.75rem;
+        margin-left: -1px;
+        line-height: 1.25;
+        color: #007bff;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        text-decoration: none;
+    }
+
+        .custom-pagination .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+    .custom-pagination .page-item.active .page-link {
+        z-index: 1;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .custom-pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
+
+    .custom-pagination .page-item .page-link span {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        line-height: 1em;
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>

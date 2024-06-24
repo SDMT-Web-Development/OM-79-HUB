@@ -105,7 +105,9 @@
             <span asp-validation-for="FedForestHighway" class="text-danger"></span>
         </div>
         <div class="col-md-4">
-            <label asp-for="MPSegmentStart" class="control-label"></label>
+            <label asp-for="MPSegmentStart" class="control-label">
+                @Html.DisplayNameFor(model => model.MPSegmentStart)<span class="required-asterisk">*</span>
+            </label>
             <input asp-for="MPSegmentStart" class="form-control" />
             <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
         </div>
@@ -121,7 +123,9 @@
             <span asp-validation-for="TruckRoute" class="text-danger"></span>
         </div>
         <div class="col-md-4">
-            <label asp-for="MPSegmentEnd" class="control-label"></label>
+            <label asp-for="MPSegmentEnd" class="control-label">
+                @Html.DisplayNameFor(model => model.MPSegmentEnd)<span class="required-asterisk">*</span>
+            </label>
             <input asp-for="MPSegmentEnd" class="form-control" />
             <span asp-validation-for="MPSegmentEnd" class="text-danger"></span>
         </div>

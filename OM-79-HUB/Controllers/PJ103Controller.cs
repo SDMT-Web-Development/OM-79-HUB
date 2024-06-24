@@ -291,10 +291,32 @@ namespace OM_79_HUB.Data
         }
         */
         // GET: Submissions/Create
-        public IActionResult Create([FromQuery] int uniqueID, int HubID)
+        public async Task<IActionResult> CreateAsync([FromQuery] int uniqueID, int HubID)
         {
             ViewBag.testUniqueID = uniqueID;
             ViewBag.testHubID = HubID;
+
+            
+            // Retrieve the parent OMTable entry
+            var parentItem = await _oM79Context.OMTable.FirstOrDefaultAsync(m => m.Id == uniqueID);
+
+            if (parentItem == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.StartingMilePoint = parentItem.StartingMilePoint;
+            ViewBag.EndingMilePoint = parentItem.EndingMilePoint;
+
+
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ======================Start       "+ parentItem.StartingMilePoint +"================End         " + parentItem.EndingMilePoint +"=============");
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ===================================================");
+
+
             TempData["PageStatus"] = "GoingToCreatePage"; // Set TempData for navigation status
             Console.WriteLine(ViewBag.testUniqueID);
             DropDowns();

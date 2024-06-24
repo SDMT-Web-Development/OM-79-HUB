@@ -25,11 +25,12 @@
                 <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
                 <span asp-validation-for="County" class="text-danger"></span>
             </div>
+            @*
             <div class="col-md-4">
                 <label asp-for="IDNumber" class="control-label">@Html.DisplayNameFor(model => model.IDNumber)</label>
                 <input asp-for="IDNumber" class="form-control" />
                 <span asp-validation-for="IDNumber" class="text-danger"></span>
-            </div>
+            </div>*@
             <div class="col-md-4">
                 <label asp-for="RouteID" class="control-label">@Html.DisplayNameFor(model => model.RouteID) </label>
                 <input asp-for="RouteID" class="form-control" />

@@ -25,7 +25,7 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="heading-@entryId">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@entryId" aria-expanded="false" aria-controls="collapse-@entryId">
-                                ID: @entryId - Requested By: @entry.RequestedByName - Date: @(entry.SubmissionDate?.ToShortDateString() ?? "N/A")
+                                Route: @entry.RouteIDB, @entry.RoadChangeType - Requested By: @entry.County, @(entry.SubmissionDate?.ToShortDateString() ?? "N/A")
                             </button>
                         </h2>
                         <div id="collapse-@entryId" class="accordion-collapse collapse" aria-labelledby="heading-@entryId" data-bs-parent="#accordionExample">

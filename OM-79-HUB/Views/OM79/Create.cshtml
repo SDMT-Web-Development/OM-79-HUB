@@ -338,6 +338,44 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
+<br /> 
+<br />
+<!-- Legend Box -->
+<div class="row form-group">
+    <div class="col-md-12">
+        <fieldset style="border: 1px solid #000; padding: 10px;">
+            <legend style="text-align: center;">Legend</legend>
+            <div class="legend-container">
+                <div class="legend-row">
+                    <p><strong>MP</strong> - Mile Point</p>
+                    <p><strong>CO</strong> - County Route</p>
+                </div>
+                <div class="legend-row">
+                    <p><strong>BARS</strong> - Bridge Number</p>
+                    <p><strong>FANS</strong> - Federal Aid Non-State</p>
+                </div>
+                <div class="legend-row">
+                    <p><strong>HARP</strong> - Home Access Roads Program</p>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+
+<style>
+    .legend-container {
+        display: flex;
+    }
+
+    .legend-row {
+        flex: 0 0 33.33%;
+        max-width: 33.33%;
+        padding: 5px;
+        box-sizing: border-box;
+    }
+</style>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
