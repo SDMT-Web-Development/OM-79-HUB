@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OM_79_HUB.Models;
 using OM79.Models.DB;
 
@@ -109,7 +110,8 @@ namespace OM_79_HUB.Data
                         {
                             oMTable.County = CountyMappings.FirstOrDefault(x => x.Value == countyCode).Key;
                         }
-
+                        string paddedRoute = (oMTable.Route ?? 0).ToString("D4");
+                        string paddedSubRoute = (oMTable.SubRoute ?? 0).ToString("D2");
                         // Add OMTable to _context and save changes
                         _context.Add(oMTable);
                         await _context.SaveChangesAsync();
@@ -128,7 +130,7 @@ namespace OM_79_HUB.Data
                         if (!string.IsNullOrEmpty(oMTable.SignSystem) && SSMappings.TryGetValue(oMTable.SignSystem, out int signSystemInt))
                         {
                             // Construct routeIDB using the mapped integer for SignSystem
-                            string routeIDB = $"{countyCode}{signSystemInt}{oMTable.Route}{oMTable.SubRoute}{oMTable.Supplemental}";
+                            string routeIDB = $"{countyCode}{signSystemInt}{paddedRoute}{paddedSubRoute}{oMTable.Supplemental}";
                             oMTable.RouteIDB = routeIDB;
                         }
                         else
@@ -655,15 +657,15 @@ namespace OM_79_HUB.Data
 
         private Dictionary<string, int> CountyMappings = new Dictionary<string, int>
 {
-    { "Barbour", 1 },
-    { "Berkeley", 2 },
-    { "Boone", 3 },
-    { "Braxton", 4 },
-    { "Brooke", 5 },
-    { "Cabell", 6 },
-    { "Calhoun", 7 },
-    { "Clay", 8 },
-    { "Doddridge", 9 },
+    { "Barbour", 01 },
+    { "Berkeley", 02 },
+    { "Boone", 03 },
+    { "Braxton", 04 },
+    { "Brooke", 05 },
+    { "Cabell", 06 },
+    { "Calhoun", 07 },
+    { "Clay", 08 },
+    { "Doddridge", 09 },
     { "Fayette", 10 },
     { "Gilmer", 11 },
     { "Grant", 12 },
