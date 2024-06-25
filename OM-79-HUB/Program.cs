@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM79.Models.DB;
 using QuestPDF.Infrastructure;
+using Microsoft.IO;
+using Microsoft.Extensions.DependencyInjection;
 
 QuestPDF.Settings.License = LicenseType.Community;
 

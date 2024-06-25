@@ -190,11 +190,12 @@ namespace OM_79_HUB.Controllers
         //|<a asp-controller="FileGenerationAndPackaging" asp-action="PrintPackagedHubFile" asp-route-id="@entry.Id" class="btn btn-secondary">Export OM79 with PJ103</a>
         //|<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79CoverPage" asp-route-id="@entry.Id" class="btn btn-secondary">Export Cover Page</a>
 
-       
+
 
 
 
         // Export Packaged Single Hub w/ zero or more OM79s w/ zero or more PJ103s
+        [HttpPost]
         public async Task<IActionResult> PrintOM79HUBwOM79(int? id)
         {
             if (id == null)
@@ -203,17 +204,14 @@ namespace OM_79_HUB.Controllers
             }
 
             var omHUB = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == id.Value);
-
-
             if (omHUB == null)
             {
                 return NotFound();
             }
 
-
             var OM79AttachedToHUB = await _om79Context.OMTable
-                                   .Where(e => e.HubId == id.Value)
-                                   .ToListAsync();
+                               .Where(e => e.HubId == id.Value)
+                               .ToListAsync();
 
             if (!OM79AttachedToHUB.Any())
             {
@@ -221,23 +219,17 @@ namespace OM_79_HUB.Controllers
                 //Nothing to export
                 return RedirectToAction("Details", "CENTRAL79HUB", new { id = id.Value });
             }
+
             var omSignatures = await _hubContext.SignatureData.Where(e => e.HubKey == id.Value).ToListAsync();
-
-
             var omItems = await _om79Context.OMTable.Where(e => e.HubId == id.Value).ToListAsync();
             var omItemIds = omItems.Select(e => e.Id).ToList(); // Extract the IDs from omItems
-
-
             var pjSegments = await _pj103Context.Submissions.Where(e => e.OM79Id.HasValue && omItemIds.Contains(e.OM79Id.Value)).ToListAsync(); // Convert OM79Id to int
             var pjSegmentsIds = pjSegments.Select(e => e.SubmissionID).ToList(); // Extract the IDs from omItems
-
-
 
             var reports = new List<IDocument>();
             var fileName = $"Hub_{omHUB.OMId}_Report.pdf";
             var CoverPage = new CoverPageDocumentGeneration(omHUB, omSignatures, omItems);
             reports.Add((IDocument)CoverPage);
-
 
             foreach (var om79 in OM79AttachedToHUB)
             {
@@ -267,7 +259,6 @@ namespace OM_79_HUB.Controllers
                     .Merge(reports.ToArray())
                     .GeneratePdf(fileName);
 
-
                 //-----------------------------------------------------------
                 // Local PDF Generation
                 //var startInfo = new ProcessStartInfo("explorer.exe", fileName);
@@ -276,15 +267,21 @@ namespace OM_79_HUB.Controllers
 
                 //-----------------------------------------------------------
                 // Live PDF Generation
-                 var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
-                 using var memoryStream = streamManager.GetStream();
-                 HttpContext.Response.ContentType = "application/pdf";
-                 HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
-                 await memoryStream.CopyToAsync(HttpContext.Response.Body);
+                var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
+                using var memoryStream = streamManager.GetStream();
+                Document
+                    .Merge(reports.ToArray())
+                    .GeneratePdf(memoryStream);
+
+                HttpContext.Response.ContentType = "application/pdf";
+                HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
+                memoryStream.Position = 0; // Reset the position to the beginning of the stream
+                await memoryStream.CopyToAsync(HttpContext.Response.Body);
                 //-----------------------------------------------------------
             }
             return RedirectToAction("Details", "Central79Hub", new { id = id.Value });
         }
+
 
 
         // Export Packaged Single OM79 w/ zero or more PJ103s
