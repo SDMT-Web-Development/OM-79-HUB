@@ -59,10 +59,13 @@
     <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New Item Attached to OM-79</a>
 </div>
 *@
-<h4>PDF Generation</h4>
-<hr />
-<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-secondary">Export Packaged Document</a>
-<hr />
+    <h4>PDF Generation</h4>
+    <hr />
+    <form asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" method="post" style="display:inline;">
+        <input type="hidden" name="id" value="@Model.OMId" />
+        <button type="submit" class="btn btn-secondary">Export Packaged Document</button>
+    </form>
+    <hr />
 
     @if (Model.IsSubmitted == true)
     {
