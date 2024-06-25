@@ -63,7 +63,9 @@ namespace OM_79_HUB.Data
             ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["CurrentFilter"] = searchRouteIDB;
 
+            // Filter the records where IsArchive is not true
             var omTables = from m in _context.OMTable
+                           where m.IsArchive != true
                            select m;
 
             if (!String.IsNullOrEmpty(searchRouteIDB))
@@ -86,6 +88,41 @@ namespace OM_79_HUB.Data
 
             return View(pagedOmTables);
         }
+
+
+
+        public async Task<IActionResult> ArchivedIndex(string searchRouteIDB, string sortOrder, int? page)
+        {
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
+            ViewData["CurrentFilter"] = searchRouteIDB;
+
+            // Filter the records where IsArchive is true
+            var omTables = from m in _context.OMTable
+                           where m.IsArchive == true
+                           select m;
+
+            if (!String.IsNullOrEmpty(searchRouteIDB))
+            {
+                omTables = omTables.Where(s => s.RouteIDB.Contains(searchRouteIDB));
+            }
+
+            switch (sortOrder)
+            {
+                case "date_desc":
+                    omTables = omTables.OrderByDescending(s => s.SubmissionDate);
+                    break;
+                default:
+                    omTables = omTables.OrderBy(s => s.SubmissionDate);
+                    break;
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedOmTables = await omTables.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedOmTables);
+        }
+
 
 
 
@@ -175,7 +212,7 @@ namespace OM_79_HUB.Data
                         // Set SubmissionDate and get unique79ID
                         oMTable.SubmissionDate = DateTime.Now;
                         int unique79ID = oMTable.Id;
-
+                        oMTable.IsArchive = false;
                         // Set HubId from TempData if available
                         if (TempData["UniqueID"] is int uniqueID)
                         {

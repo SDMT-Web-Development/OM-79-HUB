@@ -95,35 +95,46 @@
             <div class="nextStep">
                 <h4><u>Next Step</u></h4>
                 <div class="nextStep">
-                    @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage")
+                    @if (Model.OM79Workflow?.NextStep == "Submitted")
                     {
-                        @if (Model.OM79Workflow?.NextStep == "AddFirstItem")
-                        {
-                            <p>Please proceed by adding the first item to your OM79 workflow.</p>
-                            <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add First Item</a>
-                        }
-                        @if (Model.OM79Workflow?.NextStep == "AddItem")
-                        {
-                            <p>Proceed by adding the next item to your OM79.</p>
-                            <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add Next Item</a>
-                        }
-                        @if (Model.OM79Workflow?.NextStep == "AddSegment")
-                        {
-                            var newestItem = Model.OMTableList.OrderByDescending(item => item.Id).FirstOrDefault();
-                            <p>Proceed by adding a PJ103-Segment to your recently submitted item.</p>
-                            <a href="@Url.Action("Create", "PJ103", new { uniqueID = newestItem.Id })" class="btn btn-primary">Add PJ103-Segment</a>
-                        }
-                        @if (Model.OM79Workflow?.NextStep == "FinishSubmit")
-                        {
-                            <p>All items and segments are complete. Click 'Finish & Submit For Review' to proceed.</p>
-                            <button type="button" class="btn btn-primary">Finish & Submit For Review</button>
-                        }
+                        <p>This form is fully completed and no further actions are required.</p>
                     }
                     else
                     {
-                        <p>Complete the current form by filling out all the required fields and click 'Save'</p>
+                        @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage")
+                        {
+                            @if (Model.OM79Workflow?.NextStep == "AddFirstItem")
+                            {
+                                <p>Please proceed by adding the first item to your OM79 workflow.</p>
+                                <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add First Item</a>
+                            }
+                            else if (Model.OM79Workflow?.NextStep == "AddItem")
+                            {
+                                <p>Proceed by adding the next item to your OM79.</p>
+                                <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add Next Item</a>
+                            }
+                            else if (Model.OM79Workflow?.NextStep == "AddSegment")
+                            {
+                                var newestItem = Model.OMTableList.OrderByDescending(item => item.Id).FirstOrDefault();
+                                <p>Proceed by adding a PJ103-Segment to your recently submitted item.</p>
+                                <a href="@Url.Action("Create", "PJ103", new { uniqueID = newestItem.Id })" class="btn btn-primary">Add PJ103-Segment</a>
+                            }
+                            else if (Model.OM79Workflow?.NextStep == "FinishSubmit")
+                            {
+                                <p>All items and segments are complete. Click 'Finish & Submit For Review' to proceed.</p>
+                                <form asp-action="FinishSubmit" asp-controller="CENTRAL79HUB" method="post">
+                                    <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
+                                    <button type="submit" class="btn btn-primary">Finish & Submit For Review</button>
+                                </form>
+                            }
+                        }
+                        else
+                        {
+                            <p>You are currently working on the next step for this OM79, continue by filling out all of the necessary information and clicking 'Save'</p>
+                        }
                     }
                 </div>
+
             </div>
         </div>
            @* <div class="nextStep">
@@ -159,7 +170,7 @@
         <br /> 
         <br />
         <div class="saveForLater">
-            @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage" && Model.OM79Workflow?.NextStep != "FinishSubmit")
+            @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage" && Model.OM79Workflow?.NextStep != "Submitted")
             {
                 <h4><u>Save Progress</u></h4>
                 <p>If you would like to save your progress and resume at a later time. Click 'Save For Later' to proceed</p>

@@ -270,17 +270,17 @@ namespace OM_79_HUB.Controllers
 
                 //-----------------------------------------------------------
                 // Local PDF Generation
-                var startInfo = new ProcessStartInfo("explorer.exe", fileName);
-                Process.Start(startInfo);
+                //var startInfo = new ProcessStartInfo("explorer.exe", fileName);
+                //Process.Start(startInfo);
                 //-----------------------------------------------------------
 
                 //-----------------------------------------------------------
                 // Live PDF Generation
-                // var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
-                // using var memoryStream = streamManager.GetStream();
-                // HttpContext.Response.ContentType = "application/pdf";
-                // HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
-                // await memoryStream.CopyToAsync(HttpContext.Response.Body);
+                 var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
+                 using var memoryStream = streamManager.GetStream();
+                 HttpContext.Response.ContentType = "application/pdf";
+                 HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
+                 await memoryStream.CopyToAsync(HttpContext.Response.Body);
                 //-----------------------------------------------------------
             }
             return RedirectToAction("Details", "Central79Hub", new { id = id.Value });

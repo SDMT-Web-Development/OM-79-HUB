@@ -139,10 +139,5 @@ public partial class OMTable
     [DisplayName("Route ID Builder")]
     public string? RouteIDB { get; set; }
     public int? CountyCode { get; set; }
-
-
-
-
-
-
+    public bool? IsArchive { get; set; }    
 }
