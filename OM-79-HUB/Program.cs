@@ -31,6 +31,11 @@ builder.Services.AddDbContext<OM79Context>(options =>
 builder.Services.AddDbContext<Pj103Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection3") ?? throw new InvalidOperationException("Connection string 'DevConnection3' not found.")));
 
+
+// Register the RecyclableMemoryStreamManager service
+builder.Services.AddSingleton<RecyclableMemoryStreamManager>();
+
+
 // Enumber authentication
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 
