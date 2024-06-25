@@ -8,25 +8,150 @@ using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
 using OM_79_HUB.Models.DB.OM79Hub;
+using OM79.Models.DB;
+using X.PagedList;
 
 namespace OM_79_HUB.Controllers
 {
     public class CENTRAL79HUBController : Controller
     {
         private readonly OM_79_HUBContext _context;
+        private readonly OM79Context _OMcontext;
 
-        public CENTRAL79HUBController(OM_79_HUBContext context)
+        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context)
         {
             _context = context;
+            _OMcontext = oM79Context;
         }
 
-        // GET: CENTRAL79HUB
-        public async Task<IActionResult> Index()
+
+
+        //
+        //
+        //
+        //
+        //
+        // This is where we will start the email/signing system
+        //
+        //
+        //
+        //
+        [HttpPost]
+        public async Task<IActionResult> FinishSubmit(int id)
         {
-              return _context.CENTRAL79HUB != null ? 
-                          View(await _context.CENTRAL79HUB.ToListAsync()) :
-                          Problem("Entity set 'OM_79_HUBContext.CENTRAL79HUB'  is null.");
+            // Retrieve the CENTRAL79HUB entry
+            var om79 = await _context.CENTRAL79HUB.FindAsync(id);
+            if (om79 == null)
+            {
+                return NotFound();
+            }
+
+            // Set IsSubmitted to true
+            om79.IsSubmitted = true;
+
+            // Retrieve the OM79Workflow entry using HubID
+            var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == id);
+            if (om79Workflow != null)
+            {
+                // Set the next step to "Submitted"
+                om79Workflow.NextStep = "Submitted";
+            }
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            // Redirect to an appropriate action, such as the index page
+            return RedirectToAction("Details", new { id = om79.OMId });
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ArchiveOM79(int id)
+        {
+            var om79 = await _context.CENTRAL79HUB.FindAsync(id);
+            if (om79 == null)
+            {
+                return NotFound();
+            }
+            // Archive the CENTRAL79HUB entry
+            om79.IsArchive = true;
+
+            // Find and archive related OMTable entries
+            var relatedOMTables = await _OMcontext.OMTable.Where(t => t.HubId == id).ToListAsync();
+            foreach (var item in relatedOMTables)
+            {
+                item.IsArchive = true;
+            }
+
+            // Save changes to both contexts
+            await _context.SaveChangesAsync();
+            await _OMcontext.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
+        }
+
+        // GET: CENTRAL79HUB/ArchivedIndex
+        public async Task<IActionResult> ArchivedIndex(string searchUserId, int? page)
+        {
+            ViewData["CurrentFilter"] = searchUserId;
+
+            // Filter the records where IsArchive is true
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.IsArchive == true
+                                      select m;
+
+            if (!String.IsNullOrEmpty(searchUserId))
+            {
+                central79HubEntries = central79HubEntries.Where(s => s.UserId.Contains(searchUserId));
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedCentral79HubEntries);
+        }
+
+
+
+
+
+        // GET: CENTRAL79HUB
+        public async Task<IActionResult> Index(string searchUserId, int? page)
+        {
+            ViewData["CurrentFilter"] = searchUserId;
+
+            // Filter the records where IsArchive is not true
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.IsArchive == false || m.IsArchive == null
+                                      select m;
+
+            if (!String.IsNullOrEmpty(searchUserId))
+            {
+                central79HubEntries = central79HubEntries.Where(s => s.UserId.Contains(searchUserId));
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedCentral79HubEntries);
+        }
+
+
+
+        // GET: CENTRAL79HUB
+        //public async Task<IActionResult> Index()
+        //{
+        //    if (_context.CENTRAL79HUB == null)
+        //    {
+        //        return Problem("Entity set 'OM_79_HUBContext.CENTRAL79HUB' is null.");
+        //    }
+
+        //    var items = await _context.CENTRAL79HUB
+        //                              .Where(x => x.IsArchive == false || x.IsArchive == null)
+        //                              .ToListAsync();
+
+        //    return View(items);
+        //}
 
         public async Task<IActionResult> AdminIndex()
         {
@@ -101,7 +226,9 @@ namespace OM_79_HUB.Controllers
 
             if (ModelState.IsValid)
             {
+                cENTRAL79HUB.IsSubmitted = false;
                 cENTRAL79HUB.DateSubmitted = DateTime.Now;
+                cENTRAL79HUB.IsArchive = false;
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
 

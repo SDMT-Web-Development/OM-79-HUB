@@ -10,7 +10,6 @@ namespace OM_79_HUB.Models
         public string? UserId { get; set; }
         [DisplayName("Comment Box")]
         public string? Otherbox { get; set; }
-
         public int? OM79Key { get; set; }
         public int? PJ103Key { get; set; }
         public string? County {  get; set; }
@@ -18,10 +17,7 @@ namespace OM_79_HUB.Models
         public string? IDNumber {  get; set; }
         public string? RouteID { get; set; }
         public bool? IsArchive { get; set; }
-
         public DateTime? DateSubmitted { get; set; }
-        
-
-
+        public bool? IsSubmitted { get; set; }      
     }
 }
