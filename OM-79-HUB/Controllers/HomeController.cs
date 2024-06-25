@@ -27,6 +27,12 @@ namespace OM_79_HUB.Controllers
             return View();
         }
 
+        public IActionResult SaveForLater()
+        {
+            HttpContext.Session.Remove("UniqueID");
+            return RedirectToAction("Index", "Home");
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

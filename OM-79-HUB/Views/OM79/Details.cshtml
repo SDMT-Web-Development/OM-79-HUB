@@ -1,192 +1,259 @@
 ﻿@model OMTable
 
 @{
-    Layout = "~/Views/Shared/_OM79Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Details";
 }
-
-<h1>Details</h1>
-
+</br>
+<h1 style="font-weight: bold">
+    OM-79 Item Details</h1>
 <div>
-    <hr />
-    <h4>OM-79 Items</h4>
-    <hr />
+    
     <dl class="row">
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.DistrictNumber)
+            @Html.DisplayNameFor(model => model.Id)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.DistrictNumber)
+            @Html.DisplayFor(model => model.Id)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.County)
+            @Html.DisplayNameFor(model => model.RoadChangeType)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.County)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.SubmissionDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.SubmissionDate)
+            @Html.DisplayFor(model => model.RoadChangeType)
         </dd>
 
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RAddition)
+            @Html.DisplayNameFor(model => model.CoDate)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RAddition)
+            @Html.DisplayFor(model => model.CoDate)
         </dd>
+
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RRedesignation)
+            @Html.DisplayNameFor(model => model.CoDateTwo)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RRedesignation)
+            @Html.DisplayFor(model => model.CoDateTwo)
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RMapCorrection)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RMapCorrection)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RAbandonment)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RAbandonment)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RInventoryRemoval)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RInventoryRemoval)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RAmend)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RAmend)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RRescind)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RRescind)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ROther)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ROther)
-        </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Otherbox)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Otherbox)
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RouteAssignment)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RouteAssignment)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Route)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Route)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.SubRoute)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.SubRoute)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RightOfWayWidth)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RightOfWayWidth)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RightOther)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RightOther)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Railroad)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Railroad)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.DOTAARNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.DOTAARNumber)
-        </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.RequestedBy)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.RequestedBy)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.RequestedByName)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.RequestedByName)
         </dd>
+
+        <dt class="col-sm-12">
+            @Html.DisplayNameFor(model => model.Attachments)
+        </dt>
+        <dd class="col-sm-12">
+            @Html.DisplayFor(model => model.Attachments)
+        </dd>
+
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Comments)
+            @Html.DisplayNameFor(model => model.RouteAssignment)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RouteAssignment)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Route)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Route)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.SubRoute)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SubRoute)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RightOfWayWidth)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RightOfWayWidth)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RightOther)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RightOther)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Comments) 
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Comments)
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.AdjacentProperty)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.AdjacentProperty)
-        </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.APHouses)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.APHouses)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.APBusinesses)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.APBusinesses)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.APSchools)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.APSchools)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.APOther)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.APOther)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.APOtherIdentify)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.APOtherIdentify)
         </dd>
+
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Attachments)
+            @Html.DisplayNameFor(model => model.AdjacentProperty)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Attachments)
+            @Html.DisplayFor(model => model.AdjacentProperty)
         </dd>
+
+        <dt class="col-sm-12">
+            @Html.DisplayNameFor(model => model.BridgeInv)
+        </dt>
+        <dd class="col-sm-12">
+            @Html.DisplayFor(model => model.BridgeInv)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.BridgeAmount)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.BridgeAmount)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.BridgeNumbers)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.BridgeNumbers)
+        </dd>
+
+        <dt class="col-sm-12">
+            @Html.DisplayNameFor(model => model.RailroadInv)
+        </dt>
+        <dd class="col-sm-12">
+            @Html.DisplayFor(model => model.RailroadInv)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RailroadAmount)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RailroadAmount)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DOTAARNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.DOTAARNumber)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.SignSystem)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SignSystem)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ProjectNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ProjectNumber)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DateComplete)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.DateComplete)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RouteNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RouteNumber)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.SubRouteNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SubRouteNumber)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.MaintOrg)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.MaintOrg)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.StartingMilePoint)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.StartingMilePoint)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.EndingMilePoint)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.EndingMilePoint)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.YearOfSurvey)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.YearOfSurvey)
+        </dd>
+
 
     </dl>
 </div>
@@ -212,23 +279,23 @@
 
 
 
-
+@*
 <hr />
 <h4>Create New PJ103 Segment</h4>
 <hr />
 <a href="@Url.Action("Create", "PJ103", new { uniqueID = Model.Id })" class="btn btn-primary">Add New PJ103 Segment Attached to OM79</a>
 <hr />
+*@
 
 
-
-
+@*
 <h4>Export to PDF</h4>
 <hr />
 <a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79File" asp-route-id="@Model.Id" class="btn btn-primary">Export Only OM-79 Item</a>
 <div> <br /> </div>
 <a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79wPJ103" asp-route-id="@Model.Id" class="btn btn-secondary">Export Packaged OM79 w/ Attached PJ103</a>
 <hr />
-
+*@
 
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |

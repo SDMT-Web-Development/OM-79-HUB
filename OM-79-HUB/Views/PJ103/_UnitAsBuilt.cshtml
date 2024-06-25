@@ -88,11 +88,7 @@
             <span asp-validation-for="FunctionalClass" class="text-danger"></span>
         </div>
 
-        <div class="col-md-4">
-            <label asp-for="OtherBox" class="control-label"></label>
-            <input asp-for="OtherBox" class="form-control" />
-            <span asp-validation-for="OtherBox" class="text-danger"></span>
-        </div>
+        
         <div class="col-md-4">
             <label asp-for="FederalAid" class="control-label"></label>
             <select asp-for="FederalAid" name="FederalAid" class="form-control" asp-items="@ViewBag.FederalDropdown"></select>
@@ -109,24 +105,34 @@
             <span asp-validation-for="FedForestHighway" class="text-danger"></span>
         </div>
         <div class="col-md-4">
-            <label asp-for="TruckRoute" class="control-label"></label>
-            <select asp-for="TruckRoute" name="TruckRoute" class="form-control" asp-items="@ViewBag.TruckDropdown"></select>
-            <span asp-validation-for="TruckRoute" class="text-danger"></span>
+            <label asp-for="MPSegmentStart" class="control-label">
+                @Html.DisplayNameFor(model => model.MPSegmentStart)<span class="required-asterisk">*</span>
+            </label>
+            <input asp-for="MPSegmentStart" class="form-control" />
+            <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
         </div>
+        
         <div class="col-md-4">
             <label asp-for="NHS" class="control-label"></label>
             <select asp-for="NHS" name="NHS" class="form-control" asp-items="@ViewBag.NHSDropdown"></select>
             <span asp-validation-for="NHS" class="text-danger"></span>
         </div>
         <div class="col-md-4">
-            <label asp-for="MPSegmentStart" class="control-label"></label>
-            <input asp-for="MPSegmentStart" class="form-control" />
-            <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
+            <label asp-for="TruckRoute" class="control-label"></label>
+            <select asp-for="TruckRoute" name="TruckRoute" class="form-control" asp-items="@ViewBag.TruckDropdown"></select>
+            <span asp-validation-for="TruckRoute" class="text-danger"></span>
         </div>
         <div class="col-md-4">
-            <label asp-for="MPSegmentEnd" class="control-label"></label>
+            <label asp-for="MPSegmentEnd" class="control-label">
+                @Html.DisplayNameFor(model => model.MPSegmentEnd)<span class="required-asterisk">*</span>
+            </label>
             <input asp-for="MPSegmentEnd" class="form-control" />
             <span asp-validation-for="MPSegmentEnd" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="OtherBox" class="control-label"></label>
+            <textarea asp-for="OtherBox" class="form-control" style="height: 150px;"></textarea>
+            <span asp-validation-for="OtherBox" class="text-danger"></span>
         </div>
     </div>
 

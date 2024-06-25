@@ -1,15 +1,17 @@
 ﻿@model IEnumerable<PJ103V3.Models.DB.Submission>
 
 @{
-    Layout = "~/Views/Shared/_PJ103Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Index";
 }
-
-<h1>Index</h1>
-
+</br>
+<h1 style="font-weight: bold">
+    PJ103 Segments</h1>
+@*
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+*@
 <table class="table">
     <thead>
         <tr>
@@ -76,9 +78,9 @@
             *@
 
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.SubmissionID">Edit</a> |
+                  @*  <a asp-action="Edit" asp-route-id="@item.SubmissionID">Edit</a> |    needs work *@
                     <a asp-action="Details" asp-route-id="@item.SubmissionID">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.SubmissionID">Delete</a>
+                 @*   <a asp-action="Delete" asp-route-id="@item.SubmissionID">Delete</a>  *@
                 </td>
             </tr>
         }

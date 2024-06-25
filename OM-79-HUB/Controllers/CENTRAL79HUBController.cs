@@ -8,25 +8,150 @@ using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
 using OM_79_HUB.Models.DB.OM79Hub;
+using OM79.Models.DB;
+using X.PagedList;
 
 namespace OM_79_HUB.Controllers
 {
     public class CENTRAL79HUBController : Controller
     {
         private readonly OM_79_HUBContext _context;
+        private readonly OM79Context _OMcontext;
 
-        public CENTRAL79HUBController(OM_79_HUBContext context)
+        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context)
         {
             _context = context;
+            _OMcontext = oM79Context;
         }
 
-        // GET: CENTRAL79HUB
-        public async Task<IActionResult> Index()
+
+
+        //
+        //
+        //
+        //
+        //
+        // This is where we will start the email/signing system
+        //
+        //
+        //
+        //
+        [HttpPost]
+        public async Task<IActionResult> FinishSubmit(int id)
         {
-              return _context.CENTRAL79HUB != null ? 
-                          View(await _context.CENTRAL79HUB.ToListAsync()) :
-                          Problem("Entity set 'OM_79_HUBContext.CENTRAL79HUB'  is null.");
+            // Retrieve the CENTRAL79HUB entry
+            var om79 = await _context.CENTRAL79HUB.FindAsync(id);
+            if (om79 == null)
+            {
+                return NotFound();
+            }
+
+            // Set IsSubmitted to true
+            om79.IsSubmitted = true;
+
+            // Retrieve the OM79Workflow entry using HubID
+            var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == id);
+            if (om79Workflow != null)
+            {
+                // Set the next step to "Submitted"
+                om79Workflow.NextStep = "Submitted";
+            }
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            // Redirect to an appropriate action, such as the index page
+            return RedirectToAction("Details", new { id = om79.OMId });
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ArchiveOM79(int id)
+        {
+            var om79 = await _context.CENTRAL79HUB.FindAsync(id);
+            if (om79 == null)
+            {
+                return NotFound();
+            }
+            // Archive the CENTRAL79HUB entry
+            om79.IsArchive = true;
+
+            // Find and archive related OMTable entries
+            var relatedOMTables = await _OMcontext.OMTable.Where(t => t.HubId == id).ToListAsync();
+            foreach (var item in relatedOMTables)
+            {
+                item.IsArchive = true;
+            }
+
+            // Save changes to both contexts
+            await _context.SaveChangesAsync();
+            await _OMcontext.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
+        }
+
+        // GET: CENTRAL79HUB/ArchivedIndex
+        public async Task<IActionResult> ArchivedIndex(string searchUserId, int? page)
+        {
+            ViewData["CurrentFilter"] = searchUserId;
+
+            // Filter the records where IsArchive is true
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.IsArchive == true
+                                      select m;
+
+            if (!String.IsNullOrEmpty(searchUserId))
+            {
+                central79HubEntries = central79HubEntries.Where(s => s.UserId.Contains(searchUserId));
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedCentral79HubEntries);
+        }
+
+
+
+
+
+        // GET: CENTRAL79HUB
+        public async Task<IActionResult> Index(string searchUserId, int? page)
+        {
+            ViewData["CurrentFilter"] = searchUserId;
+
+            // Filter the records where IsArchive is not true
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.IsArchive == false || m.IsArchive == null
+                                      select m;
+
+            if (!String.IsNullOrEmpty(searchUserId))
+            {
+                central79HubEntries = central79HubEntries.Where(s => s.UserId.Contains(searchUserId));
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedCentral79HubEntries);
+        }
+
+
+
+        // GET: CENTRAL79HUB
+        //public async Task<IActionResult> Index()
+        //{
+        //    if (_context.CENTRAL79HUB == null)
+        //    {
+        //        return Problem("Entity set 'OM_79_HUBContext.CENTRAL79HUB' is null.");
+        //    }
+
+        //    var items = await _context.CENTRAL79HUB
+        //                              .Where(x => x.IsArchive == false || x.IsArchive == null)
+        //                              .ToListAsync();
+
+        //    return View(items);
+        //}
 
         public async Task<IActionResult> AdminIndex()
         {
@@ -49,7 +174,10 @@ namespace OM_79_HUB.Controllers
             {
                 return NotFound();
             }
-            
+
+
+            HttpContext.Session.SetInt32("UniqueID", id.Value);
+
             ViewBag.TestUniqueID = id;
 
             return View(cENTRAL79HUB);
@@ -89,32 +217,76 @@ namespace OM_79_HUB.Controllers
             return View(userdata);
         }
 
-        // POST: CENTRAL79HUB/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB)
+        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District,IDNumber,RouteID")] CENTRAL79HUB cENTRAL79HUB, int NumberOfItems)
         {
             string userIdentity = User.Identity.Name;
             cENTRAL79HUB.UserId = userIdentity;
 
             if (ModelState.IsValid)
             {
+                cENTRAL79HUB.IsSubmitted = false;
+                cENTRAL79HUB.DateSubmitted = DateTime.Now;
+                cENTRAL79HUB.IsArchive = false;
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
-                int uniqueID = cENTRAL79HUB.OMId;
 
-                return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID });
-                // return Redirect ($"https://dotappstest.transportation.wv.gov/OM79/OMTables/Create?uniqueID={uniqueID}");
-                // return Redirect($"https://dotappstest.transportation.wv.gov/OM79?uniqueID={uniqueID}");
+                int uniqueID = cENTRAL79HUB.OMId;
+                string countyValue = cENTRAL79HUB.County;
+
+
+                HttpContext.Session.SetInt32("UniqueID", uniqueID);
+
+                // Create a new OM79Workflow entry with the provided number of items and the newly created key from CENTRAL79HUB
+                OM79Workflow om79Workflow = new OM79Workflow
+                {
+                    HubID = uniqueID,
+                    NumberOfItems = NumberOfItems,
+                    NextStep = "AddFirstItem"
+                };
+                _context.OM79Workflow.Add(om79Workflow);
+                await _context.SaveChangesAsync();
+
+                // Redirect to the Create action of OM79 controller with uniqueID and countyValue
+                //return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID, county = countyValue });
+                return RedirectToAction("Details", "CENTRAL79HUB", new { id = uniqueID }); //ChangeLater
+
             }
+
             return View(cENTRAL79HUB);
         }
+
+        //// POST: CENTRAL79HUB/Create
+        //// To protect from overposting attacks, enable the specific properties you want to bind to.
+        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB, int NumberOfItems)
+        //{
+        //    string userIdentity = User.Identity.Name;
+        //    cENTRAL79HUB.UserId = userIdentity;
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        cENTRAL79HUB.DateSubmitted = DateTime.Now;
+        //        _context.Add(cENTRAL79HUB);
+        //        await _context.SaveChangesAsync();
+
+        //        int uniqueID = cENTRAL79HUB.OMId;
+        //        string countyValue = cENTRAL79HUB.County;
+
+        //        // Redirect to the Create action of OM79 controller with uniqueID and countyValue
+        //        return RedirectToAction("Create", "OM79", new { uniqueID = uniqueID, county = countyValue });
+        //    }
+
+        //    return View(cENTRAL79HUB);
+        //}
 
         // GET: CENTRAL79HUB/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            Dropdowns();
             if (id == null || _context.CENTRAL79HUB == null)
             {
                 return NotFound();
@@ -133,7 +305,7 @@ namespace OM_79_HUB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OMId,USERID,CBOX")] CENTRAL79HUB cENTRAL79HUB)
+        public async Task<IActionResult> Edit(int id, [Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB)
         {
             if (id != cENTRAL79HUB.OMId)
             {
@@ -219,7 +391,7 @@ namespace OM_79_HUB.Controllers
                 signature.Signatures = Request.Form["signaturemodal"];
                 signature.SigType = Request.Form["sigtype"];
                 signature.ENumber = HttpContext.User.Identity.Name;
-
+                signature.DateSubmitted = DateTime.Now;
 
                 
                 _context.Add(signature);
@@ -235,6 +407,7 @@ namespace OM_79_HUB.Controllers
                 signature.Signatures = Request.Form["signaturemodal"];
                 signature.SigType = Request.Form["sigtype"];
                 signature.ENumber = HttpContext.User.Identity.Name;
+                signature.DateSubmitted = DateTime.Now;
 
 
 

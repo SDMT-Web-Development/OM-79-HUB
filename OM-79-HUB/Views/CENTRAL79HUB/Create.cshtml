@@ -4,9 +4,210 @@
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
+<>
+<h2 style="font-weight: bold">New OM-79</h2>
+<hr />
+<div class="row">
+    <form id="om79Form" asp-action="Create">
+        <div class="row form-group">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-md-4">
+                <label asp-for="UserId" class="control-label">@Html.DisplayNameFor(model => model.UserId)<span class="required-asterisk">*</span></label>
+                <span class="form-control">@User.Identity.Name</span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="District" class="control-label">@Html.DisplayNameFor(model => model.District) <span class="required-asterisk">*</span></label>
+                <select asp-for="District" name="District" class="form-control" id="districtDropdown" asp-items=@ViewBag.DDropdown> </select>
+                <span asp-validation-for="District" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="County" class="control-label">@Html.DisplayNameFor(model => model.County) <span class="required-asterisk">*</span></label>
+                <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
+                <span asp-validation-for="County" class="text-danger"></span>
+            </div>
+            @*
+            <div class="col-md-4">
+                <label asp-for="IDNumber" class="control-label">@Html.DisplayNameFor(model => model.IDNumber)</label>
+                <input asp-for="IDNumber" class="form-control" />
+                <span asp-validation-for="IDNumber" class="text-danger"></span>
+            </div>*@
+            <div class="col-md-4">
+                <label asp-for="RouteID" class="control-label">@Html.DisplayNameFor(model => model.RouteID) </label>
+                <input asp-for="RouteID" class="form-control" />
+                <span asp-validation-for="RouteID" class="text-danger"></span>
+            </div>
+            <div class="col-md-12">
+                <label asp-for="Otherbox" class="control-label">@Html.DisplayNameFor(model => model.Otherbox)<span class="required-asterisk">*</span></label>
+                <textarea asp-for="Otherbox" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Otherbox" class="text-danger"></span>
+            </div>
+            <input type="hidden" id="NumberOfItems" name="NumberOfItems" />
+            <br />
+            <br />
+            <div class="form-group">
+                <input type="button" value="Create" class="btn btn-primary" onclick="showItemModal()" />
+            </div>
+        </div>
+    </form>
+</div>
+<br />
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
 
-<h4>New OM-79</h4>
+<!-- Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="itemModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemModalLabel">Number of Items</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="numberOfItems">How many items will be on this OM79?</label>
+                    <input type="number" class="form-control" id="numberOfItems" name="numberOfItems" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+    <script>
+        $(document).ready(function () {
+            // Get references to the dropdowns
+            var districtDropdown = $("#districtDropdown");
+            var countyDropdown = $("#countyDropdown");
+
+            // Define a mapping of DistrictNumber to counties
+            var districtToCounties = {
+                "1": ["Boone", "Clay", "Kanawha", "Mason", "Putnam"],
+                "2": ["Cabell", "Lincoln", "Logan", "Mingo", "Wayne"],
+                "3": ["Calhoun", "Jackson", "Pleasants", "Ritchie", "Roane", "Wirt", "Wood"],
+                "4": ["Doddridge", "Harrison", "Marion", "Monongalia", "Preston", "Taylor"],
+                "5": ["Berkeley", "Grant", "Hampshire", "Hardy", "Jefferson", "Mineral", "Morgan"],
+                "6": ["Brooke", "Hancock", "Marshall", "Ohio", "Tyler", "Wetzel"],
+                "7": ["Barbour", "Braxton", "Gilmer", "Lewis", "Upshur", "Webster"],
+                "8": ["Pendleton", "Pocahontas", "Randolph", "Tucker"],
+                "9": ["Fayette", "Greenbrier", "Monroe", "Nicholas", "Summers"],
+                "10": ["McDowell", "Mercer", "Raleigh", "Wyoming"]
+                // Add more mappings as needed
+            };
+
+            // Event handler for DistrictNumber dropdown change
+            districtDropdown.change(function () {
+                var selectedDistrict = districtDropdown.val();
+                var counties = districtToCounties[selectedDistrict] || [];
+
+                // Clear the County dropdown and add the new options
+                countyDropdown.empty();
+                countyDropdown.append('<option value="">Select District First</option>');
+
+                $.each(counties, function (index, county) {
+                    countyDropdown.append('<option value="' + county + '">' + county + '</option>');
+                });
+            });
+
+            // Trigger the change event to populate the County dropdown initially
+            districtDropdown.trigger('change');
+
+            // Setup client-side validation
+            $("#om79Form").validate({
+                rules: {
+                    District: {
+                        required: true
+                    },
+                    County: {
+                        required: true
+                    },
+                    IDNumber: {
+                        required: true
+                    },
+                    RouteID: {
+                        required: true
+                    },
+                    Otherbox: {
+                        required: true
+                    }
+                },
+                messages: {
+                    District: {
+                        required: "Please select a district."
+                    },
+                    County: {
+                        required: "Please select a county."
+                    },
+                    IDNumber: {
+                        required: "Please enter the ID number."
+                    },
+                    RouteID: {
+                        required: "Please enter the route ID."
+                    },
+                    Otherbox: {
+                        required: "Please fill in the comment box."
+                    }
+                },
+                errorClass: "text-danger",
+                errorElement: "span",
+                highlight: function (element, errorClass) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function (element, errorClass) {
+                    $(element).removeClass("is-invalid");
+                }
+            });
+        });
+
+        function showItemModal() {
+            var form = $('#om79Form');
+            if (form.valid()) {
+                $('#itemModal').modal('show');
+            }
+        }
+
+        function submitForm() {
+            var numberOfItems = $('#numberOfItems').val();
+            if (numberOfItems && numberOfItems > 0 && Number.isInteger(Number(numberOfItems))) {
+                $('#NumberOfItems').val(numberOfItems); // Set the hidden field value
+                $('#om79Form').submit();
+            } else {
+                $('#numberOfItems').addClass('is-invalid'); // Add error class
+                if (!$('#numberOfItems-error').length) {
+                    $('<span id="numberOfItems-error" class="text-danger">Please enter a valid number of items greater than 0 and a whole number.</span>').insertAfter('#numberOfItems');
+                }
+            }
+        }
+    </script>
+    <style>
+        .required-asterisk {
+            font-size: 12px;
+            color: red;
+        }
+    </style>
+}
+
+
+
+@*@model CENTRAL79HUB
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+
+</br>
+<h2 style="font-weight: bold">New OM-79</h2>
 <hr />
 <div class="row">
    
@@ -26,6 +227,16 @@
                 <label asp-for="County" class="control-label">@Html.DisplayNameFor(model => model.County) <span class="required-asterisk">*</span></label>
                 <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
                 <span asp-validation-for="County" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="IDNumber" class="control-label">@Html.DisplayNameFor(model => model.IDNumber)</label>
+                <input asp-for="IDNumber" class="form-control" />
+                <span asp-validation-for="IDNumber" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="RouteID" class="control-label">@Html.DisplayNameFor(model => model.RouteID) </label>
+                <input asp-for="RouteID" class="form-control" />
+                <span asp-validation-for="RouteID" class="text-danger"></span>
             </div>
             <div class="col-md-12">
                 <label asp-for="Otherbox" class="control-label">@Html.DisplayNameFor(model => model.Otherbox)<span class="required-asterisk">*</span></label>
@@ -94,3 +305,4 @@
         }
     </style>
 }
+*@

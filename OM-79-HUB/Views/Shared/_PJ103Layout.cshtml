@@ -4,16 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - PJ103V3</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+           @*  <nav class="navbar navbar-expand-lg navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3"> *@
             <div class="container-fluid">
                 <img alt="List View" src="@Url.Content("~/Assets/dot.png")" style="width:50px; height:50px; margin-right: 10px; margin-top: 5px;" />
-                <a class="navbar-brand" asp-area="" asp-controller="Submissions" asp-action="Index">PJ-103</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Submissions" asp-action="Index" style="font-weight: bold;">PJ-103 Segment</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -21,22 +22,22 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy" style="font-weight: bold;">Privacy</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Resources">Resources</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
                         </li>
 
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Indexes</a>
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" style="font-weight: bold;">Indexes</a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="@Url.Action("Index", "Central79Hub")">OM79-HUB Index</a>
-                                <a class="dropdown-item" href="@Url.Action("Index", "OM79")">OM79 Index</a>
-                                <a class="dropdown-item" href="@Url.Action("Index", "PJ103")">PJ103 Index</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">OM79 Forms List</a>
+                               @*  <a class="dropdown-item" href="@Url.Action("Index", "OM79")">OM79 Index</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "PJ103")">PJ103 Index</a> *@
                                 <div class="dropdown-divider"></div>
                             </div>
                         </li>

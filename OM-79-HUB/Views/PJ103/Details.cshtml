@@ -1,115 +1,19 @@
 ﻿@model PJ103V3.Models.ViewModels.Aclvl
 
 @{
-    Layout = "~/Views/Shared/_PJ103Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1 style="font-weight: bold">
+    Details</h1>
 
 <div>
     <hr />
-    <h4>PJ103</h4>
+    </br>
+    <h4>PJ103 Segment</h4>
     <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.SubmissionID)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.SubmissionID)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ProjectKey)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ProjectKey)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ReportDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ReportDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.County)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.County)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RouteNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RouteNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.SubRouteNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.SubRouteNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ProjectNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ProjectNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.DateComplete)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.DateComplete)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.NatureOfChange)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.NatureOfChange)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.MaintOrg)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.MaintOrg)
-        </dd>
-        @*
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.YearOfSurvey)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.YearOfSurvey)
-        </dd>
-        *@
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.OtherBox)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.OtherBox)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.SignSystem)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.SignSystem)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.StartingMilePoint)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.StartingMilePoint)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.EndingMilePoint)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.EndingMilePoint)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RailroadInv)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RailroadInv)
-        </dd>
+   
     </dl>
 </div>
 
@@ -124,330 +28,179 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ID)
         </dd>
-        @*
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.SurfaceType1)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.SurfaceType1)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.Depth)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.Depth)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.SurfaceWidth)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.SurfaceWidth)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.GradeWidth)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.GradeWidth)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.YearBuilt)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.YearBuilt)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.SubmissionIDUAB)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.SubmissionIDUAB)
-        </dd>
-        *@
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.AccessControl)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.AccessControl)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.ThroughLanes)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ThroughLanes)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.CounterPeakLanes)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.CounterPeakLanes)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.PeakLanes)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.PeakLanes)
         </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.ReverseLanes)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ReverseLanes)
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.LaneWidth)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.LaneWidth)
-        </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.MedianWidth)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.MedianWidth)
         </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.LaneWidth)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.LaneWidth)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.GradeWidth)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.GradeWidth)
+        </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.PavementWidth)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.PavementWidth)
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.SpecialSys)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.SpecialSys)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.FacilityType)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.FacilityType)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.FederalAid)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.FederalAid)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.FedForestHighway)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.FedForestHighway)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.MedianType)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.MedianType)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.NHS)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.NHS)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.TruckRoute)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TruckRoute)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.GovIDOwnership)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.GovIDOwnership)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.WVlegalClass)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.WVlegalClass)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.FunctionalClass)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.FunctionalClass)
-        </dd>
+
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.SurfaceTypeN)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.SurfaceTypeN)
         </dd>
-    </dl>
-</div>
 
-<div>
-    <hr />
-    <h4>Bridge / Railroad</h4>
-    <hr />
-    <dl class="row">
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Id)
+            @Html.DisplayNameFor(model => model.FacilityType)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Id)
+            @Html.DisplayFor(model => model.FacilityType)
         </dd>
+
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.BridgeNumber)
+            @Html.DisplayNameFor(model => model.MedianType)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.BridgeNumber)
+            @Html.DisplayFor(model => model.MedianType)
         </dd>
+
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.StationBeginMP)
+            @Html.DisplayNameFor(model => model.GovIDOwnership)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.StationBeginMP)
+            @Html.DisplayFor(model => model.GovIDOwnership)
         </dd>
+
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.StationEndMP)
+            @Html.DisplayNameFor(model => model.WVlegalClass)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.StationEndMP)
+            @Html.DisplayFor(model => model.WVlegalClass)
         </dd>
+
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.CrossingName)
+            @Html.DisplayNameFor(model => model.FunctionalClass)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.CrossingName)
+            @Html.DisplayFor(model => model.FunctionalClass)
         </dd>
-        @*
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.SubMaterial)
+            @Html.DisplayNameFor(model => model.FederalAid)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.SubMaterial)
+            @Html.DisplayFor(model => model.FederalAid)
         </dd>
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.SuperMaterial)
+            @Html.DisplayNameFor(model => model.SpecialSys)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.SuperMaterial)
+            @Html.DisplayFor(model => model.SpecialSys)
         </dd>
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.FloorMaterial)
+            @Html.DisplayNameFor(model => model.FedForestHighway)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.FloorMaterial)
+            @Html.DisplayFor(model => model.FedForestHighway)
         </dd>
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ArchMaterial)
+            @Html.DisplayNameFor(model => model.TruckRoute)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ArchMaterial)
+            @Html.DisplayFor(model => model.TruckRoute)
         </dd>
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.TotalLength)
+            @Html.DisplayNameFor(model => model.NHS)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.TotalLength)
+            @Html.DisplayFor(model => model.NHS)
         </dd>
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ClearanceRoadway)
+            @Html.DisplayNameFor(model => model.MPSegmentStart)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ClearanceRoadway)
+            @Html.DisplayFor(model => model.MPSegmentStart)
         </dd>
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ClearanceSidewalkRight)
+            @Html.DisplayNameFor(model => model.MPSegmentEnd)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ClearanceSidewalkRight)
+            @Html.DisplayFor(model => model.MPSegmentEnd)
         </dd>
+
         <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ClearanceSidewalkLeft)
+            @Html.DisplayNameFor(model => model.OtherBox)
         </dt>
         <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ClearanceSidewalkLeft)
+            @Html.DisplayFor(model => model.OtherBox)
         </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ClearanceStreamble)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ClearanceStreamble)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ClearancePortal)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ClearancePortal)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ClearanceAboveWater)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ClearanceAboveWater)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.PostedLoadLimits)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.PostedLoadLimits)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.ConstructionDate)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.ConstructionDate)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.WhomBuilt)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.WhomBuilt)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.HistoricalBridge)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.HistoricalBridge)
-        </dd>
-        <dt class="col-sm-2">
-        @Html.DisplayNameFor(model => model.BridgeSurfaceType)
-        </dt>
-        <dd class="col-sm-10">
-        @Html.DisplayFor(model => model.BridgeSurfaceType)
-        </dd>
-        *@
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.BridgeWidth)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.BridgeWidth)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RailRoadMP)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RailRoadMP)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.BridgeName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.BridgeName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RailKey)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RailKey)
-        </dd>
+
     </dl>
 </div>
 
 
 
-<hr />
-<h4>Export to PDF</h4>
-<hr />
+
+@*
+
 <a asp-controller="FileGenerationAndPackaging" asp-action="PrintPJ103File" asp-route-id="@Model.SubmissionID" class="btn btn-primary">Export PJ103</a>
 <hr />
 
-
+*@
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.SubmissionID">Edit</a> |
     <a asp-action="Index">Back to List</a>

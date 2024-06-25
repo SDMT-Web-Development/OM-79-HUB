@@ -30,6 +30,8 @@
     <input type="text" class="form-control" readonly placeholder="@bridgesig" />   @*@bridgesig*@
     <button class="btn btn-primary sign" value="Bridge Engineer">Sign</button>
 </div>
+<button class="collapsible">Bridge Engineer Details</button>
+<div class="content">
 @foreach (var item in Model)
 {
     if (item.SigType == "Bridge Engineer")
@@ -50,50 +52,256 @@
 }
 @foreach (var item in Model)
 {
-    
-
     // Check if IsApprove is true
-    if (item.IsApprove)
+    if (item.IsApprove && item.SigType == "Bridge Engineer")
     {
+        // Render approval information
         <div class="approval-info">
             <p><strong>Approval Status:</strong> Approved</p>
         </div>
     }
 
     // Check if IsDenied is true
-    if (item.IsDenied)
+    if (item.IsDenied && item.SigType == "Bridge Engineer")
     {
+        // Render denial information
         <div class="denial-info">
             <p><strong>Denial Status:</strong> Denied</p>
         </div>
     }
 }
+</div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Traffic Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@trafficsig" />
     <button class="btn btn-primary sign" value="Traffic Engineer">Sign</button>
+</div>
+<button class="collapsible">Traffic Engineer Details</button>
+<div class="content">
+@foreach (var item in Model)
+{
+    if (item.SigType == "Traffic Engineer")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Traffic Engineer")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Traffic Engineer")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Traffic Engineer")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 </div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Maintenance Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@maintenancesig" />
     <button class="btn btn-primary sign" value="Maintenance Engineer">Sign</button>
 </div>
+<button class="collapsible">Maintenance Engineer Details</button>
+<div class="content">
+@foreach (var item in Model)
+{
+    if (item.SigType == "Maintenance Engineer")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Maintenance Engineer")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Maintenance Engineer")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Maintenance Engineer")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
+</div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Construction Engineer</span>
     <input type="text" class="form-control" readonly placeholder="@constructionsig" />
     <button class="btn btn-primary sign" value="Construction Engineer">Sign</button>
+</div>
+<button class="collapsible">Construction Engineer Details</button>
+<div class="content">
+@foreach (var item in Model)
+{
+    if (item.SigType == "Construction Engineer")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Construction Engineer")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Construction Engineer")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Construction Engineer")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
 </div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Right of Way Manager</span>
     <input type="text" class="form-control" readonly placeholder="@rightofwaysig" />
     <button class="btn btn-primary sign" id="signbutton" value="Right of Way Manager">Sign</button>
 </div>
+<button class="collapsible">Right of Way Manager Details</button>
+<div class="content">
+@foreach (var item in Model)
+{
+    if (item.SigType == "Right of Way Manager")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "Right of Way Manager")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "Right of Way Manager")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "Right of Way Manager")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
+</div>
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">District Manager</span>
     <input type="text" class="form-control" readonly placeholder="@districtsig" />
     <button class="btn btn-primary sign" id="signbutton" value="District Manager">Sign</button>
 </div>
-<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signModal">SignModal</button>
+<button class="collapsible">District Manager Details</button>
+<div class="content">
+@foreach (var item in Model)
+{
+    if (item.SigType == "District Manager")
+    {
+        <div class="signature-info">
+            <p><strong>Signature:</strong> @item.Signatures</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    if (item.SigType == "District Manager")
+    {
+        <div class="comment-info">
+            <p><strong>Comments:</strong> @item.Comments</p>
+        </div>
+    }
+}
+@foreach (var item in Model)
+{
+    // Check if IsApprove is true
+    if (item.IsApprove && item.SigType == "District Manager")
+    {
+        // Render approval information
+        <div class="approval-info">
+            <p><strong>Approval Status:</strong> Approved</p>
+        </div>
+    }
+
+    // Check if IsDenied is true
+    if (item.IsDenied && item.SigType == "District Manager")
+    {
+        // Render denial information
+        <div class="denial-info">
+            <p><strong>Denial Status:</strong> Denied</p>
+        </div>
+    }
+}
+</div>
+@*<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signModal">SignModal</button> *@
 <div class="modal" id="signModal">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -111,7 +319,7 @@
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID " />
                             <input type="hidden" value="" name="sigtype" id="sigtype" />
 
-                            
+                        
                                 <label for="approve">Approve</label>
 
                                 <input type="radio" id="approve" name="apradio" value="approve" />
@@ -123,9 +331,8 @@
                                 <label class="form-label" for="signaturemodal" >Signature</label>
                                 <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
                                 <br />
-                            <label class="form-label" for="commentsmodal">Comments</label>
-<textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
-
+                                <label class="form-label" for="commentsmodal">Comments</label>
+                                <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
                             <br />
                             <input type="submit" id="modalsubmitbutton" class="btn btn-success" /> 
                         </form>
@@ -136,3 +343,54 @@
     </div>
 </div>
 
+<style>
+    .collapsible {
+        background-color: #777;
+        color: white;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+    }
+
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+
+    .active:after {
+        content: "\2212";
+    }
+
+    .content {
+        padding: 0 18px;
+        display: none;
+        overflow: hidden;
+        background-color: #f1f1f1;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    });
+</script>

@@ -5,8 +5,9 @@
 @{
     ViewData["Title"] = "Details";
 }
-
-<h1>Details</h1>
+</br>
+<h1 style="font-weight: bold">
+    Details</h1>
 <hr />
 <div>
     <h4>OM-79</h4>
@@ -45,58 +46,100 @@
             
     }
 
-    @*I'm putting my script here bc jquery done be broke
-        I'm sure there's a smart way to load this and someone else knows it. ~nick
-    *@
 
-    @section scripts {
 
-        <script>
-            $(document).ready(function () {
-                $(".sign").click(function () {
-                    $("#sigtype").val(this.value)
-                    $("#signModal").modal('toggle')
-                });
-                $('.sign').siblings(':text').each(function () {
-                    // there's a better way to do this
-                    if ($(this).attr('placeholder') != "Traffic Engineer" && $(this).attr('placeholder') != "Maintenance Engineer" && $(this).attr('placeholder') != "Construction Engineer" && $(this).attr('placeholder') != "Right of Way Manager" && $(this).attr('placeholder') != "District Manager" && $(this).attr('placeholder') != "Bridge Engineer") 
-                        {
-                       $(this).siblings().addClass('disabled')
-                    
-                        }
-
-                });
-            })
-
-        </script>
-    }
     
-
     <div id="OMContainer">
         @await Component.InvokeAsync("LinkedOM", new { hubId = ViewBag.testUniqueID })
     </div>
 
-</div>
 
-
-<h4>Add New Item</h4>
-<hr />
+    @*
 <div>
     <a href="@Url.Action("Create", "OM79", new { uniqueID = ViewBag.testUniqueID })" class="btn btn-primary">Add New Item Attached to OM-79</a>
 </div>
+*@
+<h4>PDF Generation</h4>
+<hr />
+<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-secondary">Export Packaged Document</a>
+<hr />
 
-<hr />
-<h4>Export to PDF</h4>
-<hr />
+    @if (Model.IsSubmitted == true)
+    {
+        <h4>Archive OM79</h4>
+        <hr />
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#archiveModal">Archive</button>
+        <hr />
+    }
 
-<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79HUBwOM79" asp-route-id="@Model.OMId" class="btn btn-primary">Export Packaged OM79(s) w/ Attached PJ103(s)</a>
-<hr />
+    <!-- Archive Confirmation Modal -->
+    <div class="modal fade" id="archiveModal" tabindex="-1" aria-labelledby="archiveModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="archiveModalLabel">Confirm Archive</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to archive this OM79?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-controller="CENTRAL79HUB" asp-action="ArchiveOM79" method="post">
+                        <input type="hidden" name="id" value="@Model.OMId" />
+                        <button type="submit" class="btn btn-primary">Confirm</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 
 <div id="signContainer" class="container">
     @await Component.InvokeAsync("LinkedSignatures", new { hubId = ViewBag.testUniqueID })
 </div>
+</div>
+
+
+
 
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.OMId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="OM79 Form list">Back to List</a>
 </div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5+5hb7ie3bYq4Z5p9FO8Q5v3kzMj2C4cfx9J2R7d" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js" integrity="sha384-Xz/Q1C1/ScpE6MBT11Hcp3vnoHklkQ2Zn42YAd5GA4gp6x1G07aaR4RBOJNRHwVo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js" integrity="sha384-7rQfmU6cdwO01OXo3fdW8vht62yjRXlUJ3xHpBfR1VbF4w5E5YmN5Rp6SNFPz3Ql" crossorigin="anonymous"></script>
+
+    <script>
+        document.getElementById('confirmArchiveButton').addEventListener('click', function () {
+            var omId = @Model.OMId;
+            window.location.href = '@Url.Action("ArchiveOM79", "CENTRAL79HUB", new { id = Model.OMId })';
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $(".sign").click(function () {
+                $("#sigtype").val(this.value)
+                $("#signModal").modal('toggle')
+            });
+            $('.sign').siblings(':text').each(function () {
+                // there's a better way to do this
+                if ($(this).attr('placeholder') != "Traffic Engineer" && $(this).attr('placeholder') != "Maintenance Engineer" && $(this).attr('placeholder') != "Construction Engineer" && $(this).attr('placeholder') != "Right of Way Manager" && $(this).attr('placeholder') != "District Manager" && $(this).attr('placeholder') != "Bridge Engineer") {
+                    $(this).siblings().addClass('disabled')
+                }
+            });
+        });
+    </script>
+}
+
+
+
+@*I'm putting my script here bc jquery done be broke
+        I'm sure there's a smart way to load this and someone else knows it. ~nick
+    *@

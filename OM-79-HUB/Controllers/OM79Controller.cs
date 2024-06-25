@@ -5,10 +5,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OM_79_HUB.Models;
+using OM_79_HUB.Models.DB.OM79;
+using OM_79_HUB.Models.DB.OM79Hub;
 using OM79.Models.DB;
+using X.PagedList;
+
+
 
 
 namespace OM_79_HUB.Data
@@ -16,20 +23,108 @@ namespace OM_79_HUB.Data
     public class OM79Controller : Controller
     {
         private readonly OM79Context _context;
+        private readonly OM_79_HUBContext _context2; 
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public OM79Controller(OM79Context context, IWebHostEnvironment webHostEnvironment)
+        public OM79Controller(OM79Context context, OM_79_HUBContext context2, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _context2 = context2;
             _webHostEnvironment = webHostEnvironment;
         }
-        // GET: OMTables
-        public async Task<IActionResult> Index()
+        //// GET: OMTables
+        //public async Task<IActionResult> Index(string searchRouteIDB, string sortOrder)
+        //{
+        //    ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
+
+        //    var omTables = from m in _context.OMTable
+        //                   select m;
+
+        //    if (!String.IsNullOrEmpty(searchRouteIDB))
+        //    {
+        //        omTables = omTables.Where(s => s.RouteIDB.Contains(searchRouteIDB));
+        //    }
+
+        //    switch (sortOrder)
+        //    {
+        //        case "date_desc":
+        //            omTables = omTables.OrderByDescending(s => s.SubmissionDate);
+        //            break;
+        //        default:
+        //            omTables = omTables.OrderBy(s => s.SubmissionDate);
+        //            break;
+        //    }
+
+        //    return View(await omTables.ToListAsync());
+        //}
+        public async Task<IActionResult> Index(string searchRouteIDB, string sortOrder, int? page)
         {
-            return _context.OMTable != null ?
-                        View(await _context.OMTable.ToListAsync()) :
-                        Problem("Entity set 'OM79Context.OMTable'  is null.");
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
+            ViewData["CurrentFilter"] = searchRouteIDB;
+
+            // Filter the records where IsArchive is not true
+            var omTables = from m in _context.OMTable
+                           where m.IsArchive != true
+                           select m;
+
+            if (!String.IsNullOrEmpty(searchRouteIDB))
+            {
+                omTables = omTables.Where(s => s.RouteIDB.Contains(searchRouteIDB));
+            }
+
+            switch (sortOrder)
+            {
+                case "date_desc":
+                    omTables = omTables.OrderByDescending(s => s.SubmissionDate);
+                    break;
+                default:
+                    omTables = omTables.OrderBy(s => s.SubmissionDate);
+                    break;
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedOmTables = await omTables.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedOmTables);
         }
+
+
+
+        public async Task<IActionResult> ArchivedIndex(string searchRouteIDB, string sortOrder, int? page)
+        {
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
+            ViewData["CurrentFilter"] = searchRouteIDB;
+
+            // Filter the records where IsArchive is true
+            var omTables = from m in _context.OMTable
+                           where m.IsArchive == true
+                           select m;
+
+            if (!String.IsNullOrEmpty(searchRouteIDB))
+            {
+                omTables = omTables.Where(s => s.RouteIDB.Contains(searchRouteIDB));
+            }
+
+            switch (sortOrder)
+            {
+                case "date_desc":
+                    omTables = omTables.OrderByDescending(s => s.SubmissionDate);
+                    break;
+                default:
+                    omTables = omTables.OrderBy(s => s.SubmissionDate);
+                    break;
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedOmTables = await omTables.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedOmTables);
+        }
+
+
+
 
         // GET: OMTables/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -49,108 +144,213 @@ namespace OM_79_HUB.Data
             return View(oMTable);
         }
 
+        
         // GET: OMTables/Create
-        public IActionResult Create([FromQuery] int uniqueID, OMTable oMTable)
+        public IActionResult Create([FromQuery] int uniqueID, string county, OMTable oMTable, CENTRAL79HUB central79hub)
         {
-            DropDowns();
-            Console.WriteLine(uniqueID);
-            TempData["UniqueID"] = uniqueID; // Store uniqueID in TempData
+            DropDowns(); // Assuming this method populates dropdowns or other data for the view
 
+            // Retrieve CENTRAL79HUB record based on uniqueID
+            CENTRAL79HUB central79Hub = _context2.CENTRAL79HUB.FirstOrDefault(c => c.OMId == uniqueID);
 
-            ViewBag.TestUniqueID = uniqueID;
-           // oMTable.HubId = uniqueID;
+            if (central79Hub != null)
+            {
+                // Retrieve county name from central79Hub
+                string countyName = central79Hub.County;
 
-            return View(oMTable);
+                // Check if countyName exists in CountyMappings dictionary
+                if (CountyMappings.ContainsKey(countyName))
+                {
+                    // Map county name to numeric code
+                    int countyCode = CountyMappings[countyName];
+
+                    // Store uniqueID and county code in TempData
+                    TempData["UniqueID"] = uniqueID;
+                    TempData["CountyCode"] = countyCode;
+                    TempData["PageStatus"] = "GoingToCreatePage"; // Set TempData for navigation status
+
+                    ViewBag.TestUniqueID = uniqueID; // Pass uniqueID to the view via ViewBag
+                    ViewBag.CountyCode = countyCode; // Pass county code to the view via ViewBag
+                }
+            }
+
+            return View(oMTable); // Return the view with oMTable object
         }
+
 
         // POST: OMTables/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers")] OMTable oMTable, List<IFormFile> attachments, String Datsubmit)
+        public async Task<IActionResult> Create([Bind("Id, DistrictNumber, County, SubmissionDate, Routing, RoadChangeType, Otherbox, RouteAssignment, RightOfWayWidth, Railroad, DOTAARNumber, RequestedBy, Comments, AdjacentProperty, APHouses, APBusinesses, APSchools, APOther, APOtherIdentify, Attachments, DESignature, Preparer, RequestedByName, Route, SubRoute, CoDate, CoDateTwo, RAddition, RRedesignation, RMapCorrection, RAbandonment, RInventoryRemoval, RAmend, RRescind, ROther, RightOther, HubId, SignSystem, ProjectNumber, RouteNumber, SubRouteNumber, DateComplete, StartingMilePoint, EndingMilePoint, MaintOrg, YearOfSurvey, BridgeInv, RailroadInv, RailroadAmount, BridgeAmount, BridgeNumbers, Supplemental")] OMTable oMTable, CENTRAL79HUB central79hub, List<IFormFile> attachments, String Datsubmit, int? segmentCount)
         {
-
+            // Optional: Log initial information
             Console.WriteLine("------------------------------------------------------------------------------------------");
-            Console.WriteLine("------------------------------------------------------------------------------------------");
-
-            Console.WriteLine(oMTable.HubId);
-
-            Console.WriteLine("------------------------------------------------------------------------------------------");
+            Console.WriteLine("Starting OMTables/Create Action...");
+            Console.WriteLine($"Received Datsubmit: {Datsubmit}");
             Console.WriteLine("------------------------------------------------------------------------------------------");
 
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(oMTable);
-
-                await _context.SaveChangesAsync();
-                // int wowee = Int32.Parse(uniqueID);
-
-                //    oMTable.HubId = wowee;
-                oMTable.SubmissionDate = DateTime.Now;
-                int unique79ID = oMTable.Id;
-
-                //Console.WriteLine("UniqueID " + $"Query Parameter: {HttpContext.Request.Query["uniqueID"]}");
-                /*   if (int.TryParse(HttpContext.Request.Query["uniqueID"], out int uniqueID))
-                   {
-                       // Use the uniqueID as needed
-                       // For example, you can pass it to a view or use it in your logic
-                       oMTable.HubId = uniqueID;
-                       await _context.SaveChangesAsync();
-                       // Your further logic...
-                   }
-                   else
-                   {
-                       // Handle the case when the uniqueID is not present or not a valid integer
-                       return BadRequest("Invalid or missing uniqueID");
-                   }
-                   */
-                if (TempData["UniqueID"] is int uniqueID)
+                if (ModelState.IsValid)
                 {
-                    oMTable.HubId = uniqueID; // Set the uniqueID to your model's property
-                    await _context.SaveChangesAsync();
-                }
-
-
-                // Save the attachments
-                foreach (var attachmentFile in attachments)
-                {
-                    if (attachmentFile.Length > 0)
+                    // Ensure countyCode is correctly set from TempData
+                    if (TempData["CountyCode"] is int countyCode)
                     {
-                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        // Set countyCode to oMTable if it's not already set
+                        if (oMTable.County == null)
                         {
-                            await attachmentFile.CopyToAsync(fileStream);
+                            oMTable.County = CountyMappings.FirstOrDefault(x => x.Value == countyCode).Key;
+                        }
+                        string paddedRoute = (oMTable.Route ?? 0).ToString("D4");
+                        string paddedSubRoute = (oMTable.SubRoute ?? 0).ToString("D2");
+                        // Add OMTable to _context and save changes
+                        _context.Add(oMTable);
+                        await _context.SaveChangesAsync();
+
+                        // Set SubmissionDate and get unique79ID
+                        oMTable.SubmissionDate = DateTime.Now;
+                        int unique79ID = oMTable.Id;
+                        oMTable.IsArchive = false;
+                        // Set HubId from TempData if available
+                        if (TempData["UniqueID"] is int uniqueID)
+                        {
+                            oMTable.HubId = uniqueID;
+                            await _context.SaveChangesAsync(); // Save changes to _context
                         }
 
-                        var attachment = new Attachments
+                        if (!string.IsNullOrEmpty(oMTable.SignSystem) && SSMappings.TryGetValue(oMTable.SignSystem, out int signSystemInt))
                         {
-                            FileName = attachmentFile.FileName,
-                            FilePath = filePath,
-                            SubmissionID = oMTable.Id // Use the SubmissionID from the saved submission
-                        };
-                        _context.Attachments.Add(attachment);
+                            // Construct routeIDB using the mapped integer for SignSystem
+                            string routeIDB = $"{countyCode}{signSystemInt}{paddedRoute}{paddedSubRoute}{oMTable.Supplemental}";
+                            oMTable.RouteIDB = routeIDB;
+                        }
+                        else
+                        {
+                            // Handle case where mapping is not found, if needed
+                            ModelState.AddModelError("SignSystem", "Invalid SignSystem value.");
+                            return View(oMTable);
+                        }
+
+                        // Create folder for attachments based on unique79ID
+                        var uploadsRootFolder = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+                        var uniqueFolderName = $"OM79-{unique79ID}-Attachments";
+                        var uniqueFolderPath = Path.Combine(uploadsRootFolder, uniqueFolderName);
+
+                        // Ensure the directory exists, create if not
+                        if (!Directory.Exists(uniqueFolderPath))
+                        {
+                            Directory.CreateDirectory(uniqueFolderPath);
+                        }
+
+                        // Save attachments to unique folder
+                        foreach (var attachmentFile in attachments)
+                        {
+                            if (attachmentFile.Length > 0)
+                            {
+                                var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
+                                var filePath = Path.Combine(uniqueFolderPath, uniqueFileName);
+
+                                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await attachmentFile.CopyToAsync(fileStream);
+                                }
+
+                                // Create new Attachment record
+                                var attachment = new Attachments
+                                {
+                                    FileName = attachmentFile.FileName,
+                                    FilePath = filePath,
+                                    SubmissionID = oMTable.Id
+                                };
+                                _context.Attachments.Add(attachment);
+                            }
+                        }
+
+                        // Save changes to _context after processing attachments
+                        await _context.SaveChangesAsync();
+
+                        var OM79workflowForNextStep = await _context2.OM79Workflow.FirstOrDefaultAsync(c => c.HubID == oMTable.HubId);
+
+
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("---------------------------change type-------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("--------------" + oMTable.RoadChangeType  + "--------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+                        Console.WriteLine("-----------------------------------------------------");
+
+
+
+                        if (oMTable.RoadChangeType == "Addition" || oMTable.RoadChangeType == "Redesignation")
+                        {
+                            PJ103Workflow pJ103Workflow = new PJ103Workflow
+                            {
+                                OMID = oMTable.Id,
+                                NumberOfSegments = segmentCount
+                            };
+                            _context.PJ103Workflow.Add(pJ103Workflow);  
+                            await _context.SaveChangesAsync();
+
+
+                            var OM79workflow = await _context2.OM79Workflow.FirstOrDefaultAsync(c => c.HubID == oMTable.HubId);
+                            OM79workflowForNextStep.NextStep = "AddSegment";
+                            await _context2.SaveChangesAsync();
+
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+
+
+
+                        var items = await _context.OMTable.Where(c => c.HubId == oMTable.HubId).ToListAsync();
+
+                        if (items.Count >= OM79workflowForNextStep.NumberOfItems)
+                        {
+                            OM79workflowForNextStep.NextStep = "FinishSubmit";
+                            await _context2.SaveChangesAsync();
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+                        else
+                        {
+                            OM79workflowForNextStep.NextStep = "AddItem";
+                            await _context2.SaveChangesAsync();
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+                        /*
+                        // Determine action based on Datsubmit value
+                        if (Datsubmit == "Save and Create PJ103 Segment")
+                        {
+                            return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID });
+                        }
+                        else if (Datsubmit == "Save")
+                        {
+                            return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+                        else if (Datsubmit == "Save and Create Additional Item")
+                        {
+                            return RedirectToAction("Create", "OM79", new { uniqueID = oMTable.HubId });
+                        }
+                        */
                     }
                 }
-                if (Datsubmit == "Save and Create PJ103 Segment") { 
-                // Save all changes to the database
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Create", "PJ103", new { uniqueID = unique79ID });
-                    //return Redirect($"https://dotappstest.transportation.wv.gov/PJ-103/Submissions/Create?uniqueID={unique79ID}");
-                }
-                else if(Datsubmit == "Save")
-                {
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-
-                
             }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+            }
+
+            // Return the view with oMTable if ModelState is not valid or an exception occurred
             return View(oMTable);
         }
+
 
         /**
         // GET: OMTables/Create
@@ -471,6 +671,36 @@ namespace OM_79_HUB.Data
             SignDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
             ViewBag.SignDropdown = SignDropdown;
 
+            List<SelectListItem> SuppDropdown = new()
+            {
+                new SelectListItem {Text = "00 Not Applicable", Value = "00"},
+                new SelectListItem {Text = "01 Alternate", Value = "01"},
+                new SelectListItem {Text = "02 Wye", Value = "02"},
+                new SelectListItem {Text = "03 Spur", Value = "03"},
+                new SelectListItem {Text = "04 North", Value = "04"},
+                new SelectListItem {Text = "05 South", Value = "05"},
+                new SelectListItem {Text = "06 East", Value = "06"},
+                new SelectListItem {Text = "07 West", Value = "07"},
+                new SelectListItem {Text = "08 Business", Value = "08"},
+                new SelectListItem {Text = "09 North Bound (Business)", Value = "09"},
+                new SelectListItem {Text = "10 South Bound (Business)", Value = "10"},
+                new SelectListItem {Text = "11 East Bound (Business)", Value = "11"},
+                new SelectListItem {Text = "12 West Bound (Business)", Value = "12"},
+                new SelectListItem {Text = "13 Truck Route", Value = "13"},
+                new SelectListItem {Text = "14 Bypass", Value = "14"},
+                new SelectListItem {Text = "15 Loop", Value = "15"},
+                new SelectListItem {Text = "16 Toll", Value = "16"},
+                new SelectListItem {Text = "21 Footbridge", Value = "21"},
+                new SelectListItem {Text = "22 Historical Bridge", Value = "22"},
+                new SelectListItem {Text = "23 Connector", Value = "23"},
+
+
+
+
+            };
+            SuppDropdown.Insert(0, new SelectListItem { Value = "", Text = "Select" });
+            ViewBag.SuppDropdown = SuppDropdown;
+
             List<SelectListItem> DOHDropdown = new()
             {
                 new SelectListItem {Text = "0103", Value = "0103"},
@@ -572,8 +802,76 @@ namespace OM_79_HUB.Data
             ViewBag.DOHDropdown = DOHDropdown;
         }
 
+        private Dictionary<string, int> CountyMappings = new Dictionary<string, int>
+{
+    { "Barbour", 01 },
+    { "Berkeley", 02 },
+    { "Boone", 03 },
+    { "Braxton", 04 },
+    { "Brooke", 05 },
+    { "Cabell", 06 },
+    { "Calhoun", 07 },
+    { "Clay", 08 },
+    { "Doddridge", 09 },
+    { "Fayette", 10 },
+    { "Gilmer", 11 },
+    { "Grant", 12 },
+    { "Greenbrier", 13 },
+    { "Hampshire", 14 },
+    { "Hancock", 15 },
+    { "Hardy", 16 },
+    { "Harrison", 17 },
+    { "Jackson", 18 },
+    { "Jefferson", 19 },
+    { "Kanawha", 20 },
+    { "Lewis", 21 },
+    { "Lincoln", 22 },
+    { "Logan", 23 },
+    { "McDowell", 24 },
+    { "Marion", 25 },
+    { "Marshall", 26 },
+    { "Mason", 27 },
+    { "Mercer", 28 },
+    { "Mineral", 29 },
+    { "Mingo", 30 },
+    { "Monongalia", 31 },
+    { "Monroe", 32 },
+    { "Morgan", 33 },
+    { "Nicholas", 34 },
+    { "Ohio", 35 },
+    { "Pendleton", 36 },
+    { "Pleasants", 37 },
+    { "Pocahontas", 38 },
+    { "Preston", 39 },
+    { "Putnam", 40 },
+    { "Raleigh", 41 },
+    { "Randolph", 42 },
+    { "Ritchie", 43 },
+    { "Roane", 44 },
+    { "Summers", 45 },
+    { "Taylor", 46 },
+    { "Tucker", 47 },
+    { "Tyler", 48 },
+    { "Upshur", 49 },
+    { "Wayne", 50 },
+    { "Webster", 51 },
+    { "Wetzel", 52 },
+    { "Wirt", 53 },
+    { "Wood", 54 },
+    { "Wyoming", 55 }
+};
+        private Dictionary<string, int> SSMappings = new Dictionary<string, int>
+        {
+            {"Interstate", 1 },
+            {"US", 2 },
+            {"WV", 3 },
+            {"CO", 4 },
+            {"State Park and Forest Road", 6 },
+            {"FANS", 7 },
+            {"HARP", 8 }
 
 
+        };
         /*
         public IActionResult LinkedOM(int hubId)
         {

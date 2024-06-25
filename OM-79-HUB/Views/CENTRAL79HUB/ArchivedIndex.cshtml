@@ -1,23 +1,26 @@
 ﻿@using X.PagedList
 @using X.PagedList.Mvc.Core
-@model IPagedList<OMTable>
+@model IPagedList<CENTRAL79HUB>
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Archived OM79 Forms List";
 }
 
 </br>
 <h1 style="font-weight: bold">
-    Items
+    Archived OM79 Forms List
 </h1>
 </hr>
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
 
-<form asp-controller="OM79" asp-action="Index" method="get" class="form-inline my-2 my-lg-0">
+<form asp-controller="CENTRAL79HUB" asp-action="ArchivedIndex" method="get" class="form-inline my-2 my-lg-0">
     <div class="form-row align-items-center">
         <div class="col-auto">
-            <label for="searchRouteIDB" class="sr-only">Route ID</label>
-            <input type="text" class="form-control mb-2" id="searchRouteIDB" name="searchRouteIDB" value="@ViewData["CurrentFilter"]" placeholder="Search by Route ID" />
+            <label for="searchUserId" class="sr-only">User ID</label>
+            <input type="text" class="form-control mb-2" id="searchUserId" name="searchUserId" value="@ViewData["CurrentFilter"]" placeholder="Search by User ID" />
         </div>
         <div class="col-auto">
             <button type="submit" class="btn btn-primary mb-2">Search</button>
@@ -28,27 +31,10 @@
 <table class="table">
     <thead>
         <tr>
-            <th></th>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstOrDefault().DistrictNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstOrDefault().RouteIDB)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstOrDefault().County)
-            </th>
-            <th>
-                <a asp-action="Index" asp-route-sortOrder="@ViewData["SubmissionDateSortParm"]">
-                    @Html.DisplayNameFor(model => model.FirstOrDefault().SubmissionDate)
-                </a>
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstOrDefault().RoadChangeType)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstOrDefault().RouteAssignment)
-            </th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().UserId)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().Otherbox)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().County)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().District)</th>
             <th></th>
         </tr>
     </thead>
@@ -56,29 +42,14 @@
         @foreach (var item in Model)
         {
             <tr>
+                <td>@Html.DisplayFor(modelItem => item.UserId)</td>
+                <td>@Html.DisplayFor(modelItem => item.Otherbox)</td>
+                <td>@Html.DisplayFor(modelItem => item.County)</td>
+                <td>@Html.DisplayFor(modelItem => item.District)</td>
                 <td>
-                    <a asp-controller="CENTRAL79HUB" asp-action="Details" asp-route-id="@item.HubId" class="btn btn-info">OM79 Details</a>
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DistrictNumber)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.RouteIDB)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.County)
-                </td>
-                <td>
-                    @item.SubmissionDate?.ToString("yyyy-MM-dd")
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.RoadChangeType)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.RouteAssignment)
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Item Details</a>
+                    <a asp-action="Edit" asp-route-id="@item.OMId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.OMId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.OMId">Delete</a>
                 </td>
             </tr>
         }
@@ -87,7 +58,7 @@
 
 <div class="d-flex justify-content-between custom-pagination">
     <div>
-        @Html.PagedListPager(Model, page => Url.Action("Index", new { page, sortOrder = ViewData["CurrentSort"], searchRouteIDB = ViewData["CurrentFilter"] }),
+        @Html.PagedListPager(Model, page => Url.Action("ArchivedIndex", new { page, searchUserId = ViewData["CurrentFilter"] }),
         new PagedListRenderOptions
         {
         UlElementClasses = new[] { "pagination" },

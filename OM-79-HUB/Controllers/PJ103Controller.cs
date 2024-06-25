@@ -10,18 +10,25 @@ using PJ103V3.Models.DB;
 using PJ103V3.Models.ViewModels;
 
 using OM_79_HUB.DTOs;
+using OM_79_HUB.Models;
+using OM79.Models.DB;
+using OM_79_HUB.Models.DB.OM79Hub;
 
 namespace OM_79_HUB.Data
 {
     public class PJ103Controller : Controller
     {
         private readonly Data.Pj103Context _context;
+        private readonly OM79Context _oM79Context;
+        private readonly OM_79_HUBContext _hubContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public PJ103Controller(Data.Pj103Context context, IWebHostEnvironment webHostEnvironment)
+        public PJ103Controller(Data.Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context oM79Context, OM_79_HUBContext hubContext)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _oM79Context = oM79Context;
+            _hubContext = hubContext;   
         }
         // GET: Submissions
         public async Task<IActionResult> Index()
@@ -284,10 +291,33 @@ namespace OM_79_HUB.Data
         }
         */
         // GET: Submissions/Create
-        public IActionResult Create([FromQuery] int uniqueID)
+        public async Task<IActionResult> CreateAsync([FromQuery] int uniqueID, int HubID)
         {
             ViewBag.testUniqueID = uniqueID;
+            ViewBag.testHubID = HubID;
 
+            
+            // Retrieve the parent OMTable entry
+            var parentItem = await _oM79Context.OMTable.FirstOrDefaultAsync(m => m.Id == uniqueID);
+
+            if (parentItem == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.StartingMilePoint = parentItem.StartingMilePoint;
+            ViewBag.EndingMilePoint = parentItem.EndingMilePoint;
+
+
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ======================Start       "+ parentItem.StartingMilePoint +"================End         " + parentItem.EndingMilePoint +"=============");
+            Console.WriteLine("= ===================================================");
+            Console.WriteLine("= ===================================================");
+
+
+            TempData["PageStatus"] = "GoingToCreatePage"; // Set TempData for navigation status
             Console.WriteLine(ViewBag.testUniqueID);
             DropDowns();
             return View();
@@ -295,7 +325,7 @@ namespace OM_79_HUB.Data
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments)
+        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments, int testHubID)
         {
             if (ModelState.IsValid)
             {
@@ -308,34 +338,74 @@ namespace OM_79_HUB.Data
                 dto.SubmissionID = submission.SubmissionID;
                 synctables(submission.SubmissionID);
 
-                // Save the attachments
-                /*   foreach (var attachmentFile in attachments)
-                  {
-                      if (attachmentFile.Length > 0)
-                      {
-                          var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "PJAttachments");
-                          var uniqueFileName = Guid.NewGuid().ToString() + "_" + attachmentFile.FileName;
-                          var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                          using (var fileStream = new FileStream(filePath, FileMode.Create))
-                          {
-                              await attachmentFile.CopyToAsync(fileStream);
-                          }
 
-                          var attachment = new Attachments
-                          {
-                              FileName = attachmentFile.FileName,
-                              FilePath = filePath,
-                              SubmissionID = submission.SubmissionID  // Use the SubmissionID from the saved submission
-                          };
-                          _context.Attachments.Add(attachment);
-                      }
-                  }
-                */
-                // Save all changes to the database
                 await _context.SaveChangesAsync();
-                  return RedirectToAction(nameof(Index));
-              }
+
+
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+
+                var om79ID = submission.OM79Id;
+                Console.WriteLine($"OM79ID: {om79ID}");
+
+                var om79 = await _oM79Context.OMTable.FirstOrDefaultAsync(o => o.Id == om79ID);
+                Console.WriteLine($"OMTable entry: {om79?.Id}, {om79?.RoadChangeType}");
+
+                var pjWorkflow = await _oM79Context.PJ103Workflow.FirstOrDefaultAsync(o => o.OMID == om79ID);
+                Console.WriteLine($"PJ103Workflow entry: {pjWorkflow?.PJ103WorkflowID}, {pjWorkflow?.NumberOfSegments}");
+
+                var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(o => o.OMId == om79.HubId);
+                Console.WriteLine($"CENTRAL79HUB entry: {hub?.OMId}, {hub?.County}");
+
+                var omWorkflow = await _hubContext.OM79Workflow.FirstOrDefaultAsync(o => o.HubID == hub.OMId);
+                Console.WriteLine($"OM79Workflow entry: {omWorkflow?.HubID}, {omWorkflow?.NextStep}");
+
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine("----------------------------------------");
+
+
+                // Get the list of PJ103 segments
+                var pj103Segments = await _context.Submissions.Where(p => p.OM79Id == om79.Id).ToListAsync();
+                Console.WriteLine($"Number of PJ103 segments: {pj103Segments.Count}");
+                foreach (var segment in pj103Segments)
+                {
+                    Console.WriteLine($"PJ103 Segment ID: {segment.SubmissionID}");
+                }
+
+                // Get the list of OM79Attached items
+                var om79Attached = await _oM79Context.OMTable.Where(o => o.HubId == om79.HubId).ToListAsync();
+                Console.WriteLine($"Number of OM79 attached items: {om79Attached.Count}");
+
+
+                // Compare the count of PJ103 segments with pjWorkflow.NumberOfSegments
+                if (pj103Segments.Count < pjWorkflow.NumberOfSegments)
+                {
+                    return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
+                }
+                else
+                {
+                    if(om79Attached.Count < omWorkflow.NumberOfItems)
+                    {
+                        // Update om79Workflow.NextStep to "AddItem"
+                        omWorkflow.NextStep = "AddItem";
+                        await _hubContext.SaveChangesAsync();
+                        return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
+                    }
+                    else
+                    {
+                        omWorkflow.NextStep = "FinishSubmit";
+                        await _hubContext.SaveChangesAsync();
+                        return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
+                    }
+                }
+            }
 
               void synctables(int ID)
               {

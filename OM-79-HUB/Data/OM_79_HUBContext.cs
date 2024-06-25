@@ -14,6 +14,11 @@ namespace OM_79_HUB.Data
             : base(options)
         {
         }
+
+        public OM_79_HUBContext()
+        {
+        }
+
         public bool HasChanges()
         {
             return ChangeTracker.HasChanges();
@@ -21,5 +26,6 @@ namespace OM_79_HUB.Data
         public virtual DbSet<CENTRAL79HUB> CENTRAL79HUB { get; set; }
         public virtual DbSet<SignatureData> SignatureData { get; set; }
         public virtual DbSet<UserData> UserData { get; set; }
+        public virtual DbSet<OM79Workflow> OM79Workflow { get; set; }
     }
 }
