@@ -13,6 +13,9 @@ using OM_79_HUB.Models;
 using OM_79_HUB.Models.DB.OM79;
 using OM_79_HUB.Models.DB.OM79Hub;
 using OM79.Models.DB;
+using X.PagedList;
+
+
 
 
 namespace OM_79_HUB.Data
@@ -29,13 +32,62 @@ namespace OM_79_HUB.Data
             _context2 = context2;
             _webHostEnvironment = webHostEnvironment;
         }
-        // GET: OMTables
-        public async Task<IActionResult> Index()
+        //// GET: OMTables
+        //public async Task<IActionResult> Index(string searchRouteIDB, string sortOrder)
+        //{
+        //    ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
+
+        //    var omTables = from m in _context.OMTable
+        //                   select m;
+
+        //    if (!String.IsNullOrEmpty(searchRouteIDB))
+        //    {
+        //        omTables = omTables.Where(s => s.RouteIDB.Contains(searchRouteIDB));
+        //    }
+
+        //    switch (sortOrder)
+        //    {
+        //        case "date_desc":
+        //            omTables = omTables.OrderByDescending(s => s.SubmissionDate);
+        //            break;
+        //        default:
+        //            omTables = omTables.OrderBy(s => s.SubmissionDate);
+        //            break;
+        //    }
+
+        //    return View(await omTables.ToListAsync());
+        //}
+        public async Task<IActionResult> Index(string searchRouteIDB, string sortOrder, int? page)
         {
-            return _context.OMTable != null ?
-                        View(await _context.OMTable.ToListAsync()) :
-                        Problem("Entity set 'OM79Context.OMTable'  is null.");
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
+            ViewData["CurrentFilter"] = searchRouteIDB;
+
+            var omTables = from m in _context.OMTable
+                           select m;
+
+            if (!String.IsNullOrEmpty(searchRouteIDB))
+            {
+                omTables = omTables.Where(s => s.RouteIDB.Contains(searchRouteIDB));
+            }
+
+            switch (sortOrder)
+            {
+                case "date_desc":
+                    omTables = omTables.OrderByDescending(s => s.SubmissionDate);
+                    break;
+                default:
+                    omTables = omTables.OrderBy(s => s.SubmissionDate);
+                    break;
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedOmTables = await omTables.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedOmTables);
         }
+
+
 
         // GET: OMTables/Details/5
         public async Task<IActionResult> Details(int? id)
