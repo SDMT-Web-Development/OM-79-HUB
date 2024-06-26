@@ -23,7 +23,7 @@
             </div>
             <p>@completedItems / @requiredItems Items Completed.</p>
 
-            <h4>Completed Item Records</h4>
+            <h4><u>Completed Item Records</u></h4>
             <div class="completed">
                 @if (Model.OMTableList != null && Model.OMTableList.Any())
                 {
@@ -166,17 +166,23 @@
             </div>
         </div>*@
 
-        <br />
-        <br /> 
-        <br />
+      
         <div class="saveForLater">
             @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage" && Model.OM79Workflow?.NextStep != "Submitted")
             {
+                <br />
+                <br />
+                <br />
                 <h4><u>Save Progress</u></h4>
                 <p>If you would like to save your progress and resume at a later time. Click 'Save For Later' to proceed</p>
                 <a href="@Url.Action("SaveForLater", "Home")" class="btn btn-primary">Save For Later</a>
             }
         </div>
+
+
+
+        
+
         @*
         <div class="saveForLater">
             @if (Model.OM79Workflow?.NextStep != "Finish")
@@ -187,6 +193,19 @@
             }
         </div>
         *@
+        @*
+        <br />
+        <br />
+        <br />
+        <div class="OMComments">
+            <h4><u>OM79 Comments</u></h4>
+            <p>@Model.Central79Hub.Otherbox</p>
+        </div>
+        *@
+
+
+
+
     }
     else
     {

@@ -4,7 +4,6 @@
     ViewData["Title"] = "Create";
 }
 
-<>
 <h2 style="font-weight: bold">New OM-79</h2>
 <hr />
 <div class="row">
@@ -42,9 +41,9 @@
                 <span asp-validation-for="Otherbox" class="text-danger"></span>
             </div>
             <input type="hidden" id="NumberOfItems" name="NumberOfItems" />
-            <br />
-            <br />
-            <div class="form-group">
+            
+
+            <div class="form-group mt-3">
                 <input type="button" value="Create" class="btn btn-primary" onclick="showItemModal()" />
             </div>
         </div>
@@ -83,7 +82,9 @@
         @{
             await Html.RenderPartialAsync("_ValidationScriptsPartial");
         }
-
+        .form-group.mt-3 {
+        margin-top: 1rem; /* Adjust the value as needed */
+    }
     <script>
         $(document).ready(function () {
             // Get references to the dropdowns
@@ -193,6 +194,10 @@
         .required-asterisk {
             font-size: 12px;
             color: red;
+        }
+
+        .form-group.mt-3 {
+            margin-top: 1rem; /* Adjust the value as needed */
         }
     </style>
 }

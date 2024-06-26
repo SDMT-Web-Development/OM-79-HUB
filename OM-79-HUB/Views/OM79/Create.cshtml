@@ -68,8 +68,9 @@
             </div>
 
             <div class="col-md-12" id="segmentCountContainer" style="display:none;">
-                <label for="segmentCount">How many DIFFERENT segments will be with this Item?</label>
-                <input type="number" id="segmentCount" name="segmentCount" class="form-control" />
+                <label for="segmentCount">How many DIFFERENT segments will be with this Item?<span class="required-asterisk">*</span></label>
+                <input type="number" id="segmentCount" name="segmentCount" class="form-control" min="1" step="1" required />
+                <span class="text-danger" id="segmentCountError"></span>
             </div>
 
             <div class="col-md-12">
@@ -394,6 +395,31 @@
                     $("#segmentCount").removeAttr("required");
                 }
             });
+        });
+    </script>
+
+    <script>
+        document.getElementById('segmentCount').addEventListener('input', function () {
+            var segmentCount = this.value;
+            var errorElement = document.getElementById('segmentCountError');
+
+            // Remove non-digit characters
+            segmentCount = segmentCount.replace(/\D/g, '');
+
+            // Ensure the value is at least 1
+            if (segmentCount < 1) {
+                errorElement.textContent = "Please enter a whole number of 1 or greater.";
+            } else {
+                errorElement.textContent = "";
+                this.value = segmentCount;
+            }
+        });
+
+        // Prevent non-numeric input on keypress
+        document.getElementById('segmentCount').addEventListener('keypress', function (event) {
+            if (event.key < '0' || event.key > '9') {
+                event.preventDefault();
+            }
         });
     </script>
 @*
