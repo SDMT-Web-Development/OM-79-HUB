@@ -676,7 +676,6 @@ namespace OM_79_HUB.Controllers
 
             public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
-            private bool isFirstPage = true;  // Flag to determine if the current page is the first
 
 
             public void Compose(IDocumentContainer container)
@@ -685,14 +684,7 @@ namespace OM_79_HUB.Controllers
                     .Page(page =>
                     {
                         page.Margin(50);
-
-                        // Conditionally render the header only on the first page
-                        if (isFirstPage)
-                        {
-                            page.Header().Element(ComposeHeader);
-                            isFirstPage = false; // Set flag to false after rendering the header on the first page
-                        }
-
+                        page.Header().Element(ComposeHeader);
                         page.Content().Element(ComposeContent);
                         // Optionally, add footer here if needed for all pages
                         // page.Footer().Height(10).Background(Colors.Grey.Lighten1);
