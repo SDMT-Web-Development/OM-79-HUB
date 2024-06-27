@@ -245,21 +245,19 @@
                     <div id="maintOrgError" class="text-danger"></div>
                 </div>
 
-                 
                 <div class="col-md-4">
-                <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint)<span class="required-asterisk">*</span></label>
-                <input asp-for="StartingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)"/> 
-                <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
-                <div id="startingMilePointError" class="text-danger"></div>
+                    <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint)<span class="required-asterisk">*</span></label>
+                    <input asp-for="StartingMilePoint" class="form-control" type="number" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
+                    <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
+                    <div id="startingMilePointError" class="text-danger"></div>
                 </div>
                 <div class="col-md-4">
-                <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint)<span class="required-asterisk">*</span></label>
-                <input asp-for="EndingMilePoint" class="form-control" type="number" step="any" min="0" onkeydown="validatePositiveNumber(event)" /> 
-                <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
-                <div id="endingMilePointError" class="text-danger"></div>
+                    <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint)<span class="required-asterisk">*</span></label>
+                    <input asp-for="EndingMilePoint" class="form-control" type="number" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
+                    <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
+                    <div id="endingMilePointError" class="text-danger"></div>
                 </div>
-                
-                
+
             <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
 
             
