@@ -1,0 +1,404 @@
+﻿@model OM_79_HUB.Models.DB.OM79Hub.UserData
+
+@{
+    ViewData["Title"] = "Central Office Admin Page";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<br />
+<h1><b>Central Office Account Manager</b></h1>
+<br />
+
+@*
+<!-- Custom Alert -->
+<div class="alert alert-info" role="alert">
+    <strong>Note:</strong> <span style="font-weight: bold;">Please fill out the form below to add HDS users, GIS Managers, and Chiefs.</span>
+</div>
+*@
+
+<div id="add-user-alert" class="alert alert-success" style="display: none;">
+    <strong>Submitting...</strong>
+</div>
+<div id="error-user-alert" class="alert alert-dismissible alert-danger" style="display: none;">
+    <strong>Error!</strong> Please fill out all required fields.
+</div>
+
+<div class="alert alert-info" role="alert">
+    <span style="font-weight: bold;">There can be multiple HDS users and GIS managers, but only one Chief in the system.</span>
+</div>
+<br> 
+
+
+
+<!-- Description Section -->
+<div class="mb-4">
+    <h5>Central Office User Responsibilities:</h5>
+    <ul>
+        <li style="margin-bottom: 10px;">
+            <strong>HDS User:</strong> Responsible for reviewing the OM79 after the District Manager has reviewed it, reviewing it again after the GIS Manager, and then finalizing the OM79 after the Chief approves or denies it.
+        </li>
+        <li style="margin-bottom: 10px;">
+            <strong>GIS Manager:</strong> Responsible for reviewing the OM79 after the HDS User and before the Chief.
+        </li>
+        <li style="margin-bottom: 10px;">
+            <strong>Chief:</strong> Responsible for the final approval or denial of the OM79.
+        </li>
+    </ul>
+</div>
+
+
+<br />
+<h6>To Add A New Central Office User, Please Input the Details Below, Then Click 'Add User'</h6>
+
+<form id="userForm" method="post" asp-action="AddCentralOfficeUser">
+    <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="FirstName" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="LastName" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="eNumber">E Number:</label>
+        <input type="text" id="eNumber" name="ENumber" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="Email" class="form-control input-width" required />
+    </div>
+    <br />
+
+
+    <div class="form-group">
+        <label for="role">Role:</label>
+        <select id="role" name="Role" class="form-control input-width" required>
+            <option value="">Select Role</option>
+            <option value="HDS">HDS User</option>
+            <option value="GISManager">GIS Manager</option>
+            <option id="chiefOption" value="Chief">Chief</option>
+        </select>
+    </div>
+
+    <br />
+
+    <!-- Hidden inputs for role properties -->
+    <input type="hidden" id="HDS" name="HDS" value="false" />
+    <input type="hidden" id="GISManager" name="GISManager" value="false" />
+    <input type="hidden" id="Chief" name="Chief" value="false" />
+
+    <div class="form-group">
+        <button id="add-user-button" type="submit" class="btn btn-success">Add User</button>
+    </div>
+</form>
+<br />
+<h6>Use This Section To View / Remove Current Central Office Users</h6>
+<div>
+    <button id="viewHDSUsers" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#HDSUsersModal">View HDS Users</button>
+    <button id="viewGISManagers" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#GISManagersModal">View GIS Managers</button>
+    <button id="viewChiefs" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ChiefsModal">View Chief</button>
+</div>
+
+<!-- HDS Users Modal -->
+<div class="modal fade" id="HDSUsersModal" tabindex="-1" role="dialog" aria-labelledby="HDSUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="HDSUsersModalLabel">HDS Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body overflow-auto" id="HDSUsersModalBody">
+                <!-- User data will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GIS Managers Modal -->
+<div class="modal fade" id="GISManagersModal" tabindex="-1" role="dialog" aria-labelledby="GISManagersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="GISManagersModalLabel">GIS Managers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body overflow-auto" id="GISManagersModalBody">
+                <!-- User data will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chiefs Modal -->
+<div class="modal fade" id="ChiefsModal" tabindex="-1" role="dialog" aria-labelledby="ChiefsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ChiefsModalLabel">Chiefs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body overflow-auto" id="ChiefsModalBody">
+                <!-- User data will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*This is the confirm user removal pop up*@
+<div class="modal fade" id="confirmDeleteUserModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteUserModalLabel">Confirm User Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this user?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="confirmDeleteUser" type="button" class="btn btn-danger">Remove User</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Check if a Chief already exists
+            $.ajax({
+                url: '@Url.Action("CheckChiefExists", "AccountSystemAndWorkflow")',
+                type: 'GET',
+                success: function (response) {
+                    if (response.exists) {
+                        $('#chiefOption').text('Chief (Option Not Avaliable: Chief Account Already In System.)').prop('disabled', true);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error checking for existing Chief:', error);
+                }
+            });
+
+            // Show/hide district number dropdown based on selected admin type
+            $('#role').change(function () {
+                var role = $(this).val();
+                if (role === 'HDS') {
+                    $('#HDS').val('true');
+                    $('#GISManager').val('false');
+                    $('#Chief').val('false');
+                } else if (role === 'GISManager') {
+                    $('#HDS').val('false');
+                    $('#GISManager').val('true');
+                    $('#Chief').val('false');
+                } else if (role === 'Chief') {
+                    $('#HDS').val('false');
+                    $('#GISManager').val('false');
+                    $('#Chief').val('true');
+                } else {
+                    $('#HDS').val('false');
+                    $('#GISManager').val('false');
+                    $('#Chief').val('false');
+                }
+            });
+
+            $('#add-user-button').click(function (e) {
+                e.preventDefault(); // Prevent form submission
+                var firstNameInput = $('#firstName');
+                var lastNameInput = $('#lastName');
+                var eNumberInput = $('#eNumber');
+                var emailInput = $('#email');
+
+                if (firstNameInput.val().trim() === '' || lastNameInput.val().trim() === '' || eNumberInput.val().trim() === '' || emailInput.val().trim() === '') {
+                    $('#error-user-alert').show(); // Display the error alert
+                } else {
+                    // Hide error alert if inputs are valid
+                    $('#error-user-alert').hide();
+
+                    var formData = $('#userForm').serialize();
+
+                    $.ajax({
+                        url: '@Url.Action("AddCentralOfficeUser", "AccountSystemAndWorkflow")',
+                        type: 'POST',
+                        data: formData,
+                        success: function (response) {
+                            $('#add-user-alert').show();
+                            // Clear form inputs
+                            $('#userForm')[0].reset();
+                            window.location.reload(); // Reload the page
+                        },
+                        error: function (xhr, status, error) {
+                            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                                var errors = xhr.responseJSON.errors;
+                                alert("An error occurred. Please try again.");
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Load and display users in modals
+            $('#viewHDSUsers').click(function () {
+                loadUsers('hds', '#HDSUsersModalBody');
+            });
+
+            $('#viewGISManagers').click(function () {
+                loadUsers('gisManager', '#GISManagersModalBody');
+            });
+
+            $('#viewChiefs').click(function () {
+                loadUsers('chief', '#ChiefsModalBody');
+            });
+
+            function loadUsers(role, modalBodySelector) {
+                $.ajax({
+                    url: '@Url.Action("GetCentralUsers", "AccountSystemAndWorkflow")',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log('Fetched users:', data); // Debug log
+                        var content = '';
+                        var filteredUsers = data.filter(function (user) {
+                            return user[role] === true;
+                        });
+                        console.log('Filtered users for role', role, ':', filteredUsers); // Debug log
+                        if (filteredUsers && filteredUsers.length > 0) {
+                            filteredUsers.forEach(function (user) {
+                                content += "<div class='entry' data-id='" + user.userKey + "'>";
+                                content += "<div class='entry-content'>";
+                                content += "<div>Name: " + user.firstName + " " + user.lastName + "</div>";
+                                content += "<div>E Number: " + user.eNumber + "</div>";
+                                content += "<button class='btn btn-danger btn-sm delete-user-btn'>Remove User</button>";
+                                content += "</div>";
+                                content += "</div>";
+                            });
+                        } else {
+                            content = "No users found.";
+                        }
+                        $(modalBodySelector).html(content);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching users:', error); // Debug log
+                    }
+                });
+            }
+
+            $(document).on('click', '.delete-user-btn', function () {
+                var entry = $(this).closest('.entry');
+                var userId = entry.data('id');
+                $('#confirmDeleteUser').data('entry', entry);
+                $('#confirmDeleteUser').data('user-id', userId);
+                $('#confirmDeleteUserModal').modal('show');
+            });
+
+            $('#confirmDeleteUser').click(function () {
+                var entry = $(this).data('entry');
+                var userId = $(this).data('user-id');
+                $.ajax({
+                    url: '@Url.Action("RemoveCentralUser", "AccountSystemAndWorkflow")',
+                    type: 'POST',
+                    data: {
+                        id: userId
+                    },
+                    success: function (response) {
+                        window.location.reload(); // Reload the page
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error deleting user:", error);
+                    }
+                });
+                $('#confirmDeleteUserModal').modal('hide');
+            });
+        });
+    </script>
+}
+
+
+<style>
+    .input-width {
+        width: 500px; /* Adjust this value as needed */
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem; /* Adjust spacing between form groups */
+    }
+
+        .form-group label {
+            width: 150px; /* Fixed width for all labels */
+            margin-right: 1rem; /* Spacing between label and input */
+            text-align: right; /* Align the text to the right of the label */
+        }
+
+        .form-group input, .form-group select {
+            flex: none; /* Prevent input fields from taking the remaining space */
+        }
+
+    .entry {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Add this line to distribute the content evenly */
+        border-bottom: 1px solid #ccc; /* Adjust the color and size as needed */
+        padding-bottom: 10px; /* Add some space between the content and the border */
+        margin-bottom: 10px; /* Add some space between entries */
+    }
+
+    .entry-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Display ellipsis for long text */
+        margin-right: 10px; /* Add some space between the content and the button */
+    }
+
+        .entry-content div {
+            margin-right: 20px; /* Space between elements */
+        }
+
+    .delete-user-btn {
+        white-space: nowrap; /* Prevent line breaks */
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Change the width to 100% */
+    }
+
+    .modal-body {
+        max-height: 400px; /* Set the maximum height as needed */
+        overflow-y: auto; /* Enable vertical scrolling */
+    }
+
+    .custom-btn-logout {
+        border: 1px solid #ffffff;
+        background-color: red;
+        color: #ffffff;
+        transition: background-color 0.3s ease;
+    }
+
+        .custom-btn-logout:hover {
+            background-color: darkred;
+            text-decoration: none;
+        }
+</style>
