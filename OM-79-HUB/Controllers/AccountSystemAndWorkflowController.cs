@@ -284,5 +284,24 @@ namespace OM_79_HUB.Controllers
             return NotFound();
         }
 
+        [HttpGet]
+        public IActionResult GetCurrentRoles(int district)
+        {
+            var users = _hubContext.UserData.Where(u => u.District == district).ToList();
+            var rolesInUse = new List<string>();
+
+            foreach (var user in users)
+            {
+                if (user.BridgeEngineer) rolesInUse.Add("BridgeEngineer");
+                if (user.TrafficEngineer) rolesInUse.Add("TrafficEngineer");
+                if (user.MaintenanceEngineer) rolesInUse.Add("MaintenanceEngineer");
+                if (user.ConstructionEngineer) rolesInUse.Add("ConstructionEngineer");
+                if (user.RightOfWayManager) rolesInUse.Add("RightOfWayManager");
+                if (user.DistrictManager) rolesInUse.Add("DistrictManager");
+            }
+
+            return Json(rolesInUse);
+        }
+
     }
 }

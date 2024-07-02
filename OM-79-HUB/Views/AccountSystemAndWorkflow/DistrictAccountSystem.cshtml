@@ -123,12 +123,14 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script>
         $(document).ready(function () {
             // Load current users on page load
             loadUsers('all', '#UsersModalBody');
+
+            // Disable roles in use and add notes
+            disableRolesInUse();
 
             $('#add-user-button').click(function (e) {
                 e.preventDefault(); // Prevent form submission
@@ -217,6 +219,24 @@
                 if (user.rightOfWayManager) roles.push("Right Of Way Manager");
                 if (user.districtManager) roles.push("District Manager");
                 return roles;
+            }
+
+            function disableRolesInUse() {
+                $.ajax({
+                    url: '@Url.Action("GetCurrentRoles", "AccountSystemAndWorkflow")',
+                    type: 'GET',
+                    data: { district: @districtNumber },
+                    success: function (rolesInUse) {
+                        rolesInUse.forEach(function (role) {
+                            var option = $('#role option[value="' + role + '"]');
+                            option.prop('disabled', true);
+                            option.text(option.text() + " (In Use)");
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching current roles:', error); // Debug log
+                    }
+                });
             }
 
             $(document).on('click', '.delete-user-btn', function () {
