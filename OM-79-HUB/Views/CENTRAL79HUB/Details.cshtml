@@ -99,10 +99,15 @@
 
 
 
-
+@*
 <div id="signContainer" class="container">
     @await Component.InvokeAsync("LinkedSignatures", new { hubId = ViewBag.testUniqueID })
 </div>
+*@
+
+    <div id="SignContainer" class="container">
+        @await Component.InvokeAsync("LinkedSignaturesToSign", new { hubId = ViewBag.testUniqueID })
+    </div>
 </div>
 
 

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -48,7 +51,7 @@ namespace OM_79_HUB.Controllers
 
             // Set IsSubmitted to true
             om79.IsSubmitted = true;
-
+            om79.WorkflowStep = "SubmittedToDistrict";
             // Retrieve the OM79Workflow entry using HubID
             var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == id);
             if (om79Workflow != null)
@@ -60,10 +63,81 @@ namespace OM_79_HUB.Controllers
             // Save changes to the database
             await _context.SaveChangesAsync();
 
+
+            sendInitialWorkflowEmailToDistrictUsers(id);
+
+
             // Redirect to an appropriate action, such as the index page
             return RedirectToAction("Details", new { id = om79.OMId });
         }
 
+        public void sendInitialWorkflowEmailToDistrictUsers(int id)
+        {
+            try
+            {
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+                var districtToSendTo = omEntry.District;
+
+                var allDistrictUsers = _context.UserData
+                    .Where(e => e.District == districtToSendTo && !e.DistrictManager)
+                    .ToList();
+
+                // Group roles by user
+                var userRolesDictionary = allDistrictUsers
+                    .GroupBy(u => u.ENumber)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => new
+                        {
+                            User = g.First(),
+                            Roles = g.SelectMany(GetUserRoles).Distinct().ToList()
+                        });
+
+                foreach (var userRoleEntry in userRolesDictionary)
+                {
+                    var user = userRoleEntry.Value.User;
+                    var roles = string.Join(", ", userRoleEntry.Value.Roles);
+
+                    var message = new MailMessage
+                    {
+                        From = new MailAddress("DOTPJ103Srv@wv.gov")
+                    };
+                    message.To.Add(user.Email);
+                    message.Subject = $"OM79 Submitted For District [{user.District}] Review";
+                    message.Body = $"Hello {user.FirstName},<br><br>" +
+                                   $"An OM79 entry has been submitted from your district. You are currently listed for the following role(s) in the system and are responsible for reviewing and signing the OM79 in district {user.District}:<br><br>" +
+                                   $"{string.Join("<br>", userRoleEntry.Value.Roles)}.<br><br>" +
+                                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+                                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+                                   $"Note: If you hold multiple roles within your district, you will need to sign for each role separately using the link above.<br><br>" +
+                                   $"Thank you,<br>" +
+                                   $"OM79 Automated System";
+                    message.IsBodyHtml = true;
+
+                    var client = new SmtpClient
+                    {
+                        Host = "10.204.145.32",
+                        Port = 25,
+                        EnableSsl = false,
+                        Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                    };
+                    client.Send(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+            }
+        }
+
+        private IEnumerable<string> GetUserRoles(UserData user)
+        {
+            if (user.BridgeEngineer) yield return "Bridge Engineer";
+            if (user.TrafficEngineer) yield return "Traffic Engineer";
+            if (user.MaintenanceEngineer) yield return "Maintenance Engineer";
+            if (user.ConstructionEngineer) yield return "Construction Engineer";
+            if (user.RightOfWayManager) yield return "Right Of Way Manager";
+        }
 
         [HttpPost]
         public async Task<IActionResult> ArchiveOM79(int id)
@@ -381,7 +455,11 @@ namespace OM_79_HUB.Controllers
         {
             var app = Request.Form["apradio"];
             var den = Request.Form["denradio"];
-            if(app.FirstOrDefault() == "approve")
+            var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+            bool isDistrictManagerSigning = false;
+
+
+            if (app.FirstOrDefault() == "approve")
             {
                 var signature = new SignatureData();
                 signature.HubKey = int.Parse(Request.Form["HubKey"]);
@@ -392,10 +470,100 @@ namespace OM_79_HUB.Controllers
                 signature.SigType = Request.Form["sigtype"];
                 signature.ENumber = HttpContext.User.Identity.Name;
                 signature.DateSubmitted = DateTime.Now;
+                signature.IsCurrentSig = true;
 
-                
+
                 _context.Add(signature);
                 await _context.SaveChangesAsync();
+
+                if (signature.SigType == "District Manager")
+                {
+                    isDistrictManagerSigning = true;
+                }
+
+                // Update the workflow step if approved
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
+                if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
+                {
+                    var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
+
+                    // List of required roles
+                    var requiredRoles = new List<string>
+                    {
+                        "Bridge Engineer",
+                        "Traffic Engineer",
+                        "Maintenance Engineer",
+                        "Construction Engineer",
+                        "Right Of Way Manager"
+                    };
+
+                    // Check if all required roles have signatures
+                    bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+                    
+                    if (allRolesSigned)
+                    {
+                        bool allRolesApproved = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role && sig.IsApprove));
+                        if (allRolesApproved)
+                        {
+                            omEntry.WorkflowStep = "SubmittedToDistrictManager";
+
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============All Signatures should be done here=========================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            Console.WriteLine("============================================");
+                            await _context.SaveChangesAsync();
+
+
+                            /////////// Send District Manager Email Here
+                            ///
+
+                            sendInitialWorkflowEmailToDistrictManager(hubkey);
+                        }
+                        else
+                        {
+                            // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
+                            // Maybe send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
+                            omEntry.WorkflowStep = "Restart";
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
+
+                // Check if the District Manager has just signed
+                if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+                {
+                    // This means the district manager has just signed and approved the OM79 entry to be sent to the central office
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+
+                    omEntry.WorkflowStep = "SubmittedToCentralHDS";
+                    await _context.SaveChangesAsync();
+
+                    // You can add additional logic here if needed
+                }
+
             }
             if (den.FirstOrDefault() == "deny")
             {
@@ -410,14 +578,106 @@ namespace OM_79_HUB.Controllers
                 signature.DateSubmitted = DateTime.Now;
 
 
-
                 _context.Add(signature);
                 await _context.SaveChangesAsync();
+
+
+
+
+
+                // Update the workflow step if denied
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
+                if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
+                {
+                    var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
+
+                    // List of required roles
+                    var requiredRoles = new List<string>
+                    {
+                        "Bridge Engineer",
+                        "Traffic Engineer",
+                        "Maintenance Engineer",
+                        "Construction Engineer",
+                        "Right Of Way Manager"
+                    };
+
+                    // Check if all required roles have signatures
+                    bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+
+                    if (allRolesSigned)
+                    {
+                        // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
+                        // Maybe send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
+                        omEntry.WorkflowStep = "Restart";
+                        await _context.SaveChangesAsync();
+                    }
+                }
             }
-            var hubkey = int.Parse(Request.Form["HubKey"]);
 
             return RedirectToAction(nameof(Details), new { id = hubkey });
         }
+
+
+        public void sendInitialWorkflowEmailToDistrictManager(int id)
+        {
+            try
+            {
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+                if (omEntry == null)
+                {
+                    Console.WriteLine("OM Entry not found.");
+                    return;
+                }
+
+                var districtToSendTo = omEntry.District;
+
+                // Find the district manager
+                var districtManager = _context.UserData.FirstOrDefault(e => e.District == districtToSendTo && e.DistrictManager);
+                if (districtManager == null)
+                {
+                    Console.WriteLine("District Manager not found.");
+                    return;
+                }
+
+                // Compose the email
+                var message = new MailMessage
+                {
+                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    Subject = $"OM79 Entry Ready for District [{districtManager.District}] Manager Review",
+                    Body = $"Hello {districtManager.FirstName},<br><br>" +
+                           $"An OM79 entry from your district has been reviewed and is now awaiting your approval. As the District Manager, your review is crucial before the entry can be forwarded to the central office.<br><br>" +
+                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+                           $"Thank you for your attention to this matter.<br><br>" +
+                           $"Best regards,<br>" +
+                           $"OM79 Automated System",
+                    IsBodyHtml = true
+                };
+
+                message.To.Add(districtManager.Email);
+
+                // Send the email
+                var client = new SmtpClient
+                {
+                    Host = "10.204.145.32",
+                    Port = 25,
+                    EnableSsl = false,
+                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                };
+
+                client.Send(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+            }
+        }
+
+
+
+
+
+
         public void Dropdowns ()
         {
             List<SelectListItem> CountyDropdown = new()
