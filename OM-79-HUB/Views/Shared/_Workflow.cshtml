@@ -1,238 +1,340 @@
 ﻿@using PJ103V3.Models.DB
 @model OM_79_HUB.Components.WorkflowViewModel
 
-<div style="padding-top: 20px; text-align: center;">
-    <h3 style="font-weight: bold; text-decoration: underline;">OM79 Workflow</h3>
-    @if (Model != null && Model.Central79Hub != null)
+
+@{
+    int completedItems = Model.OMTableCount ?? 0;
+    int requiredItems = Model.OMRequiredCount ?? 1; // To avoid division by zero
+    double percentageCompleted = (double)completedItems / requiredItems * 100;
+    @if (Model.OM79Workflow?.NextStep == "AddSegment")
     {
-        <div class="internal-right-column-content">
-            <p>Currently working on OM79 with ID: @Model.Central79Hub.OMId</p>
-            @{
-                int completedItems = Model.OMTableCount ?? 0;
-                int requiredItems = Model.OMRequiredCount ?? 1; // To avoid division by zero
-                double percentageCompleted = (double)completedItems / requiredItems * 100;
-                @if (Model.OM79Workflow?.NextStep == "AddSegment")
-                {
-                    percentageCompleted *= 0.9; // Reduce by 10% if there are segments needed
-                }
-            }
-            <div class="progress">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: @percentageCompleted%;" aria-valuenow="@percentageCompleted" aria-valuemin="0" aria-valuemax="100">
-                    @percentageCompleted.ToString("0.00")%
+        percentageCompleted *= 0.9; // Reduce by 10% if there are segments needed
+    }
+
+    string[] workflowSteps = {
+        "SubmittedToDistrict",
+        "SubmittedToDistrictManager",
+        "SubmittedToCentralHDS",
+        "SubmittedToCentralGIS",
+        "SubmittedToCentralSecondHDS",
+        "SubmittedToCentralChief",
+        "SubmittedToCentralThirdHDS",
+        "SubmittedToCentralLRS",
+        "Finalized"
+    };
+
+    int currentStepIndex = -1;
+    if (!string.IsNullOrEmpty(Model.Central79Hub?.WorkflowStep))
+    {
+        currentStepIndex = Array.IndexOf(workflowSteps, Model.Central79Hub.WorkflowStep);
+    }
+
+}
+
+<div style="padding-top: 20px; text-align: center;">
+    @*Header for the entrie panel*@
+    <h3 style="font-weight: bold; text-decoration: underline;">OM79 Workflow</h3>
+    <div class="internal-right-column-content">
+
+        @*Check for avaliable entry*@
+        @if (Model != null && Model.Central79Hub != null)
+        {
+            <p>Currently Displaying Information Regarding OM79 with ID: @Model.Central79Hub.OMId</p>
+
+            @*Show when the entry has not been submitted for review*@
+            @if (Model.Central79Hub.IsSubmitted == false)
+            {
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: @percentageCompleted%;" aria-valuenow="@percentageCompleted" aria-valuemin="0" aria-valuemax="100">
+                        @percentageCompleted.ToString("0.00")%
+                    </div>
                 </div>
-            </div>
-            <p>@completedItems / @requiredItems Items Completed.</p>
+                <p>@completedItems / @requiredItems Items Completed.</p>
 
-            <h4><u>Completed Item Records</u></h4>
-            <div class="completed">
-                @if (Model.OMTableList != null && Model.OMTableList.Any())
-                {
-                    <ul>
-                        @foreach (var item in Model.OMTableList)
-                        {
-                            <li style="text-align: left;">Route: @item.RouteIDB, @item.RoadChangeType</li>
-
-                            @if (item.RoadChangeType != "Addition" && item.RoadChangeType != "Redesignation")
+                <h4><u>Completed Item Records</u></h4>
+                <div class="completed">
+                    @if (Model.OMTableList != null && Model.OMTableList.Any())
+                    {
+                        <ul>
+                            @foreach (var item in Model.OMTableList)
                             {
-                                <ul>
-                                    <li style="text-align: left;">
-                                        <span style="color: green;">&#10004; <!-- Checkmark --> </span>
-                                        No PJ103-Segment Needed <br />
-                                    </li>
-                                </ul>
-                            }
-                            else
-                            {
-                                int currentItem = item.Id;
-                                var segments = Model.PJ103SegmentsByOMTable != null && Model.PJ103SegmentsByOMTable.ContainsKey(currentItem)
-                                ? Model.PJ103SegmentsByOMTable[currentItem]
-                                : new List<Submission>();
+                                <li style="text-align: left;">Route: @item.RouteIDB, @item.RoadChangeType</li>
 
-                                var workflow = Model.PJ103WorkflowsByOMTable != null && Model.PJ103WorkflowsByOMTable.ContainsKey(currentItem)
-                                ? Model.PJ103WorkflowsByOMTable[currentItem]
-                                : null;
-
-                                if (workflow != null)
+                                @if (item.RoadChangeType != "Addition" && item.RoadChangeType != "Redesignation")
                                 {
-                                    int completedSegments = segments.Count();
-                                    int requiredSegments = workflow.NumberOfSegments ?? 0;
-
                                     <ul>
                                         <li style="text-align: left;">
-                                            @if (completedSegments >= requiredSegments)
-                                            {
-                                                <span style="color: green;">&#10004; <!-- Checkmark --> </span>
-                                            }
-                                            else
-                                            {
-                                                <span style="color: red;">&#10008; <!-- X mark --> </span>
-                                            }
-                                            @completedSegments / @requiredSegments PJ103 Segments Completed <br />
+                                            <span style="color: green;">&#10004; <!-- Checkmark --> </span>
+                                            No PJ103-Segment Needed <br />
                                         </li>
                                     </ul>
                                 }
                                 else
                                 {
-                                    <ul>
-                                        <li style="text-align: left;">Segments Required<br /></li>
-                                    </ul>
+                                    int currentItem = item.Id;
+                                    var segments = Model.PJ103SegmentsByOMTable != null && Model.PJ103SegmentsByOMTable.ContainsKey(currentItem)
+                                    ? Model.PJ103SegmentsByOMTable[currentItem]
+                                    : new List<Submission>();
+
+                                    var workflow = Model.PJ103WorkflowsByOMTable != null && Model.PJ103WorkflowsByOMTable.ContainsKey(currentItem)
+                                    ? Model.PJ103WorkflowsByOMTable[currentItem]
+                                    : null;
+
+                                    if (workflow != null)
+                                    {
+                                        int completedSegments = segments.Count();
+                                        int requiredSegments = workflow.NumberOfSegments ?? 0;
+
+                                        <ul>
+                                            <li style="text-align: left;">
+                                                @if (completedSegments >= requiredSegments)
+                                                {
+                                                    <span style="color: green;">&#10004; <!-- Checkmark --> </span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color: red;">&#10008; <!-- X mark --> </span>
+                                                }
+                                                @completedSegments / @requiredSegments PJ103 Segments Completed <br />
+                                            </li>
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <ul>
+                                            <li style="text-align: left;">Segments Required<br /></li>
+                                        </ul>
+                                    }
                                 }
                             }
-     
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p>No items completed.</p>
-                }
-            </div>
-
-
-            <br /> 
-            <br />
-
-            <div class="nextStep">
-                <h4><u>Next Step</u></h4>
-                <div class="nextStep">
-                    @if (Model.OM79Workflow?.NextStep == "Submitted")
-                    {
-                        <p>This form is fully completed and no further actions are required.</p>
+                        </ul>
                     }
                     else
                     {
-                        @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage")
-                        {
-                            @if (Model.OM79Workflow?.NextStep == "AddFirstItem")
-                            {
-                                <p>Please proceed by adding the first item to your OM79 workflow.</p>
-                                <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add First Item</a>
-                            }
-                            else if (Model.OM79Workflow?.NextStep == "AddItem")
-                            {
-                                <p>Proceed by adding the next item to your OM79.</p>
-                                <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add Next Item</a>
-                            }
-                            else if (Model.OM79Workflow?.NextStep == "AddSegment")
-                            {
-                                var newestItem = Model.OMTableList.OrderByDescending(item => item.Id).FirstOrDefault();
-                                <p>Proceed by adding a PJ103-Segment to your recently submitted item.</p>
-                                <a href="@Url.Action("Create", "PJ103", new { uniqueID = newestItem.Id })" class="btn btn-primary">Add PJ103-Segment</a>
-                            }
-                            else if (Model.OM79Workflow?.NextStep == "FinishSubmit")
-                            {
-                                <p>All items and segments are complete. Click 'Finish & Submit For Review' to proceed.</p>
-                                <form asp-action="FinishSubmit" asp-controller="CENTRAL79HUB" method="post">
-                                    <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
-                                    <button type="submit" class="btn btn-primary">Finish & Submit For Review</button>
-                                </form>
-                            }
-                        }
-                        else
-                        {
-                            <p>You are currently working on the next step for this OM79, continue by filling out all of the necessary information and clicking 'Save'</p>
-                        }
+                        <p>No items completed.</p>
                     }
                 </div>
 
-            </div>
-        </div>
-           @* <div class="nextStep">
-                <h4><u>Next Step</u></h4>
+                <br />
+                <br />
 
-                <div class="nextStep">
-                    @if (Model.OM79Workflow?.NextStep == "AddFirstItem")
-                    {
-                        <p>Please proceed by adding the first item to your OM79 workflow.</p>
-                        <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId})" class="btn btn-primary">Add First Item</a>
-                    }
-                    @if (Model.OM79Workflow?.NextStep == "AddItem")
-                    {
-                        <p>Proceed by adding the next item to your OM79.</p>
-                        <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId})" class="btn btn-primary">Add Next Item</a>
-                    }
-                    @if (Model.OM79Workflow?.NextStep == "AddSegment")
-                    {
-                        var newestItem = Model.OMTableList.OrderByDescending(item => item.Id).FirstOrDefault();
-                        <p>Proceed by adding a PJ103-Segment to your recently submitted item.</p>
-                        <a href="@Url.Action("Create", "PJ103", new { uniqueID = newestItem.Id })" class="btn btn-primary">Add PJ103-Segment</a>
-                    }
-                    @if (Model.OM79Workflow?.NextStep == "FinishSubmit")
-                    {
-                        <p>All items and segments are complete. Click 'Finish & Submit For Review' to proceed.</p>
-                        <button type="button" class="btn btn-primary">Finish & Submit For Review</button>
-                    }
+                @if (Model.Central79Hub.WorkflowStep == "NotStarted")
+                {
+                    <div class="nextStep">
+                        <h4><u>Next Step</u></h4>
+                        <div class="nextStep">
+                            @if (Model.OM79Workflow?.NextStep == "Submitted")
+                            {
+                                <p>This form is fully completed and no further actions are required.</p>
+                            }
+                            else
+                            {
+                                @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage")
+                                {
+                                    @if (Model.OM79Workflow?.NextStep == "AddFirstItem")
+                                    {
+                                        <p>Please proceed by adding the first item to your OM79 workflow.</p>
+                                        <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add First Item</a>
+                                    }
+                                    else if (Model.OM79Workflow?.NextStep == "AddItem")
+                                    {
+                                        <p>Proceed by adding the next item to your OM79.</p>
+                                        <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.Central79Hub.OMId })" class="btn btn-primary">Add Next Item</a>
+                                    }
+                                    else if (Model.OM79Workflow?.NextStep == "AddSegment")
+                                    {
+                                        var newestItem = Model.OMTableList.OrderByDescending(item => item.Id).FirstOrDefault();
+                                        <p>Proceed by adding a PJ103-Segment to your recently submitted item.</p>
+                                        <a href="@Url.Action("Create", "PJ103", new { uniqueID = newestItem.Id })" class="btn btn-primary">Add PJ103-Segment</a>
+                                    }
+                                    else if (Model.OM79Workflow?.NextStep == "FinishSubmit")
+                                    {
+                                        <p>All items and segments are complete. Click 'Finish & Submit For Review' to proceed.</p>
+                                        <form asp-action="FinishSubmit" asp-controller="CENTRAL79HUB" method="post">
+                                            <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
+                                            <button type="submit" class="btn btn-primary">Finish & Submit For Review</button>
+                                        </form>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>You are currently working on the next step for this OM79, continue by filling out all of the necessary information and clicking 'Save'</p>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+
+
+            @*Show when the entry HAS been submitted for review*@
+            @if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrict" || Model.Central79Hub.WorkflowStep == "SubmittedToDistrictManager" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralHDS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralGIS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralSecondHDS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralChief" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralThirdHDS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralLRS" || Model.Central79Hub.WorkflowStep == "Finalized")
+            {
+                <h4><u>Signature Workflow</u></h4>
+                <p>This section displays the current status of the OM79 form in the workflow process. The blue box indicates the current step, green boxes indicate completed steps, and gray boxes indicate upcoming steps.</p>
+                @*
+                if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrict")
+                {
+                <h4><u>Approval Step</u></h4>
+                <p>The OM79 form has been submitted and is currently under review by the district. District-level users, including the Bridge Engineer, Traffic Engineer, Maintenance Engineer, Construction Engineer, and Right of Way Manager, are responsible for reviewing and signing the form. Please wait for the district-level users to complete their reviews and approvals.</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrictManager")
+                {
+                <h4><u>Approval Step</u></h4>
+                <p>All district-level users have reviewed and approved the OM79 form. The form has now been submitted to the District Manager for final approval. Please wait for the District Manager to complete their review and approval.</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralHDS")
+                {
+                <h4><u>Approval Step</u></h4>
+                <p>The District Manager has reviewed and approved the OM79 form. The form has now been submitted to the Central HDS for final approval. Please wait for the Central HDS to complete their review and approval.</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralGIS")
+                {
+                <h4><u>Approval Step</u></h4>
+                <p>The Central HDS has reviewed and approved the OM79 form. The form has now been submitted to the Central GIS for final approval. Please wait for the Central GIS to complete their review and approval.</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralSecondHDS")
+                {
+                <h4><u>Approval Step</u></h4>
+                <p>The Central GIS has reviewed and approved the OM79 form. The form has now been submitted to the Central Second HDS for final approval. Please wait for the Central Second HDS to complete their review and approval.</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralChief")
+                {
+                <h4><u>Approval Step</u></h4>
+                <p>The Central Second HDS has reviewed and approved the OM79 form. The form has now been submitted to the Central Chief for final approval. Please wait for the Central Chief to complete their review and approval.</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralThirdHDS")
+                {
+                <h4><u>Approval Step</u></h4>
+                <p>The Central Chief has reviewed and approved the OM79 form. The form has now been submitted to the Central Third HDS for final approval. Please wait for the Central Third HDS to complete their review and approval.</p>
+                }
+                *@
+                <div class="workflow-diagram vertical">
+                    <div class="workflow-step @(currentStepIndex == 0 ? "current" : (currentStepIndex > 0 ? "completed" : "upcoming"))">
+                        <span class="step-title">District-Level Review</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 0 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 1 ? "current" : (currentStepIndex > 1 ? "completed" : "upcoming"))">
+                        <span class="step-title">District Manager Review</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 1 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 2 ? "current" : (currentStepIndex > 2 ? "completed" : "upcoming"))">
+                        <span class="step-title">Central HDS Review</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 2 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 3 ? "current" : (currentStepIndex > 3 ? "completed" : "upcoming"))">
+                        <span class="step-title">Central GIS Review</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 3 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 4 ? "current" : (currentStepIndex > 4 ? "completed" : "upcoming"))">
+                        <span class="step-title">Central Second HDS Review</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 4 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 5 ? "current" : (currentStepIndex > 5 ? "completed" : "upcoming"))">
+                        <span class="step-title">Central Chief Review</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 5 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 6 ? "current" : (currentStepIndex > 6 ? "completed" : "upcoming"))">
+                        <span class="step-title">HDS Finalization Review</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 6 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 7 ? "current" : (currentStepIndex > 7 ? "completed" : "upcoming"))">
+                        <span class="step-title">LRS Uploading Finalized Information</span>
+                    </div>
+                    <div class="workflow-connector @(currentStepIndex > 7 ? "completed" : "upcoming")"></div>
+                    <div class="workflow-step @(currentStepIndex == 8 ? "completed" : "upcoming")">
+                        <span class="step-title">Finalized</span>
+                    </div>
                 </div>
+            }
+            else if (Model.Central79Hub.WorkflowStep == "RestartFromDistrict")
+            {
+                <p>The form has been denied at district level</p>
+            }
+            else if (Model.Central79Hub.WorkflowStep == "RestartFromDistrictManager")
+            {
+                <p>The form has been denied at district manager level</p>
+            }
+            else if (Model.Central79Hub.WorkflowStep == "RestartFromCentralHDS")
+            {
+                <p>The form has been denied at central HDS level</p>
+            }
+            else if (Model.Central79Hub.WorkflowStep == "RestartFromCentralGIS")
+            {
+                <p>The form has been denied at central GIS level</p>
+            }
+        }
+        @*There is no entry loaded here*@
+        else
+        {
+            <div class="internal-right-column-content">
+                <p><u>To start a new OM79 follow the instructions below:</u></p>
+                <ol style="text-align: left; padding: 0 15%;">
+                    <li>Click on the "Home" button in the navigation bar above.</li>
+                    <li>Click on the "Create a new OM79 Form" link on the homepage.</li>
+                    <li>Fill out all of the required information for the form and click "Create"</li>
+                    <li>Input the number of items that will be on this OM79 and click "Submit"</li>
+                </ol>
+
+                <br />
+
+                <p><u>To continue working on an active OM79 follow the instructions below:</u></p>
+                <ol style="text-align: left; padding: 0 15%;">
+                    <li>Click on the "Indexes" dropdown in the navigation bar above.</li>
+                    <li>Select "OM79 Forms List" from the dropdown menu.</li>
+                    <li>Navigate to the OM79 entry you would like to work on.</li>
+                    <li>Click on the "Details" button for the selected OM79.</li>
+                </ol>
             </div>
-        </div>*@
+        }
 
-      
-        <div class="saveForLater">
-            @if (TempData["PageStatus"]?.ToString() != "GoingToCreatePage" && Model.OM79Workflow?.NextStep != "Submitted")
-            {
-                <br />
-                <br />
-                <br />
-                <h4><u>Save Progress</u></h4>
-                <p>If you would like to save your progress and resume at a later time. Click 'Save For Later' to proceed</p>
-                <a href="@Url.Action("SaveForLater", "Home")" class="btn btn-primary">Save For Later</a>
+    </div>
+
+    <style>
+        .workflow-diagram.vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .workflow-step {
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: 2px solid #ccc;
+            text-align: center;
+            position: relative;
+            margin: 10px 0;
+        }
+
+            .workflow-step.completed {
+                border-color: green;
+                background-color: #e0ffe0;
             }
-        </div>
 
-
-
-        
-
-        @*
-        <div class="saveForLater">
-            @if (Model.OM79Workflow?.NextStep != "Finish")
-            {
-                <h4><u>Save Progress</u></h4>
-                <p>If you would like to save your progress and resume at a later time. Click 'Save For Later' to proceed</p>
-                <a href="@Url.Action("SaveForLater", "Home")" class="btn btn-primary">Save For Later</a>
+            .workflow-step.current {
+                border-color: blue;
+                background-color: #e0e0ff;
             }
-        </div>
-        *@
-        @*
-        <br />
-        <br />
-        <br />
-        <div class="OMComments">
-            <h4><u>OM79 Comments</u></h4>
-            <p>@Model.Central79Hub.Otherbox</p>
-        </div>
-        *@
 
+            .workflow-step.upcoming {
+                border-color: gray;
+                background-color: #f0f0f0;
+            }
 
+        .workflow-connector {
+            width: 4px;
+            height: 50px;
+            background-color: #ccc;
+        }
 
+            .workflow-connector.completed {
+                background-color: green;
+            }
 
-    }
-    else
-    {
-        <div class="internal-right-column-content">
-
-            <p><u>To start a new OM79 follow the instructions below:</u></p>
-            <ol style="text-align: left; padding: 0 15%;">
-                <li>Click on the "Home" button in the naviagation bar above.</li>
-                <li>Click on the "Create a new OM79 Form" link on the homepage.</li>
-                <li>Fill out all of the required information for the form and click "Create"</li>
-                <li>Input the amount of items that will be on this OM79 and click "Submit"</li>
-            </ol>
-
-            <br />
-
-            <p><u>To continue working on an active OM79 follow the instructions below:</u></p>
-            <ol style="text-align: left; padding: 0 15%;">
-                <li>Click on the "Indexes" dropdown in the navigation bar above.</li>
-                <li>Select "OM79 Forms List" from the dropdown menu.</li>
-                <li>Navigate to the OM79 entry you would like to work on.</li>
-                <li>Click on the "Details" button for the selected OM79.</li>
-            </ol>
-
-         
-
-        </div>
-    }
-</div>
-
-
+            .workflow-connector.upcoming {
+                background-color: gray;
+            }
+    </style>

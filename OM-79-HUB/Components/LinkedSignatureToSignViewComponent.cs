@@ -25,18 +25,11 @@ namespace OM_79_HUB.Components
 
             bool isDistrictSigner = specificDistrictUsers.Any(u => u.ENumber == userENumber);
 
+            var centralOfficeUsers = _context.UserData.Where(e => e.GISManager || e.HDS || e.Chief);
+            bool isCentralSigner = centralOfficeUsers.Any(u => u.ENumber == userENumber);
 
-            /* Bring back when SubmittedProcess is complete
-               if (omEntry.WorkflowStep != "Submitted")
-               {
-                   //Not ready to be signed, the user has not finished the OM79
-                   return View("~/Views/CENTRAL79HUB/_DisplayNone.cshtml");
-               }
-               */
-
-
-
-            if (isDistrictSigner)
+            //District level signing view
+            if (isDistrictSigner && (omEntry.WorkflowStep == "SubmittedToDistrict" || omEntry.WorkflowStep == "SubmittedToDistrictManager"))
             {
                 var userRolesEntries = _context.UserData.Where(u => u.ENumber == userENumber).ToList();
                 var signeesRoles = new List<string>();
@@ -61,6 +54,40 @@ namespace OM_79_HUB.Components
                 };
 
                 return View("~/Views/CENTRAL79HUB/_linkedSignaturesToSign.cshtml", viewModel);
+            }
+
+
+            /// central office level signing view
+            else if (isCentralSigner && (omEntry.WorkflowStep == "SubmittedToCentralHDS" || omEntry.WorkflowStep == "SubmittedToCentralGIS" || omEntry.WorkflowStep == "SubmittedToCentralChief" || omEntry.WorkflowStep == "SubmittedToCentralSecondHDS" || omEntry.WorkflowStep == "SubmittedToCentralThirdHDS" || omEntry.WorkflowStep == "SubmittedToCentralSecondHDS" || omEntry.WorkflowStep == "SubmittedToCentralLRS"))
+            {
+                var userRolesEntries = _context.UserData.Where(u => u.ENumber == userENumber).ToList();
+                var signeesRoles = new List<string>();
+
+                foreach (var userRoles in userRolesEntries)
+                {
+                    if (userRoles.HDS && !signeesRoles.Contains("HDS")) signeesRoles.Add("HDS");
+                    if (userRoles.GISManager && !signeesRoles.Contains("GIS Manager")) signeesRoles.Add("GIS Manager");
+                    if (userRoles.Chief && !signeesRoles.Contains("Chief")) signeesRoles.Add("Chief");
+                    if (userRoles.Chief && !signeesRoles.Contains("LRS")) signeesRoles.Add("LRS");
+                }
+
+                var currentSignatures = _context.SignatureData.Where(entry => entry.HubKey == hubID).ToList();
+
+                var viewModel = new SignaturesToSignViewModel
+                {
+                    SigneesRoles = signeesRoles,
+                    CurrentSignatures = currentSignatures,
+                    OmEntry = omEntry // Include omEntry in the view model
+                };
+
+                return View("~/Views/CENTRAL79HUB/_linkedSignaturesToSignCentral.cshtml", viewModel);
+            }
+
+            // Not submitted to be reviewed 
+            else if (omEntry.IsSubmitted == false)
+            {
+                // The user has not submitted the OM79 yet so no signatures needs to be displayed to them
+                return View("~/Views/CENTRAL79HUB/_DisplayNone.cshtml");
             }
             else
             {

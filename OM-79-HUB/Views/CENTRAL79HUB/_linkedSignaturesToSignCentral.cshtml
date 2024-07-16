@@ -3,36 +3,427 @@
 @model OM_79_HUB.Components.LinkedSignatureToSignViewComponent.SignaturesToSignViewModel
 
 @{
-    // Get signatures for each role
-    string bridgesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Bridge Engineer")?.Signatures ?? "Bridge Engineer Not Signed";
-    string trafficsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Traffic Engineer")?.Signatures ?? "Traffic Engineer Not Signed";
-    string maintenancesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Maintenance Engineer")?.Signatures ?? "Maintenance Engineer Not Signed";
-    string constructionsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Construction Engineer")?.Signatures ?? "Construction Engineer Not Signed";
-    string rightofwaysig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Right Of Way Manager")?.Signatures ?? "Right Of Way Manager Not Signed";
-    string districtsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "District Manager")?.Signatures ?? "District Manager Not Signed";
+    string hdssig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "HDS")?.Signatures ?? "HDS Not Signed";
+    string gissig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "GIS Manager")?.Signatures ?? "GIS Manager Not Signed";
+    string chiefsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Chief")?.Signatures ?? "Chief Not Signed";
+    string lrssig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "LRS")?.Signatures ?? "LRS Not Signed";
 }
 
-
-@if (Model.OmEntry.WorkflowStep == "SubmittedToDistrict")
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralHDS")
 {
     <hr />
-    <p>Signature System: All district-level users (Bridge Engineer, Traffic Engineer, Maintenance Engineer, Construction Engineer, and Right of Way Manager) must sign the OM79. If everyone approves, it will be sent to the District Manager for review. If any user denies the OM79, all comments will be sent back to the initial user, and the document must be re-signed by all district users.</p>
+    <p>Central HDS Signature:</p>
+    <hr />
+    @if (Model.SigneesRoles.Contains("HDS"))
+    {
+        <hr />
+        <h4>HDS Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="hdssiglabel">HDS</span>
+            <input type="text" class="form-control" readonly value="@hdssig" />
+            <button class="btn btn-primary signCentral" value="HDS">Sign</button>
+        </div>
+        <button class="collapsible">HDS Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "HDS"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralGIS")
+{
+    <hr />
+    <p>Central GIS Manager Signature:</p>
+    <hr />
+    @if (Model.SigneesRoles.Contains("GIS Manager"))
+    {
+        <hr />
+        <h4>GIS Manager Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="gissiglabel">GIS Manager</span>
+            <input type="text" class="form-control" readonly value="@gissig" />
+            <button class="btn btn-primary signCentral" value="GIS Manager">Sign</button>
+        </div>
+        <button class="collapsible">GIS Manager Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "GIS Manager"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralSecondHDS")
+{
+    <hr />
+    <p>Central Second HDS Signature:</p>
+    <hr />
+    @if (Model.SigneesRoles.Contains("HDS"))
+    {
+        <hr />
+        <h4>Second HDS Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="hdssiglabel">HDS</span>
+            <input type="text" class="form-control" readonly value="@hdssig" />
+            <button class="btn btn-primary signCentral" value="HDS">Sign</button>
+        </div>
+        <button class="collapsible">Second HDS Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "HDS"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralChief")
+{
+    <hr />
+    <p>Central Chief Signature:</p>
+    <hr />
+    @if (Model.SigneesRoles.Contains("Chief"))
+    {
+        <hr />
+        <h4>Chief Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="chiefsiglabel">Chief</span>
+            <input type="text" class="form-control" readonly value="@chiefsig" />
+            <button class="btn btn-primary signCentral" value="Chief">Sign</button>
+        </div>
+        <button class="collapsible">Chief Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Chief"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralThirdHDS")
+{
+    <hr />
+    <p>Central Third HDS Signature:</p>
+    <hr />
+    @if (Model.SigneesRoles.Contains("HDS"))
+    {
+        <hr />
+        <h4>Third HDS Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="hdssiglabel">HDS</span>
+            <input type="text" class="form-control" readonly value="@hdssig" />
+            <button class="btn btn-primary signCentral" value="HDS">Sign</button>
+        </div>
+        <button class="collapsible">Third HDS Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "HDS"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralLRS")
+{
+    <hr />
+    <p>Central LRS Signature:</p>
+    <hr />
+    @if (Model.SigneesRoles.Contains("LRS"))
+    {
+        <hr />
+        <h4>LRS Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="lrssiglabel">LRS</span>
+            <input type="text" class="form-control" readonly value="@lrssig" />
+            <button class="btn btn-primary signCentralLRS" value="LRS">Sign</button>
+        </div>
+        <button class="collapsible">LRS Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "LRS"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+
+
+<div class="modal" id="signModal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Requisition</h3>
+                <div class="justify-content-end">
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body" id="containedform">
+                <div class="row">
+                    <div class="col-md-4">
+                        <form asp-action="SignOMHubCentral" asp-controller="CENTRAL79HUB">
+                            <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
+                            <input type="hidden" value="" name="sigtype" id="sigtype" />
+                            <label for="approve">Approve</label>
+                            <input type="radio" id="approve" name="apradio" value="approve" />
+                            <label for="deny">Deny</label>&nbsp;
+                            <input type="radio" id="deny" name="denradio" value="deny" />
+                            <br />
+                            <label class="form-label" for="signaturemodal">Signature</label>
+                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <br />
+                            <label class="form-label" for="commentsmodal">Comments</label>
+                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <br />
+                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="signModalLRS">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Requisition</h3>
+                <div class="justify-content-end">
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body" id="containedformLRS">
+                <div class="row">
+                    <div class="col-md-4">
+                        <form asp-action="SignOMHubCentral" asp-controller="CENTRAL79HUB">
+                            <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
+                            <input type="hidden" value="" name="sigtype" id="sigtypeLRS" />
+
+                            <label for="uploadComplete">Upload Complete</label>
+                            <input type="radio" id="uploadComplete" name="apradio" value="approve" checked />
+                            <br />
+                            <label class="form-label" for="signaturemodal">Signature</label>
+                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <br />
+                            <label class="form-label" for="commentsmodal">Comments</label>
+                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <br />
+                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .collapsible {
+        background-color: #777;
+        color: white;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+    }
+
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+
+    .active:after {
+        content: "\2212";
+    }
+
+    .content {
+        padding: 0 18px;
+        display: none;
+        overflow: hidden;
+        background-color: #f1f1f1;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+
+        // Ensure the sign button works
+        $(".signCentral").click(function () {
+            $("#sigtype").val($(this).val());
+            $("#signModal").modal('show');
+        });
+
+        $(".signCentralLRS").click(function () {
+            $("#sigtypeLRS").val($(this).val());
+            $("#signModalLRS").modal('show');
+        });
+    });
+</script>
+
+
+
+
+@*@using OM_79_HUB.Models;
+
+@model OM_79_HUB.Components.LinkedSignatureToSignViewComponent.SignaturesToSignViewModel
+
+@{
+    string hdssig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "HDS")?.Signatures ?? "HDS Not Signed";
+    string gissig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "GIS Manager")?.Signatures ?? "GIS Manager Not Signed";
+    string chiefsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Chief")?.Signatures ?? "Chief Not Signed";
+}
+
+
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralHDS")
+{
+    <hr />
+    <p>Central HDS Signature:</p>
     <hr />
 
 
-    @if (Model.SigneesRoles.Contains("Bridge Engineer"))
+    @if (Model.SigneesRoles.Contains("HDS"))
     {
         <hr />
-        <h4>Bridge Engineer Signature:</h4>
+        <h4>HDS Signature:</h4>
         <hr />
         <div class="input-group">
-            <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
-            <input type="text" class="form-control" readonly value="@bridgesig" />
-            <button class="btn btn-primary sign2" value="Bridge Engineer">Sign</button>
+            <span class="input-group-text" id="bridgesiglabel">HDS</span>
+            <input type="text" class="form-control" readonly value="@hdssig" />
+            <button class="btn btn-primary signCentral" value="HDS">Sign</button>
         </div>
-        <button class="collapsible">Bridge Engineer Details</button>
+        <button class="collapsible">HDS Details</button>
         <div class="content">
-            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Bridge Engineer"))
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "HDS"))
             {
                 <div class="signature-info">
                     <p><strong>Signature:</strong> @item.Signatures</p>
@@ -53,169 +444,30 @@
                     </div>
                 }
 
-            }
-        </div>
-    }
-
-    @if (Model.SigneesRoles.Contains("Traffic Engineer"))
-    {
-        <hr />
-        <h4>Bridge Engineer Signature:</h4>
-        <hr />
-        <div class="input-group">
-            <span class="input-group-text" id="trafficsiglabel">Traffic Engineer</span>
-            <input type="text" class="form-control" readonly value="@trafficsig" />
-            <button class="btn btn-primary sign2" value="Traffic Engineer">Sign</button>
-        </div>
-        <button class="collapsible">Traffic Engineer Details</button>
-        <div class="content">
-            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Traffic Engineer"))
-            {
-                <div class="signature-info">
-                    <p><strong>Signature:</strong> @item.Signatures</p>
-                </div>
-                <div class="comment-info">
-                    <p><strong>Comments:</strong> @item.Comments</p>
-                </div>
-                @if (item.IsApprove)
-                {
-                    <div class="approval-info">
-                        <p><strong>Approval Status:</strong> Approved</p>
-                    </div>
-                }
-                @if (item.IsDenied)
-                {
-                    <div class="denial-info">
-                        <p><strong>Denial Status:</strong> Denied</p>
-                    </div>
-                }
-            }
-        </div>
-    }
-
-    @if (Model.SigneesRoles.Contains("Maintenance Engineer"))
-    {
-        <hr />
-        <h4>Maintenance Engineer Signature:</h4>
-        <hr />
-        <div class="input-group">
-            <span class="input-group-text" id="maintenancesiglabel">Maintenance Engineer</span>
-            <input type="text" class="form-control" readonly value="@maintenancesig" />
-            <button class="btn btn-primary sign2" value="Maintenance Engineer">Sign</button>
-        </div>
-        <button class="collapsible">Maintenance Engineer Details</button>
-        <div class="content">
-            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Maintenance Engineer"))
-            {
-                <div class="signature-info">
-                    <p><strong>Signature:</strong> @item.Signatures</p>
-                </div>
-                <div class="comment-info">
-                    <p><strong>Comments:</strong> @item.Comments</p>
-                </div>
-                @if (item.IsApprove)
-                {
-                    <div class="approval-info">
-                        <p><strong>Approval Status:</strong> Approved</p>
-                    </div>
-                }
-                @if (item.IsDenied)
-                {
-                    <div class="denial-info">
-                        <p><strong>Denial Status:</strong> Denied</p>
-                    </div>
-                }
-            }
-        </div>
-    }
-
-    @if (Model.SigneesRoles.Contains("Construction Engineer"))
-    {
-        <hr />
-        <h4>Construction Engineer Signature:</h4>
-        <hr />
-        <div class="input-group">
-            <span class="input-group-text" id="constructionsiglabel">Construction Engineer</span>
-            <input type="text" class="form-control" readonly value="@constructionsig" />
-            <button class="btn btn-primary sign2" value="Construction Engineer">Sign</button>
-        </div>
-        <button class="collapsible">Construction Engineer Details</button>
-        <div class="content">
-            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Construction Engineer"))
-            {
-                <div class="signature-info">
-                    <p><strong>Signature:</strong> @item.Signatures</p>
-                </div>
-                <div class="comment-info">
-                    <p><strong>Comments:</strong> @item.Comments</p>
-                </div>
-                @if (item.IsApprove)
-                {
-                    <div class="approval-info">
-                        <p><strong>Approval Status:</strong> Approved</p>
-                    </div>
-                }
-                @if (item.IsDenied)
-                {
-                    <div class="denial-info">
-                        <p><strong>Denial Status:</strong> Denied</p>
-                    </div>
-                }
-            }
-        </div>
-    }
-
-    @if (Model.SigneesRoles.Contains("Right Of Way Manager"))
-    {
-        <hr />
-        <h4>Right of Way Manager Signature:</h4>
-        <hr />
-        <div class="input-group">
-            <span class="input-group-text" id="rightofwaysiglabel">Right Of Way Manager</span>
-            <input type="text" class="form-control" readonly value="@rightofwaysig" />
-            <button class="btn btn-primary sign2" value="Right Of Way Manager">Sign</button>
-        </div>
-        <button class="collapsible">Right Of Way Manager Details</button>
-        <div class="content">
-            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Right Of Way Manager"))
-            {
-                <div class="signature-info">
-                    <p><strong>Signature:</strong> @item.Signatures</p>
-                </div>
-                <div class="comment-info">
-                    <p><strong>Comments:</strong> @item.Comments</p>
-                </div>
-                @if (item.IsApprove)
-                {
-                    <div class="approval-info">
-                        <p><strong>Approval Status:</strong> Approved</p>
-                    </div>
-                }
-                @if (item.IsDenied)
-                {
-                    <div class="denial-info">
-                        <p><strong>Denial Status:</strong> Denied</p>
-                    </div>
-                }
             }
         </div>
     }
 }
-@if (Model.OmEntry.WorkflowStep == "SubmittedToDistrictManager")
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralGIS")
 {
-    @if (Model.SigneesRoles.Contains("District Manager"))
+    <hr />
+    <p>Central HDS Signature:</p>
+    <hr />
+
+
+    @if (Model.SigneesRoles.Contains("GIS Manager"))
     {
         <hr />
-        <h4>District Manager Signature:</h4>
+        <h4>HDS Signature:</h4>
         <hr />
         <div class="input-group">
-            <span class="input-group-text" id="districtsiglabel">District Manager</span>
-            <input type="text" class="form-control" readonly value="@districtsig" />
-            <button class="btn btn-primary sign2" value="District Manager">Sign</button>
+            <span class="input-group-text" id="bridgesiglabel">GIS Manager</span>
+            <input type="text" class="form-control" readonly value="@gissig" />
+            <button class="btn btn-primary signCentral" value="GIS Manager">Sign</button>
         </div>
-        <button class="collapsible">District Manager Details</button>
+        <button class="collapsible">GIS Manager Details</button>
         <div class="content">
-            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "District Manager"))
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "GIS Manager"))
             {
                 <div class="signature-info">
                     <p><strong>Signature:</strong> @item.Signatures</p>
@@ -235,10 +487,58 @@
                         <p><strong>Denial Status:</strong> Denied</p>
                     </div>
                 }
+
             }
         </div>
     }
 }
+@if (Model.OmEntry.WorkflowStep == "SubmittedToCentralChief")
+{
+    <hr />
+    <p>Central HDS Signature:</p>
+    <hr />
+
+
+    @if (Model.SigneesRoles.Contains("Chief"))
+    {
+        <hr />
+        <h4>HDS Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="bridgesiglabel">Chief</span>
+            <input type="text" class="form-control" readonly value="@chiefsig" />
+            <button class="btn btn-primary signCentral" value="Chief">Sign</button>
+        </div>
+        <button class="collapsible">Chief Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Chief"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+
+            }
+        </div>
+    }
+}
+
+
+
 
 <div class="modal" id="signModal">
     <div class="modal-dialog modal-xl">
@@ -326,171 +626,9 @@
         }
 
         // Ensure the sign button works
-        $(".sign2").click(function () {
+        $(".signCentral").click(function () {
             $("#sigtype").val($(this).val());
             $("#signModal").modal('show');
         });
     });
-</script>
-
-
-
-
-
-
-@*@using OM_79_HUB.Models;
-
-@model OM_79_HUB.Components.LinkedSignatureToSignViewComponent.SignaturesToSignViewModel
-
-@{
-    // Assuming bridgesig is a property in your model that contains the signature for the Bridge Engineer.
-    string bridgesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Bridge Engineer")?.Signatures ?? "Bridge Engineer Not Signed";
-}
-
-<hr />
-<h4>Sign Here:</h4>
-<hr />
-
-
-
-@if (Model.SigneesRoles.Contains("Bridge Engineer"))
-{
-    <div class="input-group">
-        <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
-        <input type="text" class="form-control" readonly value="@bridgesig" />
-        <button class="btn btn-primary sign2" value="Bridge Engineer">Sign</button>
-    </div>
-    <button class="collapsible">Bridge Engineer Details</button>
-    <div class="content">
-        @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Bridge Engineer"))
-        {
-            <div class="signature-info">
-                <p><strong>Signature:</strong> @item.Signatures</p>
-            </div>
-
-            <div class="comment-info">
-                <p><strong>Comments:</strong> @item.Comments</p>
-            </div>
-
-            @if (item.IsApprove)
-            {
-                <div class="approval-info">
-                    <p><strong>Approval Status:</strong> Approved</p>
-                </div>
-            }
-
-            @if (item.IsDenied)
-            {
-                <div class="denial-info">
-                    <p><strong>Denial Status:</strong> Denied</p>
-                </div>
-            }
-        }
-    </div>
-}
-
-
-
-<br />
-<br />
-
-
-
-<div class="modal" id="signModal">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Edit Requisition</h3>
-                <div class="justify-content-end">
-
-                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-                </div>
-            </div>
-            <div class="modal-body" id="containedform">
-                <div class="row">
-                    <div class="col-md-4">
-                        <form asp-action="SignOMHub" asp-controller="CENTRAL79HUB">
-                            <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID " />
-                            <input type="hidden" value="" name="sigtype" id="sigtype" />
-                            <label for="approve">Approve</label>
-                            <input type="radio" id="approve" name="apradio" value="approve" />
-                            <label for="deny">Deny</label>&nbsp;
-                            <input type="radio" id="deny" name="denradio" value="deny" />
-                            <br />
-                            <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
-                            <br />
-                            <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
-                            <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-<style>
-    .collapsible {
-        background-color: #777;
-        color: white;
-        cursor: pointer;
-        padding: 18px;
-        width: 100%;
-        border: none;
-        text-align: left;
-        outline: none;
-        font-size: 15px;
-    }
-
-        .collapsible:after {
-            content: '\002B';
-            color: white;
-            font-weight: bold;
-            float: right;
-            margin-left: 5px;
-        }
-
-    .active:after {
-        content: "\2212";
-    }
-
-    .content {
-        padding: 0 18px;
-        display: none;
-        overflow: hidden;
-        background-color: #f1f1f1;
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var coll = document.getElementsByClassName("collapsible");
-        var i;
-
-        for (i = 0; i < coll.length; i++) {
-            coll[i].addEventListener("click", function () {
-                this.classList.toggle("active");
-                var content = this.nextElementSibling;
-                if (content.style.display === "block") {
-                    content.style.display = "none";
-                } else {
-                    content.style.display = "block";
-                }
-            });
-        }
-
-        // Ensure the sign button works
-        $(".sign2").click(function () {
-            $("#sigtype").val($(this).val());
-            $("#signModal").modal('show');
-        });
-    });
-</script>
-
-
-*@
+</script>*@

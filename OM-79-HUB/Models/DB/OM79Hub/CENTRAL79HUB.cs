@@ -20,5 +20,7 @@ namespace OM_79_HUB.Models
         public DateTime? DateSubmitted { get; set; }
         public bool? IsSubmitted { get; set; }      
         public string? WorkflowStep { get; set; }
+        [DisplayName("Email Address")]
+        public string? EmailSubmit { get; set; }
     }
 }
