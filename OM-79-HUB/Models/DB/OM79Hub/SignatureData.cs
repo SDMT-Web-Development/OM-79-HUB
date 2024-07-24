@@ -16,5 +16,6 @@ namespace OM_79_HUB.Models.DB.OM79Hub
         public string? SigType { get; set; }
         public DateTime? DateSubmitted { get; set; }   
         public bool? IsCurrentSig { get; set; } 
+        public bool IsEdited { get; set; } 
     }
 }

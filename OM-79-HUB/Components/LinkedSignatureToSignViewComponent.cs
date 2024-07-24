@@ -55,20 +55,15 @@ namespace OM_79_HUB.Components
 
                 return View("~/Views/CENTRAL79HUB/_linkedSignaturesToSign.cshtml", viewModel);
             }
-
-
-            /// central office level signing view
-            else if (isCentralSigner && (omEntry.WorkflowStep == "SubmittedToCentralHDS" || omEntry.WorkflowStep == "SubmittedToCentralGIS" || omEntry.WorkflowStep == "SubmittedToCentralChief" || omEntry.WorkflowStep == "SubmittedToCentralSecondHDS" || omEntry.WorkflowStep == "SubmittedToCentralThirdHDS" || omEntry.WorkflowStep == "SubmittedToCentralSecondHDS" || omEntry.WorkflowStep == "SubmittedToCentralLRS"))
+            // Special case for District Manager when sent back
+            else if (isDistrictSigner && (omEntry.WorkflowStep == "SubmittedBackToDistrictManager" || omEntry.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations"))
             {
-                var userRolesEntries = _context.UserData.Where(u => u.ENumber == userENumber).ToList();
+                var userRolesEntries = _context.UserData.Where(u => u.ENumber.ToLower() == userENumber.ToLower()).ToList();
                 var signeesRoles = new List<string>();
 
                 foreach (var userRoles in userRolesEntries)
                 {
-                    if (userRoles.HDS && !signeesRoles.Contains("HDS")) signeesRoles.Add("HDS");
-                    if (userRoles.GISManager && !signeesRoles.Contains("GIS Manager")) signeesRoles.Add("GIS Manager");
-                    if (userRoles.Chief && !signeesRoles.Contains("Chief")) signeesRoles.Add("Chief");
-                    if (userRoles.Chief && !signeesRoles.Contains("LRS")) signeesRoles.Add("LRS");
+                    if (userRoles.DistrictManager && !signeesRoles.Contains("District Manager")) signeesRoles.Add("District Manager");
                 }
 
                 var currentSignatures = _context.SignatureData.Where(entry => entry.HubKey == hubID).ToList();
@@ -80,7 +75,35 @@ namespace OM_79_HUB.Components
                     OmEntry = omEntry // Include omEntry in the view model
                 };
 
-                return View("~/Views/CENTRAL79HUB/_linkedSignaturesToSignCentral.cshtml", viewModel);
+                return View("~/Views/CentralSignatureWorkflow/_linkedSignaturesToSignCentral.cshtml", viewModel);
+            }
+
+            // Central office level signing view
+            else if (isCentralSigner && (omEntry.WorkflowStep == "SubmittedToCentralHDS" || omEntry.WorkflowStep == "SubmittedToCentralGIS" || omEntry.WorkflowStep == "SubmittedToRegionalEngineer" || omEntry.WorkflowStep == "SubmittedToDirectorOfOperations" || omEntry.WorkflowStep == "SubmittedToCentralChief"))
+            {
+                var userRolesEntries = _context.UserData.Where(u => u.ENumber.ToLower() == userENumber.ToLower()).ToList();
+                var signeesRoles = new List<string>();
+
+                foreach (var userRoles in userRolesEntries)
+                {
+                    if (userRoles.HDS && !signeesRoles.Contains("HDS")) signeesRoles.Add("HDS");
+                    if (userRoles.GISManager && !signeesRoles.Contains("GIS Manager")) signeesRoles.Add("GIS Manager");
+                    if (userRoles.Chief && !signeesRoles.Contains("Chief")) signeesRoles.Add("Chief");
+                    if (userRoles.RegionalEngineer && !signeesRoles.Contains("Regional Engineer")) signeesRoles.Add("Regional Engineer");
+                    if (userRoles.DirectorOfOperations && !signeesRoles.Contains("Director of Operations")) signeesRoles.Add("Director of Operations");
+                    if (userRoles.DeputySecretary && !signeesRoles.Contains("DeputySecretary")) signeesRoles.Add("Deputy Secretary");
+                }
+
+                var currentSignatures = _context.SignatureData.Where(entry => entry.HubKey == hubID).ToList();
+
+                var viewModel = new SignaturesToSignViewModel
+                {
+                    SigneesRoles = signeesRoles,
+                    CurrentSignatures = currentSignatures,
+                    OmEntry = omEntry // Include omEntry in the view model
+                };
+
+                return View("~/Views/CentralSignatureWorkflow/_linkedSignaturesToSignCentral.cshtml", viewModel);
             }
 
             // Not submitted to be reviewed 
@@ -100,7 +123,7 @@ namespace OM_79_HUB.Components
         public class SignaturesToSignViewModel
         {
             public List<string> SigneesRoles { get; set; }
-            public List<SignatureData> CurrentSignatures { get; set; }
+            public List<SignatureData>? CurrentSignatures { get; set; }
             public CENTRAL79HUB OmEntry { get; set; } // Add this property
 
         }

@@ -114,10 +114,8 @@
                         <p>No items completed.</p>
                     }
                 </div>
-
                 <br />
                 <br />
-
                 @if (Model.Central79Hub.WorkflowStep == "NotStarted")
                 {
                     <div class="nextStep">
@@ -165,107 +163,12 @@
                     </div>
                 }
             }
-
-
-
-            @*Show when the entry HAS been submitted for review*@
-            @if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrict" || Model.Central79Hub.WorkflowStep == "SubmittedToDistrictManager" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralHDS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralGIS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralSecondHDS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralChief" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralThirdHDS" || Model.Central79Hub.WorkflowStep == "SubmittedToCentralLRS" || Model.Central79Hub.WorkflowStep == "Finalized")
+            else
             {
-                <h4><u>Signature Workflow</u></h4>
-                <p>This section displays the current status of the OM79 form in the workflow process. The blue box indicates the current step, green boxes indicate completed steps, and gray boxes indicate upcoming steps.</p>
-                @*
-                if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrict")
-                {
-                <h4><u>Approval Step</u></h4>
-                <p>The OM79 form has been submitted and is currently under review by the district. District-level users, including the Bridge Engineer, Traffic Engineer, Maintenance Engineer, Construction Engineer, and Right of Way Manager, are responsible for reviewing and signing the form. Please wait for the district-level users to complete their reviews and approvals.</p>
-                }
-                else if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrictManager")
-                {
-                <h4><u>Approval Step</u></h4>
-                <p>All district-level users have reviewed and approved the OM79 form. The form has now been submitted to the District Manager for final approval. Please wait for the District Manager to complete their review and approval.</p>
-                }
-                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralHDS")
-                {
-                <h4><u>Approval Step</u></h4>
-                <p>The District Manager has reviewed and approved the OM79 form. The form has now been submitted to the Central HDS for final approval. Please wait for the Central HDS to complete their review and approval.</p>
-                }
-                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralGIS")
-                {
-                <h4><u>Approval Step</u></h4>
-                <p>The Central HDS has reviewed and approved the OM79 form. The form has now been submitted to the Central GIS for final approval. Please wait for the Central GIS to complete their review and approval.</p>
-                }
-                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralSecondHDS")
-                {
-                <h4><u>Approval Step</u></h4>
-                <p>The Central GIS has reviewed and approved the OM79 form. The form has now been submitted to the Central Second HDS for final approval. Please wait for the Central Second HDS to complete their review and approval.</p>
-                }
-                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralChief")
-                {
-                <h4><u>Approval Step</u></h4>
-                <p>The Central Second HDS has reviewed and approved the OM79 form. The form has now been submitted to the Central Chief for final approval. Please wait for the Central Chief to complete their review and approval.</p>
-                }
-                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralThirdHDS")
-                {
-                <h4><u>Approval Step</u></h4>
-                <p>The Central Chief has reviewed and approved the OM79 form. The form has now been submitted to the Central Third HDS for final approval. Please wait for the Central Third HDS to complete their review and approval.</p>
-                }
-                *@
-                <div class="workflow-diagram vertical">
-                    <div class="workflow-step @(currentStepIndex == 0 ? "current" : (currentStepIndex > 0 ? "completed" : "upcoming"))">
-                        <span class="step-title">District-Level Review</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 0 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 1 ? "current" : (currentStepIndex > 1 ? "completed" : "upcoming"))">
-                        <span class="step-title">District Manager Review</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 1 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 2 ? "current" : (currentStepIndex > 2 ? "completed" : "upcoming"))">
-                        <span class="step-title">Central HDS Review</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 2 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 3 ? "current" : (currentStepIndex > 3 ? "completed" : "upcoming"))">
-                        <span class="step-title">Central GIS Review</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 3 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 4 ? "current" : (currentStepIndex > 4 ? "completed" : "upcoming"))">
-                        <span class="step-title">Central Second HDS Review</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 4 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 5 ? "current" : (currentStepIndex > 5 ? "completed" : "upcoming"))">
-                        <span class="step-title">Central Chief Review</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 5 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 6 ? "current" : (currentStepIndex > 6 ? "completed" : "upcoming"))">
-                        <span class="step-title">HDS Finalization Review</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 6 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 7 ? "current" : (currentStepIndex > 7 ? "completed" : "upcoming"))">
-                        <span class="step-title">LRS Uploading Finalized Information</span>
-                    </div>
-                    <div class="workflow-connector @(currentStepIndex > 7 ? "completed" : "upcoming")"></div>
-                    <div class="workflow-step @(currentStepIndex == 8 ? "completed" : "upcoming")">
-                        <span class="step-title">Finalized</span>
-                    </div>
-                </div>
-            }
-            else if (Model.Central79Hub.WorkflowStep == "RestartFromDistrict")
-            {
-                <p>The form has been denied at district level</p>
-            }
-            else if (Model.Central79Hub.WorkflowStep == "RestartFromDistrictManager")
-            {
-                <p>The form has been denied at district manager level</p>
-            }
-            else if (Model.Central79Hub.WorkflowStep == "RestartFromCentralHDS")
-            {
-                <p>The form has been denied at central HDS level</p>
-            }
-            else if (Model.Central79Hub.WorkflowStep == "RestartFromCentralGIS")
-            {
-                <p>The form has been denied at central GIS level</p>
+                <p>This is where there can be info displayed about the signature workflow</p>
             }
         }
-        @*There is no entry loaded here*@
+                    @*There is no entry loaded here*@
         else
         {
             <div class="internal-right-column-content">
@@ -288,53 +191,53 @@
                 </ol>
             </div>
         }
-
     </div>
+</div>
 
-    <style>
-        .workflow-diagram.vertical {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 20px;
+<style>
+    .workflow-diagram.vertical {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .workflow-step {
+        padding: 10px 20px;
+        border-radius: 4px;
+        border: 2px solid #ccc;
+        text-align: center;
+        position: relative;
+        margin: 10px 0;
+    }
+
+        .workflow-step.completed {
+            border-color: green;
+            background-color: #e0ffe0;
         }
 
-        .workflow-step {
-            padding: 10px 20px;
-            border-radius: 4px;
-            border: 2px solid #ccc;
-            text-align: center;
-            position: relative;
-            margin: 10px 0;
+        .workflow-step.current {
+            border-color: blue;
+            background-color: #e0e0ff;
         }
 
-            .workflow-step.completed {
-                border-color: green;
-                background-color: #e0ffe0;
-            }
-
-            .workflow-step.current {
-                border-color: blue;
-                background-color: #e0e0ff;
-            }
-
-            .workflow-step.upcoming {
-                border-color: gray;
-                background-color: #f0f0f0;
-            }
-
-        .workflow-connector {
-            width: 4px;
-            height: 50px;
-            background-color: #ccc;
+        .workflow-step.upcoming {
+            border-color: gray;
+            background-color: #f0f0f0;
         }
 
-            .workflow-connector.completed {
-                background-color: green;
-            }
+    .workflow-connector {
+        width: 4px;
+        height: 50px;
+        background-color: #ccc;
+    }
 
-            .workflow-connector.upcoming {
-                background-color: gray;
-            }
-    </style>
+        .workflow-connector.completed {
+            background-color: green;
+        }
+
+        .workflow-connector.upcoming {
+            background-color: gray;
+        }
+</style>

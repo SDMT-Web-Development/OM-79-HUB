@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models.DB.OM79Hub;
 using OM79.Models.DB;
+using SkiaSharp;
 
 namespace OM_79_HUB.Controllers
 {
@@ -65,7 +66,6 @@ namespace OM_79_HUB.Controllers
             return View();
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCentralOfficeUser(UserData userData)
@@ -76,9 +76,24 @@ namespace OM_79_HUB.Controllers
             Console.WriteLine($"LastName: {userData.LastName}");
             Console.WriteLine($"ENumber: {userData.ENumber}");
             Console.WriteLine($"Email: {userData.Email}");
+            Console.WriteLine($"CRU: {userData.CRU}");
+            Console.WriteLine($"CRA: {userData.CRA}");
             Console.WriteLine($"HDS: {userData.HDS}");
+            Console.WriteLine($"LRS: {userData.LRS}");
             Console.WriteLine($"GISManager: {userData.GISManager}");
             Console.WriteLine($"Chief: {userData.Chief}");
+            Console.WriteLine($"DistrictReview: {userData.DistrictReview}");
+            Console.WriteLine($"District: {userData.District}");
+            Console.WriteLine($"BridgeEngineer: {userData.BridgeEngineer}");
+            Console.WriteLine($"TrafficEngineer: {userData.TrafficEngineer}");
+            Console.WriteLine($"MaintenanceEngineer: {userData.MaintenanceEngineer}");
+            Console.WriteLine($"ConstructionEngineer: {userData.ConstructionEngineer}");
+            Console.WriteLine($"RightOfWayManager: {userData.RightOfWayManager}");
+            Console.WriteLine($"DistrictManager: {userData.DistrictManager}");
+            Console.WriteLine($"RegionalEngineer: {userData.RegionalEngineer}");
+            Console.WriteLine($"DirectorOfOperations: {userData.DirectorOfOperations}");
+            Console.WriteLine($"DeputySecretary: {userData.DeputySecretary}");
+            Console.WriteLine($"DistrictsForRegionalEngineer: {userData.DistrictsForRegionalEngineer}");
 
             if (ModelState.IsValid)
             {
@@ -88,6 +103,7 @@ namespace OM_79_HUB.Controllers
             }
             return View("StatewideAccountSystem", userData);
         }
+
 
 
 
@@ -119,9 +135,19 @@ namespace OM_79_HUB.Controllers
         [HttpGet]
         public IActionResult GetCentralUsers()
         {
-            var users = _hubContext.UserData.ToList();
-            return Json(users);
+            try
+            {
+                var users = _hubContext.UserData.ToList();
+                return Json(users);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (use your preferred logging mechanism)
+                Console.WriteLine($"Error fetching users: {ex.Message} - {ex.StackTrace}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
 
         [HttpGet]
         public IActionResult CheckChiefExists()
@@ -130,6 +156,48 @@ namespace OM_79_HUB.Controllers
             return Json(new { exists = chiefExists });
         }
 
+
+        [HttpGet]
+        public IActionResult CheckRegionalEngineerExists()
+        {
+            // Define all possible districts (assuming districts are numbered 1 to 10)
+            var allDistricts = Enumerable.Range(1, 10).ToList();
+
+            // Get all districts currently listed in the 'DistrictsForRegionalEngineer' column, excluding null values
+            var usedDistricts = _hubContext.UserData
+                .Where(u => !string.IsNullOrEmpty(u.DistrictsForRegionalEngineer))
+                .Select(u => u.DistrictsForRegionalEngineer)
+                .ToList()
+                .SelectMany(d => d.Split(',').Select(int.Parse))
+                .Distinct()
+                .ToList();
+
+            // Determine available districts
+            var availableDistricts = allDistricts.Except(usedDistricts).ToList();
+
+            // Check if there are no available districts
+            if (!availableDistricts.Any())
+            {
+                return Json(new { message = "NoAvailableDistricts" });
+            }
+
+            return Json(new { availableDistricts });
+        }
+
+
+
+        [HttpGet]
+        public IActionResult CheckDirectorOfOperationsExists()
+        {
+            var directorOfOperationsExists = _hubContext.UserData.Any(u => u.DirectorOfOperations == true);
+            return Json(new { exists = directorOfOperationsExists });
+        }
+        [HttpGet]
+        public IActionResult CheckDeputySecretaryExists()
+        {
+            var deputySecretaryExists = _hubContext.UserData.Any(u => u.DeputySecretary == true);
+            return Json(new { exists = deputySecretaryExists });
+        }
 
         [HttpPost]
         public async Task<IActionResult> RemoveCentralUser(int id)
@@ -143,6 +211,19 @@ namespace OM_79_HUB.Controllers
             }
             return NotFound();
         }
+        public IActionResult GetAvailableDistricts()
+        {
+            var allDistricts = Enumerable.Range(1, 10);
+            var assignedDistricts = _hubContext.UserData
+                .Where(u => u.RegionalEngineer && !string.IsNullOrEmpty(u.DistrictsForRegionalEngineer))
+                .AsEnumerable() // Load the data into memory
+                .SelectMany(u => u.DistrictsForRegionalEngineer.Split(',').Select(int.Parse))
+                .ToList();
+
+            var availableDistricts = allDistricts.Except(assignedDistricts).ToList();
+            return Json(availableDistricts);
+        }
+
 
 
         [HttpGet]

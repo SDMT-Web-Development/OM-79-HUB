@@ -305,6 +305,8 @@ namespace OM_79_HUB.Controllers
                 cENTRAL79HUB.DateSubmitted = DateTime.Now;
                 cENTRAL79HUB.IsArchive = false;
                 cENTRAL79HUB.WorkflowStep = "NotStarted";
+                cENTRAL79HUB.Edited = false;
+                cENTRAL79HUB.HasGISReviewed = false;
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
 
@@ -453,382 +455,382 @@ namespace OM_79_HUB.Controllers
           return (_context.CENTRAL79HUB?.Any(e => e.OMId == id)).GetValueOrDefault();
         }
 
-        // Same as signOMhub, but for central signatures
-        public async Task<IActionResult> SignOMHubCentral()
-        {
-            var app = Request.Form["apradio"];
-            var den = Request.Form["denradio"];
-            var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            bool isCentralHDS = false;
-            bool isCentralGIS = false;
-            bool isCentralChief = false;
-            var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId ==  hubkey);     
+        //// Same as signOMhub, but for central signatures
+        //public async Task<IActionResult> SignOMHubCentral()
+        //{
+        //    var app = Request.Form["apradio"];
+        //    var den = Request.Form["denradio"];
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    bool isCentralHDS = false;
+        //    bool isCentralGIS = false;
+        //    bool isCentralChief = false;
+        //    var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId ==  hubkey);     
 
-            if (app.FirstOrDefault() == "approve")
-            {
-                var signature = new SignatureData();
-                signature.HubKey = int.Parse(Request.Form["HubKey"]);
-                signature.IsApprove = true;
-                signature.IsDenied = false;
-                signature.Comments = Request.Form["commentsmodal"];
-                signature.Signatures = Request.Form["signaturemodal"];
-                signature.SigType = Request.Form["sigtype"];
-                signature.ENumber = HttpContext.User.Identity.Name;
-                signature.DateSubmitted = DateTime.Now;
-                signature.IsCurrentSig = true;
+        //    if (app.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = true;
+        //        signature.IsDenied = false;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
 
                
-                _context.Add(signature);
-                await _context.SaveChangesAsync();
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
 
 
-                if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralHDS")
-                {
-                    // The HDS user just did their first approval
-                    omEntry.WorkflowStep = "SubmittedToCentralGIS";
-                    await _context.SaveChangesAsync();
-                    SendWorkflowEmailToGISManagers(hubkey); // Send email to GIS Managers
-                }
-                else if (signature.SigType == "GIS Manager" && omEntry.WorkflowStep == "SubmittedToCentralGIS")
-                {
-                    // The GIS user just did their approval
-                    omEntry.WorkflowStep = "SubmittedToCentralSecondHDS";
-                    await _context.SaveChangesAsync();
-                    SendWorkflowEmailToSecondHDS(hubkey); // Send email to second HDS
-                }
-                else if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralSecondHDS")
-                {
-                    // The HDS user just did their second approval
-                    omEntry.WorkflowStep = "SubmittedToCentralChief";
-                    await _context.SaveChangesAsync();
-                    SendWorkflowEmailToChief(hubkey); // Send email to Chief
-                }
-                else if (signature.SigType == "Chief" && omEntry.WorkflowStep == "SubmittedToCentralChief")
-                {
-                    // The chief just submitted their approval
-                    omEntry.WorkflowStep = "SubmittedToCentralThirdHDS";
-                    await _context.SaveChangesAsync();
-                    SendWorkflowEmailToThirdHDS(hubkey); // Send email to third HDS
-                }
-                else if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralThirdHDS")
-                {
-                    // The HDS just did their third approval
-                    omEntry.WorkflowStep = "SubmittedToCentralLRS";
-                    await _context.SaveChangesAsync();
-                    SendWorkflowEmailToLRS(hubkey); // Send email to LRS
-                }
-                else if (signature.SigType == "LRS" && omEntry.WorkflowStep == "SubmittedToCentralLRS")
-                {
-                    // At this point the workflow should be completed
-                    // The LRS just submitted their confirmation
-                    omEntry.WorkflowStep = "Finalized";
-                    await _context.SaveChangesAsync();
-                }
+        //        if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralHDS")
+        //        {
+        //            // The HDS user just did their first approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralGIS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToGISManagers(hubkey); // Send email to GIS Managers
+        //        }
+        //        else if (signature.SigType == "GIS Manager" && omEntry.WorkflowStep == "SubmittedToCentralGIS")
+        //        {
+        //            // The GIS user just did their approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralSecondHDS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToSecondHDS(hubkey); // Send email to second HDS
+        //        }
+        //        else if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralSecondHDS")
+        //        {
+        //            // The HDS user just did their second approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralChief";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToChief(hubkey); // Send email to Chief
+        //        }
+        //        else if (signature.SigType == "Chief" && omEntry.WorkflowStep == "SubmittedToCentralChief")
+        //        {
+        //            // The chief just submitted their approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralThirdHDS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToThirdHDS(hubkey); // Send email to third HDS
+        //        }
+        //        else if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralThirdHDS")
+        //        {
+        //            // The HDS just did their third approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralLRS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToLRS(hubkey); // Send email to LRS
+        //        }
+        //        else if (signature.SigType == "LRS" && omEntry.WorkflowStep == "SubmittedToCentralLRS")
+        //        {
+        //            // At this point the workflow should be completed
+        //            // The LRS just submitted their confirmation
+        //            omEntry.WorkflowStep = "Finalized";
+        //            await _context.SaveChangesAsync();
+        //        }
 
-            }
-
-
-            if (den.FirstOrDefault() == "deny")
-            {
-                var signature = new SignatureData();
-                signature.HubKey = int.Parse(Request.Form["HubKey"]);
-                signature.IsApprove = false;
-                signature.IsDenied = true;
-                signature.Comments = Request.Form["commentsmodal"];
-                signature.Signatures = Request.Form["signaturemodal"];
-                signature.SigType = Request.Form["sigtype"];
-                signature.ENumber = HttpContext.User.Identity.Name;
-                signature.DateSubmitted = DateTime.Now;
-                signature.IsCurrentSig = true;
-
-                _context.Add(signature);
-                await _context.SaveChangesAsync();
-
-            }
-            return RedirectToAction(nameof(Details), new { id = hubkey });
-        }
+        //    }
 
 
+        //    if (den.FirstOrDefault() == "deny")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = false;
+        //        signature.IsDenied = true;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
 
-        public void SendWorkflowEmailToGISManagers(int id)
-        {
-            try
-            {
-                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
-                if (omEntry == null)
-                {
-                    Console.WriteLine("OM Entry not found.");
-                    return;
-                }
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
 
-                // Find all GIS Managers
-                var gisManagers = _context.UserData.Where(e => e.GISManager).ToList();
-                if (!gisManagers.Any())
-                {
-                    Console.WriteLine("GIS Managers not found.");
-                    return;
-                }
+        //    }
+        //    return RedirectToAction(nameof(Details), new { id = hubkey });
+        //}
 
-                // Compose the email
-                var message = new MailMessage
-                {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = $"OM79 Entry Ready for GIS Manager Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the GIS Manager, your review is crucial before the entry can be forwarded to the next step.<br><br>" +
-                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
-                    IsBodyHtml = true
-                };
 
-                // Add all GIS Managers to the recipient list
-                foreach (var gisManager in gisManagers)
-                {
-                    message.To.Add(gisManager.Email);
-                }
 
-                // Send the email
-                var client = new SmtpClient
-                {
-                    Host = "10.204.145.32",
-                    Port = 25,
-                    EnableSsl = false,
-                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
-                };
+        //public void SendWorkflowEmailToGISManagers(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
 
-                client.Send(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
-            }
-        }
+        //        // Find all GIS Managers
+        //        var gisManagers = _context.UserData.Where(e => e.GISManager).ToList();
+        //        if (!gisManagers.Any())
+        //        {
+        //            Console.WriteLine("GIS Managers not found.");
+        //            return;
+        //        }
 
-        public void SendWorkflowEmailToSecondHDS(int id)
-        {
-            try
-            {
-                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
-                if (omEntry == null)
-                {
-                    Console.WriteLine("OM Entry not found.");
-                    return;
-                }
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for GIS Manager Review",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the GIS Manager, your review is crucial before the entry can be forwarded to the next step.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
 
-                // Find all HDS users
-                var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
-                if (!hdsUsers.Any())
-                {
-                    Console.WriteLine("HDS users not found.");
-                    return;
-                }
+        //        // Add all GIS Managers to the recipient list
+        //        foreach (var gisManager in gisManagers)
+        //        {
+        //            message.To.Add(gisManager.Email);
+        //        }
 
-                // Compose the email
-                var message = new MailMessage
-                {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = $"OM79 Entry Ready for Second HDS Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been reviewed by the GIS Manager and is now awaiting your second approval. As the HDS, your review is crucial before the entry can be forwarded to the Chief.<br><br>" +
-                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
-                    IsBodyHtml = true
-                };
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
 
-                // Add all HDS users to the recipient list
-                foreach (var hdsUser in hdsUsers)
-                {
-                    message.To.Add(hdsUser.Email);
-                }
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
 
-                // Send the email
-                var client = new SmtpClient
-                {
-                    Host = "10.204.145.32",
-                    Port = 25,
-                    EnableSsl = false,
-                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
-                };
+        //public void SendWorkflowEmailToSecondHDS(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
 
-                client.Send(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
-            }
-        }
+        //        // Find all HDS users
+        //        var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
+        //        if (!hdsUsers.Any())
+        //        {
+        //            Console.WriteLine("HDS users not found.");
+        //            return;
+        //        }
 
-        public void SendWorkflowEmailToChief(int id)
-        {
-            try
-            {
-                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
-                if (omEntry == null)
-                {
-                    Console.WriteLine("OM Entry not found.");
-                    return;
-                }
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for Second HDS Review",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the GIS Manager and is now awaiting your second approval. As the HDS, your review is crucial before the entry can be forwarded to the Chief.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
 
-                // Find the Chief
-                var chief = _context.UserData.FirstOrDefault(e => e.Chief);
-                if (chief == null)
-                {
-                    Console.WriteLine("Chief not found.");
-                    return;
-                }
+        //        // Add all HDS users to the recipient list
+        //        foreach (var hdsUser in hdsUsers)
+        //        {
+        //            message.To.Add(hdsUser.Email);
+        //        }
 
-                // Compose the email
-                var message = new MailMessage
-                {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = $"OM79 Entry Ready for Chief Review",
-                    Body = $"Hello {chief.FirstName},<br><br>" +
-                           $"An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the Chief, your review is crucial before the entry can be finalized.<br><br>" +
-                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
-                    IsBodyHtml = true
-                };
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
 
-                message.To.Add(chief.Email);
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
 
-                // Send the email
-                var client = new SmtpClient
-                {
-                    Host = "10.204.145.32",
-                    Port = 25,
-                    EnableSsl = false,
-                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
-                };
+        //public void SendWorkflowEmailToChief(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
 
-                client.Send(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
-            }
-        }
+        //        // Find the Chief
+        //        var chief = _context.UserData.FirstOrDefault(e => e.Chief);
+        //        if (chief == null)
+        //        {
+        //            Console.WriteLine("Chief not found.");
+        //            return;
+        //        }
 
-        public void SendWorkflowEmailToThirdHDS(int id)
-        {
-            try
-            {
-                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
-                if (omEntry == null)
-                {
-                    Console.WriteLine("OM Entry not found.");
-                    return;
-                }
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for Chief Review",
+        //            Body = $"Hello {chief.FirstName},<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the Chief, your review is crucial before the entry can be finalized.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
 
-                // Find all HDS users
-                var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
-                if (!hdsUsers.Any())
-                {
-                    Console.WriteLine("HDS users not found.");
-                    return;
-                }
+        //        message.To.Add(chief.Email);
 
-                // Compose the email
-                var message = new MailMessage
-                {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = $"OM79 Entry Ready for Third HDS Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been reviewed by the Chief and is now awaiting your third approval. As the HDS, your review is crucial before the entry can be forwarded to the LRS.<br><br>" +
-                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
-                    IsBodyHtml = true
-                };
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
 
-                // Add all HDS users to the recipient list
-                foreach (var hdsUser in hdsUsers)
-                {
-                    message.To.Add(hdsUser.Email);
-                }
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
 
-                // Send the email
-                var client = new SmtpClient
-                {
-                    Host = "10.204.145.32",
-                    Port = 25,
-                    EnableSsl = false,
-                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
-                };
+        //public void SendWorkflowEmailToThirdHDS(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
 
-                client.Send(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
-            }
-        }
-        public void SendWorkflowEmailToLRS(int id)
-        {
-            try
-            {
-                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
-                if (omEntry == null)
-                {
-                    Console.WriteLine("OM Entry not found.");
-                    return;
-                }
+        //        // Find all HDS users
+        //        var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
+        //        if (!hdsUsers.Any())
+        //        {
+        //            Console.WriteLine("HDS users not found.");
+        //            return;
+        //        }
 
-                // Find all LRS users
-                var lrsUsers = _context.UserData.Where(e => e.LRS).ToList();
-                if (!lrsUsers.Any())
-                {
-                    Console.WriteLine("LRS users not found.");
-                    return;
-                }
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for Third HDS Review",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the Chief and is now awaiting your third approval. As the HDS, your review is crucial before the entry can be forwarded to the LRS.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
 
-                // Compose the email
-                var message = new MailMessage
-                {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = $"OM79 Entry Ready for LRS Uploading",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been reviewed by the HDS and is now awaiting your confirmation. As the LRS, your action is crucial to finalize the entry.<br><br>" +
-                           $"Please click the link below to review and finalize the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
-                    IsBodyHtml = true
-                };
+        //        // Add all HDS users to the recipient list
+        //        foreach (var hdsUser in hdsUsers)
+        //        {
+        //            message.To.Add(hdsUser.Email);
+        //        }
 
-                // Add all LRS users to the recipient list
-                foreach (var lrsUser in lrsUsers)
-                {
-                    message.To.Add(lrsUser.Email);
-                }
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
 
-                // Send the email
-                var client = new SmtpClient
-                {
-                    Host = "10.204.145.32",
-                    Port = 25,
-                    EnableSsl = false,
-                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
-                };
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
+        //public void SendWorkflowEmailToLRS(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
 
-                client.Send(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
-            }
-        }
+        //        // Find all LRS users
+        //        var lrsUsers = _context.UserData.Where(e => e.LRS).ToList();
+        //        if (!lrsUsers.Any())
+        //        {
+        //            Console.WriteLine("LRS users not found.");
+        //            return;
+        //        }
+
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for LRS Uploading",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the HDS and is now awaiting your confirmation. As the LRS, your action is crucial to finalize the entry.<br><br>" +
+        //                   $"Please click the link below to review and finalize the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
+
+        //        // Add all LRS users to the recipient list
+        //        foreach (var lrsUser in lrsUsers)
+        //        {
+        //            message.To.Add(lrsUser.Email);
+        //        }
+
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
+
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
 
 
         public async Task<IActionResult> SignOMHub()
@@ -933,7 +935,7 @@ namespace OM_79_HUB.Controllers
                 }
 
 
-                // Check if the District Manager has just signed
+                // Check if the District Manager has just signed SubmittedToDistrictManager
                 if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
                 {
                     // This means the district manager has just signed and approved the OM79 entry to be sent to the central office
@@ -969,6 +971,11 @@ namespace OM_79_HUB.Controllers
 
 
 
+
+                if (signature.SigType == "District Manager")
+                {
+                    isDistrictManagerSigning = true;
+                }
 
 
                 // Update the workflow step if denied
@@ -1030,9 +1037,7 @@ namespace OM_79_HUB.Controllers
                     omEntry.IsSubmitted = false;
 
 
-                    await _context.SaveChangesAsync();
-                    
-                    // You can add additional logic here if needed
+                    await _context.SaveChangesAsync();                    
                 }
             }
 
