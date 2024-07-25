@@ -27,20 +27,113 @@ namespace OM_79_HUB.Controllers
         /*This is the functionality for the HDS user signing the OM79*/
         #region SignOMHubCentralHDS
 
+        //public async Task<IActionResult> SignOMCentralHDS()
+        //{
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    var approved = Request.Form["apradio"];
+        //    var edited = Request.Form["editradio"];
+        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+
+        //    if (omEntry == null)
+        //    {
+        //        return NotFound("OM Entry not found");
+        //    }
+
+        //    // The HDS user has just signed the OM79, it has NOT been edited
+        //    if (approved.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = true,
+        //            IsDenied = false,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "HDS",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+        //        // Need to figure out how to know if this has ever been to the GIS manager, using : HasGISReviewed (in omEntry)
+        //        bool everEdited = omEntry.Edited ?? false;
+        //        bool hasBeenReviewedAtLeastOnceByGIS = omEntry.HasGISReviewed ?? false;
+
+
+        //        // Approval from the HDS leads to one of the following two roles: GIS Manager || District Manager
+
+        //        // If this is the first Approval by HDS and it has not yet been to GIS
+        //        // Go to GIS manager for them to approve/edit for the first time
+        //        if (!hasBeenReviewedAtLeastOnceByGIS)
+        //        {
+        //            //Should hit this on first approval from HDS user
+        //            //Email the GISManager(s) with the comments from the HDS user
+        //            //Update the workflow step here
+        //            omEntry.WorkflowStep = "SubmittedToCentralGIS";
+        //            await _hubContext.SaveChangesAsync();
+
+        //            await SendWorkflowEmailToGISManagers(hubkey, Request.Form["commentsmodal"]);
+        //        }
+
+
+        //        // If GIS has reviewed it already then it can go to the district manager and there have been edits
+        //        // Go to District manager for them to approve the changes by one or both of the following users: HDS, GIS
+        //        if (everEdited && hasBeenReviewedAtLeastOnceByGIS)
+        //        {
+        //            omEntry.WorkflowStep = "SubmittedBackToDistrictManager";
+        //            await _hubContext.SaveChangesAsync();
+        //            await SendWorkflowEmailToDistrictManagerWithApprovedFromHDS(hubkey, Request.Form["commentsmodal"]);
+        //        }
+        //    }
+
+        //    // The HDS user has just signed the OM79, but it has been edited
+        //    if (edited.FirstOrDefault() == "edited")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = false,
+        //            IsEdited = true,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "HDS",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+
+        //        // So we know the HDS user just edited the OM79
+        //        // Meaning that the only next step for the OM79 is to go to the GIS Manager(s)
+        //        // Notify the GIS manager that there is a OM79 ready for review, and that the HDS user did make edits
+        //        omEntry.WorkflowStep = "SubmittedToCentralGIS";
+        //        omEntry.Edited = true;
+        //        await _hubContext.SaveChangesAsync();
+        //        await SendWorkflowEmailToGISManagersWithEditsFromHDS(hubkey, Request.Form["commentsmodal"]);
+
+        //    }
+        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
+
+        //}
+
+
         public async Task<IActionResult> SignOMCentralHDS()
         {
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            var approved = Request.Form["apradio"];
-            var edited = Request.Form["editradio"];
+            var decision = Request.Form["decisionHDS"];
             var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
-            
+
             if (omEntry == null)
             {
                 return NotFound("OM Entry not found");
             }
 
-            // The HDS user has just signed the OM79, it has NOT been edited
-            if (approved.FirstOrDefault() == "approve")
+            if (decision == "approve")
             {
                 var signature = new SignatureData
                 {
@@ -57,10 +150,10 @@ namespace OM_79_HUB.Controllers
                 };
                 _hubContext.Add(signature);
                 await _hubContext.SaveChangesAsync();
+
                 // Need to figure out how to know if this has ever been to the GIS manager, using : HasGISReviewed (in omEntry)
                 bool everEdited = omEntry.Edited ?? false;
                 bool hasBeenReviewedAtLeastOnceByGIS = omEntry.HasGISReviewed ?? false;
-
 
                 // Approval from the HDS leads to one of the following two roles: GIS Manager || District Manager
 
@@ -77,7 +170,6 @@ namespace OM_79_HUB.Controllers
                     await SendWorkflowEmailToGISManagers(hubkey, Request.Form["commentsmodal"]);
                 }
 
-
                 // If GIS has reviewed it already then it can go to the district manager and there have been edits
                 // Go to District manager for them to approve the changes by one or both of the following users: HDS, GIS
                 if (everEdited && hasBeenReviewedAtLeastOnceByGIS)
@@ -88,8 +180,7 @@ namespace OM_79_HUB.Controllers
                 }
             }
 
-            // The HDS user has just signed the OM79, but it has been edited
-            if (edited.FirstOrDefault() == "edited")
+            if (decision == "edited")
             {
                 var signature = new SignatureData
                 {
@@ -107,7 +198,6 @@ namespace OM_79_HUB.Controllers
                 _hubContext.Add(signature);
                 await _hubContext.SaveChangesAsync();
 
-
                 // So we know the HDS user just edited the OM79
                 // Meaning that the only next step for the OM79 is to go to the GIS Manager(s)
                 // Notify the GIS manager that there is a OM79 ready for review, and that the HDS user did make edits
@@ -115,11 +205,13 @@ namespace OM_79_HUB.Controllers
                 omEntry.Edited = true;
                 await _hubContext.SaveChangesAsync();
                 await SendWorkflowEmailToGISManagersWithEditsFromHDS(hubkey, Request.Form["commentsmodal"]);
-
             }
-            return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
 
+            return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
         }
+
+
+
         private async Task SendWorkflowEmailToGISManagersWithEditsFromHDS(int id, string comments)
         {
             try
@@ -325,8 +417,7 @@ namespace OM_79_HUB.Controllers
         public async Task<IActionResult> SignOMCentralGIS()
         {
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            var approved = Request.Form["apradio"];
-            var edited = Request.Form["editradio"];
+            var decision = Request.Form["decisionGIS"];
             var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
 
             if (omEntry == null)
@@ -334,8 +425,8 @@ namespace OM_79_HUB.Controllers
                 return NotFound("OM Entry not found");
             }
 
-            //The GIS manager has just approved the OM79
-            if (approved.FirstOrDefault() == "approve")
+            // The GIS manager has just approved the OM79
+            if (decision == "approve")
             {
                 var signature = new SignatureData
                 {
@@ -345,7 +436,7 @@ namespace OM_79_HUB.Controllers
                     IsEdited = false,
                     Comments = Request.Form["commentsmodal"],
                     Signatures = Request.Form["signaturemodal"],
-                    SigType = "GIS Manager",                    
+                    SigType = "GIS Manager",
                     ENumber = HttpContext.User.Identity.Name,
                     DateSubmitted = DateTime.Now,
                     IsCurrentSig = true,
@@ -353,13 +444,13 @@ namespace OM_79_HUB.Controllers
                 _hubContext.Add(signature);
                 await _hubContext.SaveChangesAsync();
 
-                // GIS manager has touched it at least once now:::
+                // GIS manager has touched it at least once now
                 if (omEntry.HasGISReviewed == false || omEntry.HasGISReviewed == null)
                 {
                     omEntry.HasGISReviewed = true;
                     await _hubContext.SaveChangesAsync();
                 }
-           
+
                 // There are two possible places this workflow can go to: District Manager or Regional Engineer
                 // District Manager: If there have been edits made by either the HDS user, or the GIS Manager
                 // Regional Engineer: If there have been NO edits made to the OM79
@@ -367,38 +458,27 @@ namespace OM_79_HUB.Controllers
 
                 if (everEdited)
                 {
-                    //send email to the DistrictManager
+                    // Send email to the DistrictManager
                     omEntry.WorkflowStep = "SubmittedBackToDistrictManager";
                     await _hubContext.SaveChangesAsync();
                     await SendWorkflowEmailToDistrictManagerWithApprovalFromGISManager(hubkey, Request.Form["commentsmodal"]);
-
-                    //Maybe put this into the District Manager: Approve / Edit signature field and only deactivate them when the District manager edits the OM79 and sends it back to the HDS user
-                    //// Deactivate the current HDS & GIS Manager Signatures here
-                    //var currentSignatures = _hubContext.SignatureData
-                    //    .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager"))
-                    //    .ToList();
-
-                    //foreach (var signatureToDeactivate in currentSignatures)
-                    //{
-                    //    signatureToDeactivate.IsCurrentSig = false;
-                    //}
 
                     await _hubContext.SaveChangesAsync();
                 }
 
                 if (!everEdited)
                 {
-                    //Send email to the regionalEngineer
+                    // Send email to the regionalEngineer
                     omEntry.WorkflowStep = "SubmittedToRegionalEngineer";
                     await _hubContext.SaveChangesAsync();
                     await SendWorkflowEmailToRegionalEngineerWithApprovalFromGISManagerOrDistrictManager(hubkey, Request.Form["commentsmodal"]);
 
-                    //Can keep all of the signatures active here becuase there have been no edits made
+                    // Can keep all of the signatures active here because there have been no edits made
                 }
             }
 
             // The GIS Manager has just signed the OM79, but it has been edited
-            if (edited.FirstOrDefault() == "edited")
+            if (decision == "edited")
             {
                 var signature = new SignatureData
                 {
@@ -416,14 +496,12 @@ namespace OM_79_HUB.Controllers
                 _hubContext.Add(signature);
                 await _hubContext.SaveChangesAsync();
 
-                // GIS manager has touched it at least once now:::
+                // GIS manager has touched it at least once now
                 if (omEntry.HasGISReviewed == false || omEntry.HasGISReviewed == null)
                 {
                     omEntry.HasGISReviewed = true;
                     await _hubContext.SaveChangesAsync();
                 }
-
-                //!!!!!!! Might need to change the initial HDS signature to IsActive = false;?
 
                 // So we know the GIS manager just edited the OM79
                 // Meaning that the only next step for the OM79 is to go to the HDS user(s)
@@ -433,10 +511,125 @@ namespace OM_79_HUB.Controllers
                 omEntry.HasGISReviewed = true;
                 await _hubContext.SaveChangesAsync();
                 await SendWorkflowEmailToHDSWithEditsFromGISManager(hubkey, Request.Form["commentsmodal"]);
-
             }
             return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
         }
+
+        //public async Task<IActionResult> SignOMCentralGIS()
+        //{
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    var approved = Request.Form["apradio"];
+        //    var edited = Request.Form["editradio"];
+        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+
+        //    if (omEntry == null)
+        //    {
+        //        return NotFound("OM Entry not found");
+        //    }
+
+        //    //The GIS manager has just approved the OM79
+        //    if (approved.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = true,
+        //            IsDenied = false,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "GIS Manager",                    
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        // GIS manager has touched it at least once now:::
+        //        if (omEntry.HasGISReviewed == false || omEntry.HasGISReviewed == null)
+        //        {
+        //            omEntry.HasGISReviewed = true;
+        //            await _hubContext.SaveChangesAsync();
+        //        }
+
+        //        // There are two possible places this workflow can go to: District Manager or Regional Engineer
+        //        // District Manager: If there have been edits made by either the HDS user, or the GIS Manager
+        //        // Regional Engineer: If there have been NO edits made to the OM79
+        //        bool everEdited = omEntry.Edited ?? false;
+
+        //        if (everEdited)
+        //        {
+        //            //send email to the DistrictManager
+        //            omEntry.WorkflowStep = "SubmittedBackToDistrictManager";
+        //            await _hubContext.SaveChangesAsync();
+        //            await SendWorkflowEmailToDistrictManagerWithApprovalFromGISManager(hubkey, Request.Form["commentsmodal"]);
+
+        //            //Maybe put this into the District Manager: Approve / Edit signature field and only deactivate them when the District manager edits the OM79 and sends it back to the HDS user
+        //            //// Deactivate the current HDS & GIS Manager Signatures here
+        //            //var currentSignatures = _hubContext.SignatureData
+        //            //    .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager"))
+        //            //    .ToList();
+
+        //            //foreach (var signatureToDeactivate in currentSignatures)
+        //            //{
+        //            //    signatureToDeactivate.IsCurrentSig = false;
+        //            //}
+
+        //            await _hubContext.SaveChangesAsync();
+        //        }
+
+        //        if (!everEdited)
+        //        {
+        //            //Send email to the regionalEngineer
+        //            omEntry.WorkflowStep = "SubmittedToRegionalEngineer";
+        //            await _hubContext.SaveChangesAsync();
+        //            await SendWorkflowEmailToRegionalEngineerWithApprovalFromGISManagerOrDistrictManager(hubkey, Request.Form["commentsmodal"]);
+
+        //            //Can keep all of the signatures active here becuase there have been no edits made
+        //        }
+        //    }
+
+        //    // The GIS Manager has just signed the OM79, but it has been edited
+        //    if (edited.FirstOrDefault() == "edited")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = false,
+        //            IsEdited = true,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "GIS Manager",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        // GIS manager has touched it at least once now:::
+        //        if (omEntry.HasGISReviewed == false || omEntry.HasGISReviewed == null)
+        //        {
+        //            omEntry.HasGISReviewed = true;
+        //            await _hubContext.SaveChangesAsync();
+        //        }
+
+        //        //!!!!!!! Might need to change the initial HDS signature to IsActive = false;?
+
+        //        // So we know the GIS manager just edited the OM79
+        //        // Meaning that the only next step for the OM79 is to go to the HDS user(s)
+        //        // Notify the GIS manager that there is a OM79 ready for review, and that the HDS user did make edits
+        //        omEntry.WorkflowStep = "SubmittedToCentralHDS";
+        //        omEntry.Edited = true;
+        //        omEntry.HasGISReviewed = true;
+        //        await _hubContext.SaveChangesAsync();
+        //        await SendWorkflowEmailToHDSWithEditsFromGISManager(hubkey, Request.Form["commentsmodal"]);
+
+        //    }
+        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
+        //}
 
 
         private async Task SendWorkflowEmailToDistrictManagerWithApprovalFromGISManager(int id, string comments)
@@ -657,19 +850,22 @@ namespace OM_79_HUB.Controllers
         /*This is the functionality for the District Manager Reviewing/Editing the OM79, ie There were edits made by the central office (HDS & GIS),
          * and the district manager needs to review the changes before it is sent to operations (Regional Engineer, Director of Operation, Chief Engineer of Operations)*/
         #region SignOMCentralDistrictManager
+
+
+
         public async Task<IActionResult> SignOMCentralDistrictManager()
         {
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            var approved = Request.Form["apradio"];
-            var edited = Request.Form["editradio"];
+            var decision = Request.Form["decisionDistrict"];
             var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
 
             if (omEntry == null)
             {
                 return NotFound("OM Entry not found");
             }
-            //The District Manager has just approved the revised version of the OM79
-            if (approved.FirstOrDefault() == "approve")
+
+            // The District Manager has just approved the revised version of the OM79
+            if (decision == "approve")
             {
                 var signature = new SignatureData
                 {
@@ -687,20 +883,17 @@ namespace OM_79_HUB.Controllers
                 _hubContext.Add(signature);
                 await _hubContext.SaveChangesAsync();
 
-
-                //When the District Manager approves the changes made by the HDS and GIS Managers
-                //Send email to the Regional Engineer that is over their district
-                //Using the same workflow email as the one that gets sent when there are two approvals on the first run from the HDS user and GIS manager
+                // When the District Manager approves the changes made by the HDS and GIS Managers
+                // Send email to the Regional Engineer that is over their district
+                // Using the same workflow email as the one that gets sent when there are two approvals on the first run from the HDS user and GIS manager
 
                 omEntry.WorkflowStep = "SubmittedToRegionalEngineer";
                 await _hubContext.SaveChangesAsync();  // Save all changes in one call
                 await SendWorkflowEmailToRegionalEngineerWithApprovalFromGISManagerOrDistrictManager(hubkey, Request.Form["commentsmodal"]);
-
             }
 
-
-            //The District Manager has just edited the revised version of the OM79
-            if (edited.FirstOrDefault() == "edited")
+            // The District Manager has just edited the revised version of the OM79
+            if (decision == "edited")
             {
                 var signature = new SignatureData
                 {
@@ -718,21 +911,19 @@ namespace OM_79_HUB.Controllers
                 _hubContext.Add(signature);
                 await _hubContext.SaveChangesAsync();
 
-
-                //When the District Manager edits the changes made by the HDS and GIS Managers
-                //Send email to the HDS user from the central office
-                // !!!! Need to turn all current central office signatures to inactive. 
+                // When the District Manager edits the changes made by the HDS and GIS Managers
+                // Send email to the HDS user from the central office
+                // Need to turn all current central office signatures to inactive
                 // Restart Central Office Workflow
-
 
                 omEntry.HasGISReviewed = false;
                 omEntry.WorkflowStep = "SubmittedToCentralHDS";
 
                 var allCentralOfficeSignatures = _hubContext.SignatureData
-                                   .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager"))
-                                   .ToList();
+                    .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager"))
+                    .ToList();
 
-                foreach(var sig in allCentralOfficeSignatures)
+                foreach (var sig in allCentralOfficeSignatures)
                 {
                     sig.IsCurrentSig = false;
                     _hubContext.Update(sig);  // Ensure that the entity state is updated
@@ -741,8 +932,97 @@ namespace OM_79_HUB.Controllers
 
                 await SendWorkflowEmailToHDSWithEditsFromDistrictManager(hubkey, Request.Form["commentsmodal"]);
             }
+
             return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
         }
+
+
+        //public async Task<IActionResult> SignOMCentralDistrictManager()
+        //{
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    var approved = Request.Form["apradio"];
+        //    var edited = Request.Form["editradio"];
+        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+
+        //    if (omEntry == null)
+        //    {
+        //        return NotFound("OM Entry not found");
+        //    }
+        //    //The District Manager has just approved the revised version of the OM79
+        //    if (approved.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = true,
+        //            IsDenied = false,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "District Manager",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+
+        //        //When the District Manager approves the changes made by the HDS and GIS Managers
+        //        //Send email to the Regional Engineer that is over their district
+        //        //Using the same workflow email as the one that gets sent when there are two approvals on the first run from the HDS user and GIS manager
+
+        //        omEntry.WorkflowStep = "SubmittedToRegionalEngineer";
+        //        await _hubContext.SaveChangesAsync();  // Save all changes in one call
+        //        await SendWorkflowEmailToRegionalEngineerWithApprovalFromGISManagerOrDistrictManager(hubkey, Request.Form["commentsmodal"]);
+
+        //    }
+
+
+        //    //The District Manager has just edited the revised version of the OM79
+        //    if (edited.FirstOrDefault() == "edited")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = false,
+        //            IsEdited = true,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "District Manager",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+
+        //        //When the District Manager edits the changes made by the HDS and GIS Managers
+        //        //Send email to the HDS user from the central office
+        //        // !!!! Need to turn all current central office signatures to inactive. 
+        //        // Restart Central Office Workflow
+
+
+        //        omEntry.HasGISReviewed = false;
+        //        omEntry.WorkflowStep = "SubmittedToCentralHDS";
+
+        //        var allCentralOfficeSignatures = _hubContext.SignatureData
+        //                           .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager"))
+        //                           .ToList();
+
+        //        foreach(var sig in allCentralOfficeSignatures)
+        //        {
+        //            sig.IsCurrentSig = false;
+        //            _hubContext.Update(sig);  // Ensure that the entity state is updated
+        //        }
+        //        await _hubContext.SaveChangesAsync();  // Save all changes in one call
+
+        //        await SendWorkflowEmailToHDSWithEditsFromDistrictManager(hubkey, Request.Form["commentsmodal"]);
+        //    }
+        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
+        //}
 
         private async Task SendWorkflowEmailToHDSWithEditsFromDistrictManager(int id, string comments)
         {
@@ -809,11 +1089,12 @@ namespace OM_79_HUB.Controllers
 
         /*This is the functionality for the Regional Engineer for Approving/Denying the OM79*/
         #region SignOMCentralRegionalEngineer
+
+
         public async Task<IActionResult> SignOMCentralRegionalEngineer()
         {
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            var approved = Request.Form["apradio"];
-            var denied = Request.Form["denradio"];
+            var decision = Request.Form["decisionRegionalEngineer"];
             var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
 
             if (omEntry == null)
@@ -822,8 +1103,8 @@ namespace OM_79_HUB.Controllers
             }
             var userRole = "Regional Engineer"; // Adjust as needed for other roles
 
-            //The regional engineer has just approved the OM79, it needs to go to the RegionalDirectorOfOperations
-            if (approved.FirstOrDefault() == "approve")
+            // The regional engineer has just approved the OM79, it needs to go to the RegionalDirectorOfOperations
+            if (decision == "approve")
             {
                 var signature = new SignatureData
                 {
@@ -845,11 +1126,10 @@ namespace OM_79_HUB.Controllers
                 await _hubContext.SaveChangesAsync();
                 await SendWorkflowEmailToDirectorOfOperations(hubkey, Request.Form["commentsmodal"]);
                 await SendWorkflowUpdateEmailToHDSUser(hubkey, userRole);
-
             }
 
-            //The regional engineer has just denied the OM79. 
-            if (denied.FirstOrDefault() == "deny")
+            // The regional engineer has just denied the OM79.
+            if (decision == "deny")
             {
                 var signature = new SignatureData
                 {
@@ -876,8 +1156,8 @@ namespace OM_79_HUB.Controllers
                 omEntry.HasGISReviewed = false;
 
                 var allCentralOfficeSignatures = _hubContext.SignatureData
-                                   .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer"))
-                                   .ToList();
+                                       .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer"))
+                                       .ToList();
 
                 foreach (var sig in allCentralOfficeSignatures)
                 {
@@ -885,11 +1165,92 @@ namespace OM_79_HUB.Controllers
                     _hubContext.Update(sig);  // Ensure that the entity state is updated
                 }
                 await _hubContext.SaveChangesAsync();  // Save all changes in one call
-
             }
 
             return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
         }
+
+        //public async Task<IActionResult> SignOMCentralRegionalEngineer()
+        //{
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    var approved = Request.Form["apradio"];
+        //    var denied = Request.Form["denradio"];
+        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+
+        //    if (omEntry == null)
+        //    {
+        //        return NotFound("OM Entry not found");
+        //    }
+        //    var userRole = "Regional Engineer"; // Adjust as needed for other roles
+
+        //    //The regional engineer has just approved the OM79, it needs to go to the RegionalDirectorOfOperations
+        //    if (approved.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = true,
+        //            IsDenied = false,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "Regional Engineer",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        omEntry.WorkflowStep = "SubmittedToDirectorOfOperations";
+        //        await _hubContext.SaveChangesAsync();
+        //        await SendWorkflowEmailToDirectorOfOperations(hubkey, Request.Form["commentsmodal"]);
+        //        await SendWorkflowUpdateEmailToHDSUser(hubkey, userRole);
+
+        //    }
+
+        //    //The regional engineer has just denied the OM79. 
+        //    if (denied.FirstOrDefault() == "deny")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = true,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "Regional Engineer",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        omEntry.WorkflowStep = "SubmittedBackToDistrictManagerFromOperations";
+        //        await _hubContext.SaveChangesAsync();
+
+        //        await SendDenialEmailToDistrictManager(hubkey, Request.Form["commentsmodal"], "Regional Engineer");
+        //        await SendDenialUpdateEmailToHDSUser(hubkey, "Regional Engineer");
+
+        //        omEntry.HasGISReviewed = false;
+
+        //        var allCentralOfficeSignatures = _hubContext.SignatureData
+        //                           .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer"))
+        //                           .ToList();
+
+        //        foreach (var sig in allCentralOfficeSignatures)
+        //        {
+        //            sig.IsCurrentSig = false;
+        //            _hubContext.Update(sig);  // Ensure that the entity state is updated
+        //        }
+        //        await _hubContext.SaveChangesAsync();  // Save all changes in one call
+
+        //    }
+
+        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
+        //}
         private async Task SendWorkflowEmailToDirectorOfOperations(int id, string comments)
         {
             try
@@ -1081,11 +1442,12 @@ namespace OM_79_HUB.Controllers
 
         /* This is the functionality for the Director of Operations for Approving/Denying the OM79 */
         #region SignOMCentralDirectorOfOperations
+
+
         public async Task<IActionResult> SignOMCentralDirectorOfOperations()
         {
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            var approved = Request.Form["apradio"];
-            var denied = Request.Form["denradio"];
+            var decision = Request.Form["decisionDirectorOfOperations"];
             var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
 
             if (omEntry == null)
@@ -1095,7 +1457,7 @@ namespace OM_79_HUB.Controllers
             var userRole = "Director of Operations"; // Adjust as needed for other roles
 
             // The Director of Operations has just approved the OM79, it needs to go to the Chief Engineer of Operations
-            if (approved.FirstOrDefault() == "approve")
+            if (decision == "approve")
             {
                 var signature = new SignatureData
                 {
@@ -1120,7 +1482,7 @@ namespace OM_79_HUB.Controllers
             }
 
             // The Director of Operations has just denied the OM79
-            if (denied.FirstOrDefault() == "deny")
+            if (decision == "deny")
             {
                 var signature = new SignatureData
                 {
@@ -1147,8 +1509,8 @@ namespace OM_79_HUB.Controllers
                 omEntry.HasGISReviewed = false;
 
                 var allCentralOfficeSignatures = _hubContext.SignatureData
-                                       .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer" || e.SigType == "Director of Operations"))
-                                       .ToList();
+                                           .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer" || e.SigType == "Director of Operations"))
+                                           .ToList();
 
                 foreach (var sig in allCentralOfficeSignatures)
                 {
@@ -1160,6 +1522,87 @@ namespace OM_79_HUB.Controllers
 
             return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
         }
+
+
+        //public async Task<IActionResult> SignOMCentralDirectorOfOperations()
+        //{
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    var approved = Request.Form["apradio"];
+        //    var denied = Request.Form["denradio"];
+        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+
+        //    if (omEntry == null)
+        //    {
+        //        return NotFound("OM Entry not found");
+        //    }
+        //    var userRole = "Director of Operations"; // Adjust as needed for other roles
+
+        //    // The Director of Operations has just approved the OM79, it needs to go to the Chief Engineer of Operations
+        //    if (approved.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = true,
+        //            IsDenied = false,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "Director of Operations",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        omEntry.WorkflowStep = "SubmittedToCentralChief";
+        //        await _hubContext.SaveChangesAsync();
+        //        await SendWorkflowEmailToChiefEngineerOfOperations(hubkey, Request.Form["commentsmodal"]);
+        //        await SendWorkflowUpdateEmailToHDSUser(hubkey, userRole);
+        //    }
+
+        //    // The Director of Operations has just denied the OM79
+        //    if (denied.FirstOrDefault() == "deny")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = true,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "Director of Operations",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        omEntry.WorkflowStep = "SubmittedBackToDistrictManagerFromOperations";
+        //        await _hubContext.SaveChangesAsync();
+
+        //        await SendDenialEmailToDistrictManager(hubkey, Request.Form["commentsmodal"], "Director of Operations");
+        //        await SendDenialUpdateEmailToHDSUser(hubkey, "Director of Operations");
+
+        //        omEntry.HasGISReviewed = false;
+
+        //        var allCentralOfficeSignatures = _hubContext.SignatureData
+        //                               .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer" || e.SigType == "Director of Operations"))
+        //                               .ToList();
+
+        //        foreach (var sig in allCentralOfficeSignatures)
+        //        {
+        //            sig.IsCurrentSig = false;
+        //            _hubContext.Update(sig);  // Ensure that the entity state is updated
+        //        }
+        //        await _hubContext.SaveChangesAsync();  // Save all changes in one call
+        //    }
+
+        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
+        //}
 
         private async Task SendWorkflowEmailToChiefEngineerOfOperations(int id, string comments)
         {
@@ -1282,8 +1725,7 @@ namespace OM_79_HUB.Controllers
         public async Task<IActionResult> SignOMCentralChiefEngineerOfOperations()
         {
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            var approved = Request.Form["apradio"];
-            var denied = Request.Form["denradio"];
+            var decision = Request.Form["decisionChiefEngineer"];
             var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
 
             if (omEntry == null)
@@ -1293,7 +1735,7 @@ namespace OM_79_HUB.Controllers
             var userRole = "Chief Engineer of Operations"; // Adjust as needed for other roles
 
             // The Chief Engineer of Operations has just approved the OM79, it needs to go to the Deputy Secretary / Deputy Commissioner of Highways
-            if (approved.FirstOrDefault() == "approve")
+            if (decision == "approve")
             {
                 var signature = new SignatureData
                 {
@@ -1318,7 +1760,7 @@ namespace OM_79_HUB.Controllers
             }
 
             // The Chief Engineer of Operations has just denied the OM79
-            if (denied.FirstOrDefault() == "deny")
+            if (decision == "deny")
             {
                 var signature = new SignatureData
                 {
@@ -1358,6 +1800,86 @@ namespace OM_79_HUB.Controllers
 
             return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
         }
+
+        //public async Task<IActionResult> SignOMCentralChiefEngineerOfOperations()
+        //{
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    var approved = Request.Form["apradio"];
+        //    var denied = Request.Form["denradio"];
+        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+
+        //    if (omEntry == null)
+        //    {
+        //        return NotFound("OM Entry not found");
+        //    }
+        //    var userRole = "Chief Engineer of Operations"; // Adjust as needed for other roles
+
+        //    // The Chief Engineer of Operations has just approved the OM79, it needs to go to the Deputy Secretary / Deputy Commissioner of Highways
+        //    if (approved.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = true,
+        //            IsDenied = false,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "Chief Engineer of Operations",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        omEntry.WorkflowStep = "Finalized";
+        //        await _hubContext.SaveChangesAsync();
+        //        await SendWorkflowEmailToDeputySecretary(hubkey, Request.Form["commentsmodal"]);
+        //        await SendWorkflowUpdateEmailToHDSUser(hubkey, userRole);
+        //    }
+
+        //    // The Chief Engineer of Operations has just denied the OM79
+        //    if (denied.FirstOrDefault() == "deny")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = true,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "Chief Engineer of Operations",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        omEntry.WorkflowStep = "SubmittedBackToDistrictManagerFromOperations";
+        //        await _hubContext.SaveChangesAsync();
+
+        //        await SendDenialEmailToDistrictManager(hubkey, Request.Form["commentsmodal"], "Chief Engineer of Operations");
+        //        await SendDenialUpdateEmailToHDSUser(hubkey, "Chief Engineer of Operations");
+
+        //        omEntry.HasGISReviewed = false;
+
+        //        var allCentralOfficeSignatures = _hubContext.SignatureData
+        //                                   .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer" || e.SigType == "Director of Operations" || e.SigType == "Chief Engineer of Operations"))
+        //                                   .ToList();
+
+        //        foreach (var sig in allCentralOfficeSignatures)
+        //        {
+        //            sig.IsCurrentSig = false;
+        //            _hubContext.Update(sig);  // Ensure that the entity state is updated
+        //        }
+        //        await _hubContext.SaveChangesAsync();  // Save all changes in one call
+        //    }
+
+        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
+        //}
 
         private async Task SendWorkflowEmailToDeputySecretary(int id, string comments)
         {
@@ -1421,8 +1943,7 @@ namespace OM_79_HUB.Controllers
         public async Task<IActionResult> SignOMCentralDeniedDistrictManager()
         {
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-            var edited = Request.Form["editradio"];
-            var closed = Request.Form["closeradio"];
+            var decision = Request.Form["decisionDeniedDM"];
             var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
 
             if (omEntry == null)
@@ -1431,7 +1952,7 @@ namespace OM_79_HUB.Controllers
             }
 
             // The District Manager has just edited the OM79 entry
-            if (edited.FirstOrDefault() == "edit")
+            if (decision == "edit")
             {
                 var signature = new SignatureData
                 {
@@ -1454,8 +1975,8 @@ namespace OM_79_HUB.Controllers
                 omEntry.WorkflowStep = "SubmittedToCentralHDS";
 
                 var allCentralOfficeSignatures = _hubContext.SignatureData
-                                       .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer" || e.SigType == "Director of Operations" || e.SigType == "Chief Engineer of Operations"))
-                                       .ToList();
+                                           .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer" || e.SigType == "Director of Operations" || e.SigType == "Chief Engineer of Operations"))
+                                           .ToList();
 
                 foreach (var sig in allCentralOfficeSignatures)
                 {
@@ -1469,14 +1990,126 @@ namespace OM_79_HUB.Controllers
             }
 
             // The District Manager has just closed the OM79 entry
-            if (closed.FirstOrDefault() == "close")
+            if (decision == "close")
             {
                 // Handle the case where the OM79 entry is closed
-                // Add the appropriate actions here in the future
+                var signature = new SignatureData
+                {
+                    HubKey = hubkey,
+                    IsApprove = false,
+                    IsDenied = false,
+                    IsEdited = false,
+                    Comments = Request.Form["commentsmodal"],
+                    Signatures = Request.Form["signaturemodal"],
+                    SigType = "District Manager",
+                    ENumber = HttpContext.User.Identity.Name,
+                    DateSubmitted = DateTime.Now,
+                    IsCurrentSig = true,
+                };
+                _hubContext.Add(signature);
+                await _hubContext.SaveChangesAsync();
+
+                var allSignatures = _hubContext.SignatureData.Where(e => e.HubKey == hubkey).ToList();
+
+                foreach (var sig in allSignatures)
+                {
+                    sig.IsCurrentSig = false;
+                    _hubContext.Update(sig);  // Ensure that the entity state is updated
+                }
+
+                omEntry.WorkflowStep = "CancelledRequestArchive";
+                await _hubContext.SaveChangesAsync();
             }
 
             return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
         }
+
+
+        //public async Task<IActionResult> SignOMCentralDeniedDistrictManager()
+        //{
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    var edited = Request.Form["editradio"];
+        //    var closed = Request.Form["closeradio"];
+        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+
+        //    if (omEntry == null)
+        //    {
+        //        return NotFound("OM Entry not found");
+        //    }
+
+        //    // The District Manager has just edited the OM79 entry
+        //    if (edited.FirstOrDefault() == "edit")
+        //    {
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = false,
+        //            IsEdited = true,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "District Manager",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        // Update the workflow step and notify the appropriate users
+        //        omEntry.HasGISReviewed = false;
+        //        omEntry.WorkflowStep = "SubmittedToCentralHDS";
+
+        //        var allCentralOfficeSignatures = _hubContext.SignatureData
+        //                               .Where(e => e.HubKey == hubkey && e.IsCurrentSig == true && (e.SigType == "HDS" || e.SigType == "GIS Manager" || e.SigType == "Regional Engineer" || e.SigType == "Director of Operations" || e.SigType == "Chief Engineer of Operations"))
+        //                               .ToList();
+
+        //        foreach (var sig in allCentralOfficeSignatures)
+        //        {
+        //            sig.IsCurrentSig = false;
+        //            _hubContext.Update(sig);  // Ensure that the entity state is updated
+        //        }
+        //        await _hubContext.SaveChangesAsync();  // Save all changes in one call
+
+        //        // Notify the HDS user about the edits
+        //        await SendWorkflowEmailToHDSWithEditsFromDistrictManager(hubkey, Request.Form["commentsmodal"]);
+        //    }
+
+        //    // The District Manager has just closed the OM79 entry
+        //    if (closed.FirstOrDefault() == "close")
+        //    {
+        //        // Handle the case where the OM79 entry is closed
+        //        // Add the appropriate actions here in the future
+        //        var signature = new SignatureData
+        //        {
+        //            HubKey = hubkey,
+        //            IsApprove = false,
+        //            IsDenied = false,
+        //            IsEdited = false,
+        //            Comments = Request.Form["commentsmodal"],
+        //            Signatures = Request.Form["signaturemodal"],
+        //            SigType = "District Manager",
+        //            ENumber = HttpContext.User.Identity.Name,
+        //            DateSubmitted = DateTime.Now,
+        //            IsCurrentSig = true,
+        //        };
+        //        _hubContext.Add(signature);
+        //        await _hubContext.SaveChangesAsync();
+
+        //        var allSignatures = _hubContext.SignatureData.Where(e => e.HubKey == hubkey).ToList();
+
+        //        foreach(var sig in allSignatures)
+        //        {
+        //            sig.IsCurrentSig = false;
+        //            _hubContext.Update(sig);  // Ensure that the entity state is updated
+        //        }
+
+        //        omEntry.WorkflowStep = "CancelledRequestArchive";
+        //        await _hubContext.SaveChangesAsync();
+        //    }
+
+        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
+        //}
 
         #endregion
     }

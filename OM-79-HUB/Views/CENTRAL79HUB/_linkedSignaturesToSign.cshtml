@@ -4,12 +4,20 @@
 
 @{
     // Get signatures for each role
-    string bridgesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Bridge Engineer")?.Signatures ?? "Bridge Engineer Not Signed";
-    string trafficsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Traffic Engineer")?.Signatures ?? "Traffic Engineer Not Signed";
-    string maintenancesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Maintenance Engineer")?.Signatures ?? "Maintenance Engineer Not Signed";
-    string constructionsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Construction Engineer")?.Signatures ?? "Construction Engineer Not Signed";
-    string rightofwaysig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Right Of Way Manager")?.Signatures ?? "Right Of Way Manager Not Signed";
-    string districtsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "District Manager")?.Signatures ?? "District Manager Not Signed";
+    string bridgesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Bridge Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Bridge Engineer Not Signed";
+    string trafficsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Traffic Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Traffic Engineer Not Signed";
+    string maintenancesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Maintenance Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Maintenance Engineer Not Signed";
+    string constructionsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Construction Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Construction Engineer Not Signed";
+    string rightofwaysig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Right Of Way Manager" && t.IsCurrentSig == true)?.Signatures ?? "Right Of Way Manager Not Signed";
+    string districtsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "District Manager" && t.IsCurrentSig == true)?.Signatures ?? "District Manager Not Signed";
+
+
+    bool hasBridgeEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Bridge Engineer");
+    bool hasTrafficEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Traffic Engineer");
+    bool hasMaintenanceEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Maintenance Engineer");
+    bool hasConstructionEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Construction Engineer");
+    bool hasRightOfWayManagerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Right Of Way Manager");
+    bool hasDistrictManagerSigned = Model.CurrentSignatures.Any(t => t.SigType == "District Manager");
 }
 
 
@@ -28,7 +36,10 @@
         <div class="input-group">
             <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
             <input type="text" class="form-control" readonly value="@bridgesig" />
-            <button class="btn btn-primary sign2" value="Bridge Engineer">Sign</button>
+            @if (!hasBridgeEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Bridge Engineer">Sign</button>
+            }
         </div>
         <button class="collapsible">Bridge Engineer Details</button>
         <div class="content">
@@ -65,7 +76,10 @@
         <div class="input-group">
             <span class="input-group-text" id="trafficsiglabel">Traffic Engineer</span>
             <input type="text" class="form-control" readonly value="@trafficsig" />
-            <button class="btn btn-primary sign2" value="Traffic Engineer">Sign</button>
+            @if (!hasTrafficEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Traffic Engineer">Sign</button>
+            }
         </div>
         <button class="collapsible">Traffic Engineer Details</button>
         <div class="content">
@@ -101,7 +115,10 @@
         <div class="input-group">
             <span class="input-group-text" id="maintenancesiglabel">Maintenance Engineer</span>
             <input type="text" class="form-control" readonly value="@maintenancesig" />
-            <button class="btn btn-primary sign2" value="Maintenance Engineer">Sign</button>
+            @if (!hasMaintenanceEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Maintenance Engineer">Sign</button>
+            }
         </div>
         <button class="collapsible">Maintenance Engineer Details</button>
         <div class="content">
@@ -137,7 +154,10 @@
         <div class="input-group">
             <span class="input-group-text" id="constructionsiglabel">Construction Engineer</span>
             <input type="text" class="form-control" readonly value="@constructionsig" />
-            <button class="btn btn-primary sign2" value="Construction Engineer">Sign</button>
+            @if (!hasConstructionEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Construction Engineer">Sign</button>
+            }
         </div>
         <button class="collapsible">Construction Engineer Details</button>
         <div class="content">
@@ -173,7 +193,10 @@
         <div class="input-group">
             <span class="input-group-text" id="rightofwaysiglabel">Right Of Way Manager</span>
             <input type="text" class="form-control" readonly value="@rightofwaysig" />
-            <button class="btn btn-primary sign2" value="Right Of Way Manager">Sign</button>
+            @if (!hasRightOfWayManagerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Right Of Way Manager">Sign</button>
+            }
         </div>
         <button class="collapsible">Right Of Way Manager Details</button>
         <div class="content">
@@ -211,7 +234,14 @@
         <div class="input-group">
             <span class="input-group-text" id="districtsiglabel">District Manager</span>
             <input type="text" class="form-control" readonly value="@districtsig" />
-            <button class="btn btn-primary sign2" value="District Manager">Sign</button>
+            @if (!hasDistrictManagerSigned)
+            {
+                <button class="btn btn-primary sign2" value="District Manager">Sign</button>
+            }
+            else
+            {
+                <p>Completed</p>
+            }
         </div>
         <button class="collapsible">District Manager Details</button>
         <div class="content">
@@ -256,9 +286,9 @@
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="" name="sigtype" id="sigtype" />
                             <label for="approve">Approve</label>
-                            <input type="radio" id="approve" name="apradio" value="approve" />
+                            <input type="radio" id="approve" name="decision" value="approve" />
                             <label for="deny">Deny</label>&nbsp;
-                            <input type="radio" id="deny" name="denradio" value="deny" />
+                            <input type="radio" id="deny" name="decision" value="deny" />
                             <br />
                             <label class="form-label" for="signaturemodal">Signature</label>
                             <input type="text" id="sigbox" name="signaturemodal" class="form-control" />

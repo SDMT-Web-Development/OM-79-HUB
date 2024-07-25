@@ -479,7 +479,7 @@ namespace OM_79_HUB.Controllers
         //        signature.DateSubmitted = DateTime.Now;
         //        signature.IsCurrentSig = true;
 
-               
+
         //        _context.Add(signature);
         //        await _context.SaveChangesAsync();
 
@@ -833,217 +833,351 @@ namespace OM_79_HUB.Controllers
         //}
 
 
+        //public async Task<IActionResult> SignOMHub()
+        //{
+        //    var app = Request.Form["apradio"];
+        //    var den = Request.Form["denradio"];
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    bool isDistrictManagerSigning = false;
+
+
+
+        //    if (app.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = true;
+        //        signature.IsDenied = false;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
+
+
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
+
+        //        if (signature.SigType == "District Manager")
+        //        {
+        //            isDistrictManagerSigning = true;
+        //        }
+
+        //        // Update the workflow step if approved
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
+        //        {
+        //            var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
+
+        //            // List of required roles
+        //            var requiredRoles = new List<string>
+        //            {
+        //                "Bridge Engineer",
+        //                "Traffic Engineer",
+        //                "Maintenance Engineer",
+        //                "Construction Engineer",
+        //                "Right Of Way Manager"
+        //            };
+
+        //            // Check if all required roles have signatures
+        //            bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+
+        //            if (allRolesSigned)
+        //            {
+        //                bool allRolesApproved = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role && sig.IsApprove));
+        //                if (allRolesApproved)
+        //                {
+        //                    omEntry.WorkflowStep = "SubmittedToDistrictManager";
+
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("==========All Signatures should be done here");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    await _context.SaveChangesAsync();
+
+
+        //                    /////////// Send District Manager Email Here
+        //                    ///
+
+        //                    sendInitialWorkflowEmailToDistrictManager(hubkey);
+        //                }
+        //                else
+        //                {
+        //                    // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
+        //                    // send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
+
+        //                    sendDistrictUserDenialEmail(hubkey);
+
+        //                    foreach (var signatures in allSignatures)
+        //                    {
+        //                        signature.IsCurrentSig = false;
+        //                    }
+        //                    omEntry.WorkflowStep = "RestartFromDistrict";
+        //                    omEntry.IsSubmitted = false;
+
+
+        //                    await _context.SaveChangesAsync();
+        //                }
+        //            }
+        //            await _context.SaveChangesAsync();
+        //        }
+
+
+        //        // Check if the District Manager has just signed SubmittedToDistrictManager
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+        //        {
+        //            // This means the district manager has just signed and approved the OM79 entry to be sent to the central office
+        //            Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+
+        //            omEntry.WorkflowStep = "SubmittedToCentralHDS";
+        //            await _context.SaveChangesAsync();
+
+        //            // Send email to HDS
+        //            SendWorkflowEmailToHDS(hubkey);
+
+
+        //        }
+
+
+        //    }
+
+        //    if (den.FirstOrDefault() == "deny")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = false;
+        //        signature.IsDenied = true;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
+
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
+
+
+
+
+        //        if (signature.SigType == "District Manager")
+        //        {
+        //            isDistrictManagerSigning = true;
+        //        }
+
+
+        //        // Update the workflow step if denied
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
+        //        {
+        //            var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+
+        //            // List of required roles
+        //            var requiredRoles = new List<string>
+        //            {
+        //                "Bridge Engineer",
+        //                "Traffic Engineer",
+        //                "Maintenance Engineer",
+        //                "Construction Engineer",
+        //                "Right Of Way Manager"
+        //            };
+
+        //            // Check if all required roles have signatures
+        //            bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+
+        //            if (allRolesSigned)
+        //            {
+        //                // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
+        //                // Maybe send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
+
+        //                sendDistrictUserDenialEmail(hubkey);
+
+        //                foreach (var signatures in allSignatures)
+        //                {
+        //                    signature.IsCurrentSig = false;
+        //                }
+        //                omEntry.WorkflowStep = "RestartFromDistrict";
+        //                omEntry.IsSubmitted = false;
+
+
+        //                await _context.SaveChangesAsync();
+        //            }
+        //        }
+
+
+
+
+        //        // Check if the District Manager has just signed
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+        //        {
+        //            // This means the district manager has just signed and denied the OM79 entry to be sent to the central office
+        //            Console.WriteLine("District Manager has just signed and denied the OM79 entry.");
+
+
+        //            sendDistrictManagerDenialEmail(hubkey);
+        //            var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+
+        //            foreach (var signatures in allSignatures)
+        //            {
+        //                signature.IsCurrentSig = false;
+        //            }
+        //            omEntry.WorkflowStep = "RestartFromDistrictManager";
+        //            omEntry.IsSubmitted = false;
+
+
+        //            await _context.SaveChangesAsync();                    
+        //        }
+        //    }
+
+        //    return RedirectToAction(nameof(Details), new { id = hubkey });
+        //}
+
         public async Task<IActionResult> SignOMHub()
         {
-            var app = Request.Form["apradio"];
-            var den = Request.Form["denradio"];
+            var decision = Request.Form["decision"];
             var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
             bool isDistrictManagerSigning = false;
 
-
-
-            if (app.FirstOrDefault() == "approve")
+            var signature = new SignatureData
             {
-                var signature = new SignatureData();
-                signature.HubKey = int.Parse(Request.Form["HubKey"]);
-                signature.IsApprove = true;
-                signature.IsDenied = false;
-                signature.Comments = Request.Form["commentsmodal"];
-                signature.Signatures = Request.Form["signaturemodal"];
-                signature.SigType = Request.Form["sigtype"];
-                signature.ENumber = HttpContext.User.Identity.Name;
-                signature.DateSubmitted = DateTime.Now;
-                signature.IsCurrentSig = true;
+                HubKey = hubkey,
+                IsApprove = decision == "approve",
+                IsDenied = decision == "deny",
+                Comments = Request.Form["commentsmodal"],
+                Signatures = Request.Form["signaturemodal"],
+                SigType = Request.Form["sigtype"],
+                ENumber = HttpContext.User.Identity.Name,
+                DateSubmitted = DateTime.Now,
+                IsCurrentSig = true,
+            };
 
+            _context.Add(signature);
+            await _context.SaveChangesAsync();
 
-                _context.Add(signature);
-                await _context.SaveChangesAsync();
-
-                if (signature.SigType == "District Manager")
-                {
-                    isDistrictManagerSigning = true;
-                }
-
-                // Update the workflow step if approved
-                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
-                if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
-                {
-                    var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
-
-                    // List of required roles
-                    var requiredRoles = new List<string>
-                    {
-                        "Bridge Engineer",
-                        "Traffic Engineer",
-                        "Maintenance Engineer",
-                        "Construction Engineer",
-                        "Right Of Way Manager"
-                    };
-
-                    // Check if all required roles have signatures
-                    bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
-                    
-                    if (allRolesSigned)
-                    {
-                        bool allRolesApproved = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role && sig.IsApprove));
-                        if (allRolesApproved)
-                        {
-                            omEntry.WorkflowStep = "SubmittedToDistrictManager";
-
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("==========All Signatures should be done here");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            Console.WriteLine("============================================");
-                            await _context.SaveChangesAsync();
-
-
-                            /////////// Send District Manager Email Here
-                            ///
-
-                            sendInitialWorkflowEmailToDistrictManager(hubkey);
-                        }
-                        else
-                        {
-                            // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
-                            // send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
-
-                            sendDistrictUserDenialEmail(hubkey);
-
-                            foreach (var signatures in allSignatures)
-                            {
-                                signature.IsCurrentSig = false;
-                            }
-                            omEntry.WorkflowStep = "RestartFromDistrict";
-                            omEntry.IsSubmitted = false;
-
-
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-                    await _context.SaveChangesAsync();
-                }
-
-
-                // Check if the District Manager has just signed SubmittedToDistrictManager
-                if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
-                {
-                    // This means the district manager has just signed and approved the OM79 entry to be sent to the central office
-                    Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
-
-                    omEntry.WorkflowStep = "SubmittedToCentralHDS";
-                    await _context.SaveChangesAsync();
-
-                    // Send email to HDS
-                    SendWorkflowEmailToHDS(hubkey);
-
-                   
-                }
-
-
+            var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+            if (omEntry == null)
+            {
+                return NotFound("OM Entry not found");
             }
 
-            if (den.FirstOrDefault() == "deny")
+            if (signature.SigType == "District Manager")
             {
-                var signature = new SignatureData();
-                signature.HubKey = int.Parse(Request.Form["HubKey"]);
-                signature.IsApprove = false;
-                signature.IsDenied = true;
-                signature.Comments = Request.Form["commentsmodal"];
-                signature.Signatures = Request.Form["signaturemodal"];
-                signature.SigType = Request.Form["sigtype"];
-                signature.ENumber = HttpContext.User.Identity.Name;
-                signature.DateSubmitted = DateTime.Now;
-                signature.IsCurrentSig = true;
+                isDistrictManagerSigning = true;
+            }
 
-                _context.Add(signature);
-                await _context.SaveChangesAsync();
-
-
-
-
-                if (signature.SigType == "District Manager")
-                {
-                    isDistrictManagerSigning = true;
-                }
-
-
-                // Update the workflow step if denied
-                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
-                if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
-                {
-                    var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
-
-                    // List of required roles
-                    var requiredRoles = new List<string>
-                    {
-                        "Bridge Engineer",
-                        "Traffic Engineer",
-                        "Maintenance Engineer",
-                        "Construction Engineer",
-                        "Right Of Way Manager"
-                    };
-
-                    // Check if all required roles have signatures
-                    bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
-
-                    if (allRolesSigned)
-                    {
-                        // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
-                        // Maybe send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
-
-                        sendDistrictUserDenialEmail(hubkey);
-
-                        foreach (var signatures in allSignatures)
-                        {
-                            signature.IsCurrentSig = false;
-                        }
-                        omEntry.WorkflowStep = "RestartFromDistrict";
-                        omEntry.IsSubmitted = false;
-
-
-                        await _context.SaveChangesAsync();
-                    }
-                }
-
-
-
-
-                // Check if the District Manager has just signed
-                if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
-                {
-                    // This means the district manager has just signed and denied the OM79 entry to be sent to the central office
-                    Console.WriteLine("District Manager has just signed and denied the OM79 entry.");
-                    
-                    
-                    sendDistrictManagerDenialEmail(hubkey);
-                    var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
-
-                    foreach (var signatures in allSignatures)
-                    {
-                        signature.IsCurrentSig = false;
-                    }
-                    omEntry.WorkflowStep = "RestartFromDistrictManager";
-                    omEntry.IsSubmitted = false;
-
-
-                    await _context.SaveChangesAsync();                    
-                }
+            if (decision == "approve")
+            {
+                await HandleApproval(omEntry, signature, isDistrictManagerSigning);
+            }
+            else if (decision == "deny")
+            {
+                await HandleDenial(omEntry, signature, isDistrictManagerSigning);
             }
 
             return RedirectToAction(nameof(Details), new { id = hubkey });
         }
 
+        private async Task HandleApproval(CENTRAL79HUB omEntry, SignatureData signature, bool isDistrictManagerSigning)
+        {
+            if (omEntry.WorkflowStep == "SubmittedToDistrict")
+            {
+                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
+                var requiredRoles = new List<string>
+        {
+            "Bridge Engineer",
+            "Traffic Engineer",
+            "Maintenance Engineer",
+            "Construction Engineer",
+            "Right Of Way Manager"
+        };
+
+                bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+                bool allRolesApproved = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role && sig.IsApprove));
+
+                if (allRolesSigned)
+                {
+                    if (allRolesApproved)
+                    {
+                        omEntry.WorkflowStep = "SubmittedToDistrictManager";
+                        await _context.SaveChangesAsync();
+                        sendInitialWorkflowEmailToDistrictManager(signature.HubKey ?? 0); // Convert nullable int to int
+                    }
+                    else
+                    {
+                        sendDistrictUserDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
+                        InvalidateSignatures(allSignatures);
+                        omEntry.WorkflowStep = "RestartFromDistrict";
+                        omEntry.IsSubmitted = false;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+
+            if (omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+            {
+                omEntry.WorkflowStep = "SubmittedToCentralHDS";
+                await _context.SaveChangesAsync();
+                SendWorkflowEmailToHDS(signature.HubKey ?? 0); // Convert nullable int to int
+            }
+        }
+
+        private async Task HandleDenial(CENTRAL79HUB omEntry, SignatureData signature, bool isDistrictManagerSigning)
+        {
+            if (omEntry.WorkflowStep == "SubmittedToDistrict")
+            {
+                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+                var requiredRoles = new List<string>
+        {
+            "Bridge Engineer",
+            "Traffic Engineer",
+            "Maintenance Engineer",
+            "Construction Engineer",
+            "Right Of Way Manager"
+        };
+
+                bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+
+                if (allRolesSigned)
+                {
+                    sendDistrictUserDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
+                    InvalidateSignatures(allSignatures);
+                    omEntry.WorkflowStep = "RestartFromDistrict";
+                    omEntry.IsSubmitted = false;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            if (omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+            {
+                sendDistrictManagerDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
+                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+                InvalidateSignatures(allSignatures);
+                omEntry.WorkflowStep = "RestartFromDistrictManager";
+                omEntry.IsSubmitted = false;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private void InvalidateSignatures(List<SignatureData> signatures)
+        {
+            foreach (var signature in signatures)
+            {
+                signature.IsCurrentSig = false;
+                _context.Update(signature);  // Ensure that the entity state is updated
+            }
+        }
 
         public void SendWorkflowEmailToHDS(int id)
         {

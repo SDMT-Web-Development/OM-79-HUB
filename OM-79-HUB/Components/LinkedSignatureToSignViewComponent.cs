@@ -28,6 +28,13 @@ namespace OM_79_HUB.Components
             var centralOfficeUsers = _context.UserData.Where(e => e.GISManager || e.HDS || e.Chief);
             bool isCentralSigner = centralOfficeUsers.Any(u => u.ENumber == userENumber);
 
+
+            // Closed / Approved Case
+            if (omEntry.WorkflowStep == "CancelledRequestArchive" || omEntry.WorkflowStep == "Finalized")
+            {
+                //This means this om79 was never approved, closed, and can never be reopened
+                return View("~/Views/CENTRAL79HUB/_DisplayNone.cshtml");
+            }
             //District level signing view
             if (isDistrictSigner && (omEntry.WorkflowStep == "SubmittedToDistrict" || omEntry.WorkflowStep == "SubmittedToDistrictManager"))
             {
