@@ -6,8 +6,8 @@ using OM_79_HUB.Models.DB.OM79;
 using OM_79_HUB.Models.DB.OM79Hub;
 using OM79.Models.DB;
 using PJ103V3.Models.DB;
-using SkiaSharp;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OM_79_HUB.Components
@@ -55,6 +55,36 @@ namespace OM_79_HUB.Components
                     pj103WorkflowsByOMTable[omTable.Id] = pj103Workflow;
                 }
 
+                // Get the current user's identity name
+                var userIdentityName = User.Identity.Name;
+
+                // Determine if the current user matches the OM entry UserId
+                bool isCurrentUserOMEntryUser = central79Hub.UserId == userIdentityName;
+
+                // Get the current user's ENumber and check their roles
+                var userENumber = userIdentityName.Split('\\').LastOrDefault();
+                var currentUserRoles = await _OMcontext.UserData.Where(u => u.ENumber == userENumber).ToListAsync();
+
+                bool isHDSUser = false;
+                bool isGISUser = false;
+                bool isDistrictManager = false;
+
+                foreach (var role in currentUserRoles)
+                {
+                    if (role.HDS)
+                    {
+                        isHDSUser = true;
+                    }
+                    if (role.GISManager)
+                    {
+                        isGISUser = true;
+                    }
+                    if (role.DistrictManager)
+                    {
+                        isDistrictManager = true;
+                    }
+                }
+
                 viewModel = new WorkflowViewModel
                 {
                     Central79Hub = central79Hub,
@@ -63,7 +93,11 @@ namespace OM_79_HUB.Components
                     OMTableCount = OM79Attached.Count,
                     OMRequiredCount = OM79workflow?.NumberOfItems,
                     PJ103SegmentsByOMTable = pj103SegmentsByOMTable,
-                    PJ103WorkflowsByOMTable = pj103WorkflowsByOMTable
+                    PJ103WorkflowsByOMTable = pj103WorkflowsByOMTable,
+                    IsHDSUser = isHDSUser,
+                    IsGISUser = isGISUser,
+                    IsDistrictManager = isDistrictManager,
+                    IsCurrentUserOMEntryUser = isCurrentUserOMEntryUser // Add this to the view model
                 };
             }
 
@@ -80,6 +114,9 @@ namespace OM_79_HUB.Components
         public int? OMRequiredCount { get; set; }
         public Dictionary<int, List<Submission>>? PJ103SegmentsByOMTable { get; set; }
         public Dictionary<int, PJ103Workflow?>? PJ103WorkflowsByOMTable { get; set; }
-
+        public bool IsHDSUser { get; set; }
+        public bool IsGISUser { get; set; }
+        public bool IsDistrictManager { get; set; }
+        public bool IsCurrentUserOMEntryUser { get; set; } // Added to hold the user's OM entry status
     }
 }

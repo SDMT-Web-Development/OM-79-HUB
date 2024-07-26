@@ -1095,13 +1095,13 @@ namespace OM_79_HUB.Controllers
             {
                 var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
                 var requiredRoles = new List<string>
-        {
-            "Bridge Engineer",
-            "Traffic Engineer",
-            "Maintenance Engineer",
-            "Construction Engineer",
-            "Right Of Way Manager"
-        };
+                    {
+                        "Bridge Engineer",
+                        "Traffic Engineer",
+                        "Maintenance Engineer",
+                        "Construction Engineer",
+                        "Right Of Way Manager"
+                    };
 
                 bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
                 bool allRolesApproved = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role && sig.IsApprove));
@@ -1118,8 +1118,8 @@ namespace OM_79_HUB.Controllers
                     {
                         sendDistrictUserDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
                         InvalidateSignatures(allSignatures);
+                        //omEntry.IsSubmitted = false;
                         omEntry.WorkflowStep = "RestartFromDistrict";
-                        omEntry.IsSubmitted = false;
                         await _context.SaveChangesAsync();
                     }
                 }
@@ -1154,7 +1154,7 @@ namespace OM_79_HUB.Controllers
                     sendDistrictUserDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
                     InvalidateSignatures(allSignatures);
                     omEntry.WorkflowStep = "RestartFromDistrict";
-                    omEntry.IsSubmitted = false;
+                   //omEntry.IsSubmitted = false;
                     await _context.SaveChangesAsync();
                 }
             }

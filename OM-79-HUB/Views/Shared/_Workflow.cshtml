@@ -165,12 +165,92 @@
             }
             else
             {
-                <p>This is where there can be info displayed about the signature workflow in the futrue, currently no way to edit OM79(s)</p>
-
-                
+                @if (Model.Central79Hub.WorkflowStep == "RestartFromDistrict")
+                {
+                    <p>Step: Restart from District</p>
+                    @if (Model.IsCurrentUserOMEntryUser)
+                    {
+                        <p>Note: Your OM79 entry was declined by the district. Please review and make the necessary edits below.</p>
+                        <button class="btn btn-primary">Edit</button>
+                        <a href="@Url.Action("Edit", "OM79") class="btn btn-primary">Edit Page</a>
+                    }           
+                }
+                else if (Model.Central79Hub.WorkflowStep == "RestartFromDistrictManager")
+                {
+                    <p>Step: Restart from District Manager</p>
+                    @if (Model.IsCurrentUserOMEntryUser)
+                    {
+                        <p>Note: Your OM79 entry was declined by the district manager. Please review and make the necessary edits below.</p>
+                        <button class="btn btn-primary">Edit</button>
+                    }           
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrict")
+                {
+                    <p>Step: Submitted to District</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrictManager")
+                {
+                    <p>Step: Submitted to District Manager</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralHDS")
+                {
+                    <p>Step: Submitted to Central HDS</p>
+                    @if (Model.IsHDSUser)
+                    {
+                        <button class="btn btn-primary">Edit</button>
+                    }           
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralGIS")
+                {
+                    <p>Step: Submitted to Central GIS</p>
+                    @if (Model.IsGISUser)
+                    {
+                        <button class="btn btn-primary">Edit</button>
+                    }
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedBackToDistrictManager")
+                {
+                    <p>Step: Submitted Back to District Manager</p>
+                    @if (Model.IsDistrictManager)
+                    {
+                        <button class="btn btn-primary">Edit</button>
+                    }
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations")
+                {
+                    <p>Step: Submitted Back to District Manager from Operations</p>
+                    @if (Model.IsDistrictManager)
+                    {
+                        <button class="btn btn-primary">Edit</button>
+                    }
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToRegionalEngineer")
+                {
+                    <p>Step: Submitted to Regional Engineer</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToDirectorOfOperations")
+                {
+                    <p>Step: Submitted to Director of Operations</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralChief")
+                {
+                    <p>Step: Submitted to Central Chief</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "CancelledRequestArchive")
+                {
+                    <p>Step: Cancelled Request Archive</p>
+                }
+                else if (Model.Central79Hub.WorkflowStep == "Finalized")
+                {
+                    <p>Step: Finalized</p>
+                }
+                else
+                {
+                    <p>This is where there can be info displayed about the signature workflow in the future, currently no way to edit OM79(s)</p>
+                }                
             }
         }
-                    @*There is no entry loaded here*@
+        @*There is no entry loaded here*@
         else
         {
             <div class="internal-right-column-content">
