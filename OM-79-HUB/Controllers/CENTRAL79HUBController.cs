@@ -28,6 +28,24 @@ namespace OM_79_HUB.Controllers
             _OMcontext = oM79Context;
         }
 
+        [HttpGet]
+        public IActionResult EditPackage(int? id)
+        {
+            // Use the id parameter to load the specific package data from the database
+            var om = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+
+            // If the package data with the given ID is not found, return a 404 Not Found response
+            if (om == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.TestUniqueID = id;
+
+
+            // Return the view with the loaded package data
+            return View(om);
+        }
 
 
         //
@@ -379,11 +397,9 @@ namespace OM_79_HUB.Controllers
         }
 
         // POST: CENTRAL79HUB/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB)
+        public async Task<IActionResult> Edit(int id, [Bind("OMId,RouteID,EmailSubmit,Otherbox")] CENTRAL79HUB cENTRAL79HUB)
         {
             if (id != cENTRAL79HUB.OMId)
             {
@@ -392,26 +408,29 @@ namespace OM_79_HUB.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                // Retrieve the existing entity from the database
+                var existingEntity = await _context.CENTRAL79HUB.FindAsync(id);
+                if (existingEntity == null)
                 {
-                    _context.Update(cENTRAL79HUB);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CENTRAL79HUBExists(cENTRAL79HUB.OMId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+
+                // Update only the fields that were edited in the form
+                existingEntity.RouteID = cENTRAL79HUB.RouteID;
+                existingEntity.EmailSubmit = cENTRAL79HUB.EmailSubmit;
+                existingEntity.Otherbox = cENTRAL79HUB.Otherbox;
+
+                // Save changes
+                _context.Update(existingEntity);
+                await _context.SaveChangesAsync();
+
+                // Redirect to the EditPackage action
+                return RedirectToAction("EditPackage", new { id = cENTRAL79HUB.OMId });
             }
+
             return View(cENTRAL79HUB);
         }
+
 
         // GET: CENTRAL79HUB/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -1093,7 +1112,7 @@ namespace OM_79_HUB.Controllers
         {
             if (omEntry.WorkflowStep == "SubmittedToDistrict")
             {
-                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
+                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
                 var requiredRoles = new List<string>
                     {
                         "Bridge Engineer",
@@ -1165,7 +1184,6 @@ namespace OM_79_HUB.Controllers
                 var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
                 InvalidateSignatures(allSignatures);
                 omEntry.WorkflowStep = "RestartFromDistrictManager";
-                omEntry.IsSubmitted = false;
                 await _context.SaveChangesAsync();
             }
         }

@@ -171,8 +171,14 @@
                     @if (Model.IsCurrentUserOMEntryUser)
                     {
                         <p>Note: Your OM79 entry was declined by the district. Please review and make the necessary edits below.</p>
-                        <button class="btn btn-primary">Edit</button>
-                        <a href="@Url.Action("Edit", "OM79") class="btn btn-primary">Edit Page</a>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
+                        <br />
+                        <br/>
+                        <p>Completed All of the Requested Changes from your district? <br/> Click 'Finish & Submit For Review' to proceed.</p>
+                        <form asp-action="FinishSubmit" asp-controller="CENTRAL79HUB" method="post">
+                            <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
+                            <button type="submit" class="btn btn-primary">Finish & Submit For Review</button>
+                        </form>
                     }           
                 }
                 else if (Model.Central79Hub.WorkflowStep == "RestartFromDistrictManager")
@@ -181,7 +187,14 @@
                     @if (Model.IsCurrentUserOMEntryUser)
                     {
                         <p>Note: Your OM79 entry was declined by the district manager. Please review and make the necessary edits below.</p>
-                        <button class="btn btn-primary">Edit</button>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
+                        <br />
+                        <br />
+                        <p>Completed All of the Requested Changes from your district? Click 'Finish & Submit For Review' to proceed.</p>
+                        <form asp-action="FinishSubmit" asp-controller="CENTRAL79HUB" method="post">
+                            <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
+                            <button type="submit" class="btn btn-primary">Finish & Submit For Review</button>
+                        </form>
                     }           
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrict")
@@ -197,15 +210,15 @@
                     <p>Step: Submitted to Central HDS</p>
                     @if (Model.IsHDSUser)
                     {
-                        <button class="btn btn-primary">Edit</button>
-                    }           
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
+                    }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralGIS")
                 {
                     <p>Step: Submitted to Central GIS</p>
                     @if (Model.IsGISUser)
                     {
-                        <button class="btn btn-primary">Edit</button>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
                     }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedBackToDistrictManager")
@@ -213,7 +226,7 @@
                     <p>Step: Submitted Back to District Manager</p>
                     @if (Model.IsDistrictManager)
                     {
-                        <button class="btn btn-primary">Edit</button>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
                     }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations")
@@ -221,7 +234,7 @@
                     <p>Step: Submitted Back to District Manager from Operations</p>
                     @if (Model.IsDistrictManager)
                     {
-                        <button class="btn btn-primary">Edit</button>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
                     }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToRegionalEngineer")
@@ -244,9 +257,13 @@
                 {
                     <p>Step: Finalized</p>
                 }
+                else if (Model.Central79Hub.WorkflowStep == "Archived")
+                {
+                    <p>Step: Archived</p>
+                }
                 else
                 {
-                    <p>This is where there can be info displayed about the signature workflow in the future, currently no way to edit OM79(s)</p>
+                    <p>This is where there can be info displayed about the signature workflow in the future, currently no way to edit OM79(s), Older OM(s) may display this...</p>
                 }                
             }
         }

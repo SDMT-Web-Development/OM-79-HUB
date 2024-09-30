@@ -51,7 +51,7 @@ namespace OM_79_HUB.Components
                     if (userRoles.DistrictManager && !signeesRoles.Contains("District Manager")) signeesRoles.Add("District Manager");
                 }
 
-                var currentSignatures = _context.SignatureData.Where(entry => entry.HubKey == hubID).ToList();
+                var currentSignatures = _context.SignatureData.Where(entry => entry.HubKey == hubID && entry.IsCurrentSig == true).ToList();
 
                 var viewModel = new SignaturesToSignViewModel
                 {

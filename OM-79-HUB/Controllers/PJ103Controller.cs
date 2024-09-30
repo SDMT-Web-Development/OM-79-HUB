@@ -358,6 +358,9 @@ namespace OM_79_HUB.Data
                 var pjWorkflow = await _oM79Context.PJ103Workflow.FirstOrDefaultAsync(o => o.OMID == om79ID);
                 Console.WriteLine($"PJ103Workflow entry: {pjWorkflow?.PJ103WorkflowID}, {pjWorkflow?.NumberOfSegments}");
 
+
+               
+
                 var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(o => o.OMId == om79.HubId);
                 Console.WriteLine($"CENTRAL79HUB entry: {hub?.OMId}, {hub?.County}");
 
@@ -369,6 +372,11 @@ namespace OM_79_HUB.Data
                 Console.WriteLine("----------------------------------------");
                 Console.WriteLine("----------------------------------------");
                 Console.WriteLine("----------------------------------------");
+                if (pjWorkflow == null)
+                {
+                    //They are editing the package here
+                    return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
+                }
 
 
                 // Get the list of PJ103 segments
@@ -385,7 +393,7 @@ namespace OM_79_HUB.Data
 
 
                 // Compare the count of PJ103 segments with pjWorkflow.NumberOfSegments
-                if (pj103Segments.Count < pjWorkflow.NumberOfSegments)
+                if (pj103Segments.Count < pjWorkflow.NumberOfSegments || pj103Segments.Count == 0)
                 {
                     return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
                 }
@@ -542,8 +550,9 @@ namespace OM_79_HUB.Data
             }
             return View(submission);
         }
-        
+
         // GET: Submissions/Delete/5
+        [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Submissions == null)
@@ -551,6 +560,7 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
+            // Fetch the submission entry by ID
             var submission = await _context.Submissions
                 .FirstOrDefaultAsync(m => m.SubmissionID == id);
             if (submission == null)
@@ -558,27 +568,38 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
-            return View(submission);
-        }
-        
-        // POST: Submissions/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Submissions == null)
+            // Delete related BridgeRR entry
+            var bridgeRR = await _context.BridgeRR
+                .FirstOrDefaultAsync(b => b.RailKey == id);
+            if (bridgeRR != null)
             {
-                return Problem("Entity set 'Pj103Context.Submissions'  is null.");
-            }
-            var submission = await _context.Submissions.FindAsync(id);
-            if (submission != null)
-            {
-                _context.Submissions.Remove(submission);
+                _context.BridgeRR.Remove(bridgeRR);
             }
 
+            // Delete related RouteInfo entry
+            var routeInfo = await _context.RouteInfo
+                .FirstOrDefaultAsync(r => r.SubmissionID == id);
+            if (routeInfo != null)
+            {
+                _context.RouteInfo.Remove(routeInfo);
+            }
+
+            // Finally, delete the Submission entry
+            _context.Submissions.Remove(submission);
+
+            // Save all changes
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            // Redirect back to the specific EditPackage page
+            var hubId = _oM79Context.OMTable
+                .Where(o => o.Id == submission.OM79Id)
+                .Select(o => o.HubId)
+                .FirstOrDefault();
+
+            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubId });
         }
+
+
 
         private bool SubmissionExists(int id)
         {
