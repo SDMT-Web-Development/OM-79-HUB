@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OM_79_HUB.Models;
 
@@ -105,14 +107,29 @@ public partial class OMTable
     public int? SubRouteNumber { get; set; }
     [DisplayName("Date Complete")]
     public DateTime? DateComplete { get; set; }
+    //[DisplayName("Starting MP")]
+    //[RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+    //[Required]
+    //public decimal? StartingMilePoint {  get; set; }
+    //[DisplayName("Ending MP")]
+    //[RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+    //[Required]
+    //public decimal? EndingMilePoint { get; set; }
+
+
     [DisplayName("Starting MP")]
     [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
     [Required]
-    public decimal? StartingMilePoint {  get; set; }
+    [Column(TypeName = "decimal(10, 4)")]
+    public decimal? StartingMilePoint { get; set; }
+
     [DisplayName("Ending MP")]
     [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
     [Required]
+    [Column(TypeName = "decimal(10, 4)")]
     public decimal? EndingMilePoint { get; set; }
+
+
     [DisplayName("Org Number")]
     public string? MaintOrg {  get; set; }
     [DisplayName("Year Of Survey")]

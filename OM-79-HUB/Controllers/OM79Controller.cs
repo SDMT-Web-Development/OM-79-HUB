@@ -23,13 +23,15 @@ namespace OM_79_HUB.Data
     public class OM79Controller : Controller
     {
         private readonly OM79Context _context;
-        private readonly OM_79_HUBContext _context2; 
+        private readonly OM_79_HUBContext _context2;
+        private readonly Pj103Context _pjContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public OM79Controller(OM79Context context, OM_79_HUBContext context2, IWebHostEnvironment webHostEnvironment)
+        public OM79Controller(OM79Context context, OM_79_HUBContext context2, Pj103Context pjContext, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _context2 = context2;
+            _pjContext = pjContext;
             _webHostEnvironment = webHostEnvironment;
         }
         //// GET: OMTables
@@ -271,6 +273,19 @@ namespace OM_79_HUB.Data
                         // Save changes to _context after processing attachments
                         await _context.SaveChangesAsync();
 
+
+
+
+                        //Need to skip the workflow stuff if someone is using the edit page to create a OM79:::
+                        // Skip workflow steps if isSubmitted is true
+                        var isSubmitted = false;
+                        if (isSubmitted)
+                        {
+                            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+
+
+
                         var OM79workflowForNextStep = await _context2.OM79Workflow.FirstOrDefaultAsync(c => c.HubID == oMTable.HubId);
 
 
@@ -286,7 +301,6 @@ namespace OM_79_HUB.Data
                         Console.WriteLine("-----------------------------------------------------");
                         Console.WriteLine("-----------------------------------------------------");
                         Console.WriteLine("-----------------------------------------------------");
-
 
 
                         if (oMTable.RoadChangeType == "Addition" || oMTable.RoadChangeType == "Redesignation")
@@ -404,10 +418,12 @@ namespace OM_79_HUB.Data
             }
             return View(oMTable);
         }
-
+        */
         // GET: OMTables/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            DropDowns(); // Assuming this method populates dropdowns or other data for the view
+
             if (id == null || _context.OMTable == null)
             {
                 return NotFound();
@@ -420,7 +436,7 @@ namespace OM_79_HUB.Data
             }
             return View(oMTable);
         }
-        */
+        
 
 
         // POST: OMTables/Edit/5
@@ -458,6 +474,7 @@ namespace OM_79_HUB.Data
             return View(oMTable);
         }
 
+
         // GET: OMTables/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -466,6 +483,18 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
+            // Find and delete all related PJ103Workflow entries
+            var workflows = await _context.PJ103Workflow
+                .Where(w => w.OMID == id)
+                .ToListAsync();
+
+            if (workflows.Any())
+            {
+                _context.PJ103Workflow.RemoveRange(workflows);
+                await _context.SaveChangesAsync(); // Save changes after deleting the workflows
+            }
+
+            // Find the OMTable entry by id
             var oMTable = await _context.OMTable
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (oMTable == null)
@@ -473,9 +502,63 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
-            return View(oMTable);
+            // Capture the HubId for redirection after deletion
+            var hubId = oMTable.HubId;
+
+            // Find all Submissions related to this OM79Id
+            var submissions = await _pjContext.Submissions
+                .Where(s => s.OM79Id == id)
+                .ToListAsync();
+
+            if (submissions.Any())
+            {
+                foreach (var submission in submissions)
+                {
+                    // Find and delete the associated Attachments for the submission
+                    var attachments = await _context.Attachments
+                        .Where(a => a.SubmissionID == submission.SubmissionID)
+                        .ToListAsync();
+                    if (attachments.Any())
+                    {
+                        _context.Attachments.RemoveRange(attachments);
+                    }
+
+                    // Find and delete the associated RouteInfo entry
+                    var routeInfo = await _pjContext.RouteInfo
+                        .FirstOrDefaultAsync(r => r.SubmissionID == submission.SubmissionID);
+                    if (routeInfo != null)
+                    {
+                        _pjContext.RouteInfo.Remove(routeInfo);
+                    }
+
+                    // Find and delete the associated BridgeRR entry
+                    var bridgeRR = await _pjContext.BridgeRR
+                        .FirstOrDefaultAsync(b => b.RailKey == id);
+                    if (bridgeRR != null)
+                    {
+                        _pjContext.BridgeRR.Remove(bridgeRR);
+                    }
+
+                    // Remove the Submission entry
+                    _pjContext.Submissions.Remove(submission);
+                }
+
+                // Save changes after deleting RouteInfo, BridgeRR, Attachments, and Submission entries
+                await _pjContext.SaveChangesAsync();
+            }
+
+            // Remove the OMTable entry
+            _context.OMTable.Remove(oMTable);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "OM79 item and related records deleted successfully.";
+
+            // Redirect to the specified EditPackage page
+            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubId });
         }
 
+
+        /*
         // POST: OMTables/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -494,7 +577,7 @@ namespace OM_79_HUB.Data
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
+        */
         private bool OMTableExists(int id)
         {
             return (_context.OMTable?.Any(e => e.Id == id)).GetValueOrDefault();

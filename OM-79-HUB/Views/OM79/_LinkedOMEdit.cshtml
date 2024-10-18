@@ -1,0 +1,212 @@
+﻿@model OM_79_HUB.Components.LinkedEditOMViewModel
+
+<hr />
+<div class="d-flex justify-content-between align-items-center">
+    <h4>Attached OM79 Item(s)</h4>
+    <!-- Updated to use the HubId from the ViewModel -->
+    <a href="@Url.Action("Create", "OM79", new { uniqueID = Model.HubId })" class="btn btn-success btn-lg">Add New Item</a>
+</div>
+<hr />
+
+<style>
+    .container {
+        padding-left: 40px; /* Adjust as needed for indentation */
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+
+<div class="container">
+    <div class="entries">
+        @if (Model.OMTableEntries.Any())
+        {
+            <div class="accordion" id="accordionExample">
+                @foreach (var entry in Model.OMTableEntries)
+                {
+                    var entryId = entry.Id; // Store entry Id in a variable
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-@entryId">
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@entryId" aria-expanded="false" aria-controls="collapse-@entryId">
+                                    Route: @entry.RouteIDB, @entry.RoadChangeType - Requested By: @entry.County, @(entry.SubmissionDate?.ToShortDateString() ?? "N/A")
+                                </button>
+                                <div class="d-flex">
+                                    <a href="@Url.Action("Create", "PJ103", new { uniqueID = entry.Id })" class="btn btn-success btn-lg me-2">Add Segment</a>
+                                    <a href="@Url.Action("Edit", "OM79", new { id = entry.Id })" class="btn btn-primary btn-lg me-2">Edit Item</a>
+                                    <button class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#deleteModal" data-om79id="@entry.Id">Delete Item</button>
+                                </div>
+                            </div>
+                        </h2>
+
+                        <div id="collapse-@entryId" class="accordion-collapse collapse" aria-labelledby="heading-@entryId" data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <div class="entry">
+                                    <div class="entry-header" style="background-color: transparent; color: black;">
+                                        <hr />
+                                        <h4>OM79 Item</h4>
+                                        <hr />
+                                        <span class="entry-OMItemdetails">
+                                            <a href="https://dotappstest.transportation.wv.gov/om79/OM79/details/@entryId" class="details-link">View Details</a>
+                                        </span>
+
+                                        <div id="PJContainer">
+                                            @await Component.InvokeAsync("LinkedPJEdit", new { PJhubID = entryId })
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div>No Forms Attached.</div>
+        }
+    </div>
+</div>
+<hr />
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this OM79 item?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a id="confirmDeleteButton" href="#" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5+5hb7Mr4l5fB1Ld0n0evuHVFCOmFfpMtdD4ldZ1" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('[id^=fileInput-]').forEach(function (fileInput) {
+            fileInput.addEventListener('change', function () {
+                var entryId = fileInput.id.split('-')[1];
+                var fileList = document.getElementById('fileList-' + entryId);
+                var saveFilesButton = document.getElementById('saveFilesButton-' + entryId);
+                fileList.innerHTML = ''; // Clear previous content
+
+                var files = this.files;
+
+                if (files.length > 0) {
+                    saveFilesButton.classList.remove('hidden');
+                } else {
+                    saveFilesButton.classList.add('hidden');
+                }
+
+                // Display file names in the list
+                Array.from(files).forEach(function (file) {
+                    var listItem = document.createElement('li');
+
+                    // Create and add checkmark
+                    var checkmark = document.createElement('span');
+                    checkmark.className = 'checkmark';
+                    checkmark.innerHTML = 'File Upload Successful &#10004; '; // Unicode checkmark with a space for separation
+                    listItem.appendChild(checkmark);
+
+                    // Create and add file name text
+                    listItem.appendChild(document.createTextNode(file.name));
+
+                    // Append the composed listItem to fileList
+                    fileList.appendChild(listItem);
+                });
+
+                // Call function to display file information
+                displayFileInfo(entryId, files);
+            });
+        });
+
+        // Function to display file information
+        function displayFileInfo(entryId, files) {
+            var fileInfo = document.getElementById('fileInfo-' + entryId);
+            fileInfo.innerHTML = ''; // Clear previous content
+
+            files.forEach(function (file) {
+                var fileInfoItem = document.createElement('p');
+
+                // Create and add checkmark
+                var checkmark = document.createElement('span');
+                checkmark.className = 'checkmark';
+                checkmark.innerHTML = '&#10004; '; // Unicode checkmark with a space for separation
+                fileInfoItem.appendChild(checkmark);
+
+                // Create and add file details
+                var fileDetails = 'File Name: ' + file.name + ', Content Type: ' + file.type + ', File Size: ' + file.size + ' bytes ';
+                fileInfoItem.appendChild(document.createTextNode(fileDetails));
+
+                // Append the composed fileInfoItem to fileInfo container
+                fileInfo.appendChild(fileInfoItem);
+            });
+        }
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Event delegation for delete button clicks
+        document.body.addEventListener('click', function (event) {
+            // Check if the clicked element is a delete button (with the modal target)
+            if (event.target.classList.contains('btn-danger') && event.target.getAttribute('data-bs-target') === '#deleteModal') {
+                event.preventDefault();
+                var deleteButton = event.target;
+                var om79Id = deleteButton.getAttribute('data-om79id'); // Get OM79Id from the data attribute
+                var deleteUrl = '@Url.Action("Delete", "OM79")/' + encodeURIComponent(om79Id); // Construct the delete URL
+
+                // Set the href of the confirmation button in the modal
+                document.getElementById('confirmDeleteButton').setAttribute('href', deleteUrl);
+
+                // Show the modal
+                var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                modal.show();
+            }
+        });
+
+        // Ensure the backdrop is removed when the modal is hidden
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('hidden.bs.modal', function () {
+            var backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        });
+    });
+</script>
+
+
+<style>
+    .button-container {
+        margin-top: 10px; /* Add desired margin value */
+    }
+
+    .required-asterisk {
+        font-size: 24px;
+        color: red;
+    }
+
+    .success-message {
+        color: green;
+        font-weight: bold;
+    }
+
+    .checkmark {
+        color: green;
+        margin-right: 5px;
+    }
+</style>

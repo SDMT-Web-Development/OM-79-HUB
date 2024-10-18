@@ -1,294 +1,172 @@
 ﻿@model PJ103V3.Models.ViewModels.Aclvl
 
 @{
+    ViewData["Title"] = "Edit Nature of Change";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Edit";
 }
 
-<h1>Edit</h1>
+<h2>Nature of Change Section</h2>
 
-<h4>Submission</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="SubmissionID" />
-            <div class="form-group">
-                <label asp-for="ProjectKey" class="control-label"></label>
-                <input asp-for="ProjectKey" class="form-control" />
-                <span asp-validation-for="ProjectKey" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ReportDate" class="control-label"></label>
-                <input asp-for="ReportDate" class="form-control" />
-                <span asp-validation-for="ReportDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="County" class="control-label"></label>
-                <input asp-for="County" class="form-control" />
-                <span asp-validation-for="County" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RouteNumber" class="control-label"></label>
-                <input asp-for="RouteNumber" class="form-control" />
-                <span asp-validation-for="RouteNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SubRouteNumber" class="control-label"></label>
-                <input asp-for="SubRouteNumber" class="form-control" />
-                <span asp-validation-for="SubRouteNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ProjectNumber" class="control-label"></label>
-                <input asp-for="ProjectNumber" class="form-control" />
-                <span asp-validation-for="ProjectNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DateComplete" class="control-label"></label>
-                <input asp-for="DateComplete" class="form-control" />
-                <span asp-validation-for="DateComplete" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NatureOfChange" class="control-label"></label>
-                <input asp-for="NatureOfChange" class="form-control" />
-                <span asp-validation-for="NatureOfChange" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MilesOfNewRoad" class="control-label"></label>
-                <input asp-for="MilesOfNewRoad" class="form-control" />
-                <span asp-validation-for="MilesOfNewRoad" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MaintOrg" class="control-label"></label>
-                <input asp-for="MaintOrg" class="form-control" />
-                <span asp-validation-for="MaintOrg" class="text-danger"></span>
-            </div>
-            @* <div class="form-group">
-            <label asp-for="YearOfSurvey" class="control-label"></label>
-            <input asp-for="YearOfSurvey" class="form-control" />
-            <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
-            </div>
-            *@
-            <div class="form-group">
+<div class="container">
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" class="row">
+        <!-- Access Control, Through Lanes, Counter Peak Lanes -->
+        <div class="form-row d-flex flex-wrap">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="AccessControl" class="control-label"></label>
-                <input asp-for="AccessControl" class="form-control" />
+                <select asp-for="AccessControl" class="form-control" asp-items="@ViewBag.AccessDropdown"></select>
                 <span asp-validation-for="AccessControl" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="ThroughLanes" class="control-label"></label>
-                <input asp-for="ThroughLanes" class="form-control" />
+                <input asp-for="ThroughLanes" class="form-control" type="number" step="1" min="0" />
                 <span asp-validation-for="ThroughLanes" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="CounterPeakLanes" class="control-label"></label>
-                <input asp-for="CounterPeakLanes" class="form-control" />
+                <input asp-for="CounterPeakLanes" class="form-control" type="number" step="1" min="0" />
                 <span asp-validation-for="CounterPeakLanes" class="text-danger"></span>
             </div>
-            <div class="form-group">
+        </div>
+
+        <!-- Peak Lanes, Reverse Lanes, Median Width -->
+        <div class="form-row d-flex flex-wrap">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="PeakLanes" class="control-label"></label>
-                <input asp-for="PeakLanes" class="form-control" />
+                <input asp-for="PeakLanes" class="form-control" type="number" step="1" min="0" />
                 <span asp-validation-for="PeakLanes" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="ReverseLanes" class="control-label"></label>
-                <input asp-for="ReverseLanes" class="form-control" />
+                <select asp-for="ReverseLanes" class="form-control" asp-items="@ViewBag.ReverseDropdown"></select>
                 <span asp-validation-for="ReverseLanes" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="LaneWidth" class="control-label"></label>
-                <input asp-for="LaneWidth" class="form-control" />
-                <span asp-validation-for="LaneWidth" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="MedianWidth" class="control-label"></label>
-                <input asp-for="MedianWidth" class="form-control" />
+                <input asp-for="MedianWidth" class="form-control" type="number" step="1" min="0" />
                 <span asp-validation-for="MedianWidth" class="text-danger"></span>
             </div>
-            <div class="form-group">
+        </div>
+
+        <!-- Lane Width, Grade Width, Roadway Width -->
+        <div class="form-row d-flex flex-wrap">
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="LaneWidth" class="control-label"></label>
+                <input asp-for="LaneWidth" class="form-control" type="number" step="1" min="0" />
+                <span asp-validation-for="LaneWidth" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="GradeWidth" class="control-label"></label>
+                <input asp-for="GradeWidth" class="form-control" type="number" step="1" min="0" />
+                <span asp-validation-for="GradeWidth" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="PavementWidth" class="control-label"></label>
-                <input asp-for="PavementWidth" class="form-control" />
+                <input asp-for="PavementWidth" class="form-control" type="number" step="1" min="0" />
                 <span asp-validation-for="PavementWidth" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="SpecialSys" class="control-label"></label>
-                <input asp-for="SpecialSys" class="form-control" />
-                <span asp-validation-for="SpecialSys" class="text-danger"></span>
+        </div>
+
+        <!-- Surface Type, Facility Type, Median Type -->
+        <div class="form-row d-flex flex-wrap">
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="SurfaceTypeN" class="control-label"></label>
+                <select asp-for="SurfaceTypeN" class="form-control" asp-items="@ViewBag.SurfaceTypeDropdown"></select>
+                <span asp-validation-for="SurfaceTypeN" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="FacilityType" class="control-label"></label>
-                <input asp-for="FacilityType" class="form-control" />
+                <select asp-for="FacilityType" class="form-control" asp-items="@ViewBag.FacilityDropdown"></select>
                 <span asp-validation-for="FacilityType" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="FederalAid" class="control-label"></label>
-                <input asp-for="FederalAid" class="form-control" />
-                <span asp-validation-for="FederalAid" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FedForestHighway" class="control-label"></label>
-                <input asp-for="FedForestHighway" class="form-control" />
-                <span asp-validation-for="FedForestHighway" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="MedianType" class="control-label"></label>
-                <input asp-for="MedianType" class="form-control" />
+                <select asp-for="MedianType" class="form-control" asp-items="@ViewBag.MedianDropdown"></select>
                 <span asp-validation-for="MedianType" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="NHS" class="control-label"></label>
-                <input asp-for="NHS" class="form-control" />
-                <span asp-validation-for="NHS" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TruckRoute" class="control-label"></label>
-                <input asp-for="TruckRoute" class="form-control" />
-                <span asp-validation-for="TruckRoute" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+        </div>
+
+        <!-- Gov ID Ownership, WV Functional Class, Federal Functional Class -->
+        <div class="form-row d-flex flex-wrap">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="GovIDOwnership" class="control-label"></label>
-                <input asp-for="GovIDOwnership" class="form-control" />
+                <select asp-for="GovIDOwnership" class="form-control" asp-items="@ViewBag.GovDropdown"></select>
                 <span asp-validation-for="GovIDOwnership" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="WVlegalClass" class="control-label"></label>
-                <input asp-for="WVlegalClass" class="form-control" />
+                <select asp-for="WVlegalClass" class="form-control" asp-items="@ViewBag.LegalDropdown"></select>
                 <span asp-validation-for="WVlegalClass" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group col-md-4 mb-3">
                 <label asp-for="FunctionalClass" class="control-label"></label>
-                <input asp-for="FunctionalClass" class="form-control" />
+                <select asp-for="FunctionalClass" class="form-control" asp-items="@ViewBag.FuncDropdown"></select>
                 <span asp-validation-for="FunctionalClass" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="BridgeNumber" class="control-label"></label>
-                <input asp-for="BridgeNumber" class="form-control" />
-                <span asp-validation-for="BridgeNumber" class="text-danger"></span>
+        </div>
+
+        <!-- Federal Aid, Special System, Federal Forest Highway -->
+        <div class="form-row d-flex flex-wrap">
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="FederalAid" class="control-label"></label>
+                <select asp-for="FederalAid" class="form-control" asp-items="@ViewBag.FederalDropdown"></select>
+                <span asp-validation-for="FederalAid" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="BridgeLocation" class="control-label"></label>
-                <input asp-for="BridgeLocation" class="form-control" />
-                <span asp-validation-for="BridgeLocation" class="text-danger"></span>
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="SpecialSys" class="control-label"></label>
+                <select asp-for="SpecialSys" class="form-control" asp-items="@ViewBag.SpecialDropdown"></select>
+                <span asp-validation-for="SpecialSys" class="text-danger"></span>
             </div>
-            @*     <div class="form-group">
-            <label asp-for="StationFrom" class="control-label"></label>
-            <input asp-for="StationFrom" class="form-control" />
-            <span asp-validation-for="StationFrom" class="text-danger"></span>
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="FedForestHighway" class="control-label"></label>
+                <select asp-for="FedForestHighway" class="form-control" asp-items="@ViewBag.FedForestDropdown"></select>
+                <span asp-validation-for="FedForestHighway" class="text-danger"></span>
             </div>
-            <div class="form-group">
-            <label asp-for="StationTo" class="control-label"></label>
-            <input asp-for="StationTo" class="form-control" />
-            <span asp-validation-for="StationTo" class="text-danger"></span>
+        </div>
+
+        <!-- NHS, Truck Route, Starting MP -->
+        <div class="form-row d-flex flex-wrap">
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="NHS" class="control-label"></label>
+                <select asp-for="NHS" class="form-control" asp-items="@ViewBag.NHSDropdown"></select>
+                <span asp-validation-for="NHS" class="text-danger"></span>
             </div>
-            *@
-            <div class="form-group">
-                <label asp-for="CrossingName" class="control-label"></label>
-                <input asp-for="CrossingName" class="form-control" />
-                <span asp-validation-for="CrossingName" class="text-danger"></span>
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="TruckRoute" class="control-label"></label>
+                <select asp-for="TruckRoute" class="form-control" asp-items="@ViewBag.TruckDropdown"></select>
+                <span asp-validation-for="TruckRoute" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="WeightLimit" class="control-label"></label>
-                <input asp-for="WeightLimit" class="form-control" />
-                <span asp-validation-for="WeightLimit" class="text-danger"></span>
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="MPSegmentStart" class="control-label">@Html.DisplayNameFor(model => model.MPSegmentStart)<span class="text-danger">*</span></label>
+                <input asp-for="MPSegmentStart" class="form-control" type="number" step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" />
+                <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="SubMaterial" class="control-label"></label>
-                <input asp-for="SubMaterial" class="form-control" />
-                <span asp-validation-for="SubMaterial" class="text-danger"></span>
+        </div>
+
+        <!-- Ending MP and Additional Comments -->
+        <div class="form-row d-flex flex-wrap">
+            <!-- Ending MP -->
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="MPSegmentEnd" class="control-label">@Html.DisplayNameFor(model => model.MPSegmentEnd)<span class="text-danger">*</span></label>
+                <input asp-for="MPSegmentEnd" class="form-control" type="number" step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" />
+                <span asp-validation-for="MPSegmentEnd" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="SuperMaterial" class="control-label"></label>
-                <input asp-for="SuperMaterial" class="form-control" />
-                <span asp-validation-for="SuperMaterial" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FloorMaterial" class="control-label"></label>
-                <input asp-for="FloorMaterial" class="form-control" />
-                <span asp-validation-for="FloorMaterial" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ArchMaterial" class="control-label"></label>
-                <input asp-for="ArchMaterial" class="form-control" />
-                <span asp-validation-for="ArchMaterial" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TotalLength" class="control-label"></label>
-                <input asp-for="TotalLength" class="form-control" />
-                <span asp-validation-for="TotalLength" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClearanceRoadway" class="control-label"></label>
-                <input asp-for="ClearanceRoadway" class="form-control" />
-                <span asp-validation-for="ClearanceRoadway" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClearanceSidewalkRight" class="control-label"></label>
-                <input asp-for="ClearanceSidewalkRight" class="form-control" />
-                <span asp-validation-for="ClearanceSidewalkRight" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClearanceSidewalkLeft" class="control-label"></label>
-                <input asp-for="ClearanceSidewalkLeft" class="form-control" />
-                <span asp-validation-for="ClearanceSidewalkLeft" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClearanceStreamble" class="control-label"></label>
-                <input asp-for="ClearanceStreamble" class="form-control" />
-                <span asp-validation-for="ClearanceStreamble" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClearancePortal" class="control-label"></label>
-                <input asp-for="ClearancePortal" class="form-control" />
-                <span asp-validation-for="ClearancePortal" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClearanceAboveWater" class="control-label"></label>
-                <input asp-for="ClearanceAboveWater" class="form-control" />
-                <span asp-validation-for="ClearanceAboveWater" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PostedLoadLimits" class="control-label"></label>
-                <input asp-for="PostedLoadLimits" class="form-control" />
-                <span asp-validation-for="PostedLoadLimits" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ConstructionDate" class="control-label"></label>
-                <input asp-for="ConstructionDate" class="form-control" />
-                <span asp-validation-for="ConstructionDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="WhomBuilt" class="control-label"></label>
-                <input asp-for="WhomBuilt" class="form-control" />
-                <span asp-validation-for="WhomBuilt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HistoricalBridge" class="control-label"></label>
-                <input asp-for="HistoricalBridge" class="form-control" />
-                <span asp-validation-for="HistoricalBridge" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UserID" class="control-label"></label>
-                <input asp-for="UserID" class="form-control" />
-                <span asp-validation-for="UserID" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="OtherBox" class="control-label"></label>
-                <input asp-for="OtherBox" class="form-control" />
+            <div class="form-group col-md-8 mb-3">
+                <label asp-for="OtherBox" class="control-label">Additional Comments</label>
+                <textarea asp-for="OtherBox" class="form-control" rows="4"></textarea>
                 <span asp-validation-for="OtherBox" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
+        </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+        <div class="form-group mt-4">
+            <button type="submit" class="btn btn-primary">Save Segment Changes</button>
+        </div>
+        <br />
+        <div>
+            <a asp-action="EditPackage" asp-controller="CENTRAL79HUB" asp-route-id="@ViewBag.OMId" class="btn btn-secondary">Return to Package Editor</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
 }

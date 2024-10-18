@@ -14,6 +14,363 @@
     temp = Model.Where(t => t.SigType == "Construction Engineer").ToList();
     constructionsig = temp.Count < 1 ? "Construction Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
 
+    temp = Model.Where(t => t.SigType == "Right Of Way Manager").ToList();
+    rightofwaysig = temp.Count < 1 ? "Right Of Way Manager" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "District Manager").ToList();
+    districtsig = temp.Count < 1 ? "District Manager" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "Bridge Engineer").ToList();
+    bridgesig = temp.Count < 1 ? "Bridge Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+}
+<hr />
+<h4>District-Level Signatures:</h4>
+<hr />
+<div class="input-group">
+    <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@bridgesig" />
+</div>
+<button class="collapsible">Bridge Engineer Details</button>
+<div class="content">
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Bridge Engineer")
+        {
+            <div class="signature-info">
+                <p><strong>Signature:</strong> @item.Signatures</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Bridge Engineer")
+        {
+            <div class="comment-info">
+                <p><strong>Comments:</strong> @item.Comments</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        // Check if IsApprove is true
+        if (item.IsApprove && item.SigType == "Bridge Engineer")
+        {
+            // Render approval information
+            <div class="approval-info">
+                <p><strong>Approval Status:</strong> Approved</p>
+            </div>
+        }
+
+        // Check if IsDenied is true
+        if (item.IsDenied && item.SigType == "Bridge Engineer")
+        {
+            // Render denial information
+            <div class="denial-info">
+                <p><strong>Denial Status:</strong> Denied</p>
+            </div>
+        }
+    }
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="trafficsiglabel">Traffic Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@trafficsig" />
+</div>
+<button class="collapsible">Traffic Engineer Details</button>
+<div class="content">
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Traffic Engineer")
+        {
+            <div class="signature-info">
+                <p><strong>Signature:</strong> @item.Signatures</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Traffic Engineer")
+        {
+            <div class="comment-info">
+                <p><strong>Comments:</strong> @item.Comments</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        // Check if IsApprove is true
+        if (item.IsApprove && item.SigType == "Traffic Engineer")
+        {
+            // Render approval information
+            <div class="approval-info">
+                <p><strong>Approval Status:</strong> Approved</p>
+            </div>
+        }
+
+        // Check if IsDenied is true
+        if (item.IsDenied && item.SigType == "Traffic Engineer")
+        {
+            // Render denial information
+            <div class="denial-info">
+                <p><strong>Denial Status:</strong> Denied</p>
+            </div>
+        }
+    }
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="maintenancesiglabel">Maintenance Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@maintenancesig" />
+</div>
+<button class="collapsible">Maintenance Engineer Details</button>
+<div class="content">
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Maintenance Engineer")
+        {
+            <div class="signature-info">
+                <p><strong>Signature:</strong> @item.Signatures</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Maintenance Engineer")
+        {
+            <div class="comment-info">
+                <p><strong>Comments:</strong> @item.Comments</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        // Check if IsApprove is true
+        if (item.IsApprove && item.SigType == "Maintenance Engineer")
+        {
+            // Render approval information
+            <div class="approval-info">
+                <p><strong>Approval Status:</strong> Approved</p>
+            </div>
+        }
+
+        // Check if IsDenied is true
+        if (item.IsDenied && item.SigType == "Maintenance Engineer")
+        {
+            // Render denial information
+            <div class="denial-info">
+                <p><strong>Denial Status:</strong> Denied</p>
+            </div>
+        }
+    }
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="constructionsiglabel">Construction Engineer</span>
+    <input type="text" class="form-control" readonly placeholder="@constructionsig" />
+</div>
+<button class="collapsible">Construction Engineer Details</button>
+<div class="content">
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Construction Engineer")
+        {
+            <div class="signature-info">
+                <p><strong>Signature:</strong> @item.Signatures</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Construction Engineer")
+        {
+            <div class="comment-info">
+                <p><strong>Comments:</strong> @item.Comments</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        // Check if IsApprove is true
+        if (item.IsApprove && item.SigType == "Construction Engineer")
+        {
+            // Render approval information
+            <div class="approval-info">
+                <p><strong>Approval Status:</strong> Approved</p>
+            </div>
+        }
+
+        // Check if IsDenied is true
+        if (item.IsDenied && item.SigType == "Construction Engineer")
+        {
+            // Render denial information
+            <div class="denial-info">
+                <p><strong>Denial Status:</strong> Denied</p>
+            </div>
+        }
+    }
+</div>
+<div class="input-group">
+    <span class="input-group-text" id="rightofwaysiglabel">Right of Way Manager</span>
+    <input type="text" class="form-control" readonly placeholder="@rightofwaysig" />
+</div>
+<button class="collapsible">Right of Way Manager Details</button>
+<div class="content">
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Right Of Way Manager")
+        {
+            <div class="signature-info">
+                <p><strong>Signature:</strong> @item.Signatures</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "Right Of Way Manager")
+        {
+            <div class="comment-info">
+                <p><strong>Comments:</strong> @item.Comments</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        // Check if IsApprove is true
+        if (item.IsApprove && item.SigType == "Right Of Way Manager")
+        {
+            // Render approval information
+            <div class="approval-info">
+                <p><strong>Approval Status:</strong> Approved</p>
+            </div>
+        }
+
+        // Check if IsDenied is true
+        if (item.IsDenied && item.SigType == "Right Of Way Manager")
+        {
+            // Render denial information
+            <div class="denial-info">
+                <p><strong>Denial Status:</strong> Denied</p>
+            </div>
+        }
+    }
+</div>
+<hr />
+<h4>District Manager Signature:</h4>
+<hr />
+<div class="input-group">
+    <span class="input-group-text" id="districtsiglabel">District Manager</span>
+    <input type="text" class="form-control" readonly placeholder="@districtsig" />
+</div>
+<button class="collapsible">District Manager Details</button>
+<div class="content">
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "District Manager")
+        {
+            <div class="signature-info">
+                <p><strong>Signature:</strong> @item.Signatures</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        if (item.SigType == "District Manager")
+        {
+            <div class="comment-info">
+                <p><strong>Comments:</strong> @item.Comments</p>
+            </div>
+        }
+    }
+    @foreach (var item in Model)
+    {
+        // Check if IsApprove is true
+        if (item.IsApprove && item.SigType == "District Manager")
+        {
+            // Render approval information
+            <div class="approval-info">
+                <p><strong>Approval Status:</strong> Approved</p>
+            </div>
+        }
+
+        // Check if IsDenied is true
+        if (item.IsDenied && item.SigType == "District Manager")
+        {
+            // Render denial information
+            <div class="denial-info">
+                <p><strong>Denial Status:</strong> Denied</p>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .collapsible {
+        background-color: #777;
+        color: white;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+    }
+
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+
+    .active:after {
+        content: "\2212";
+    }
+
+    .content {
+        padding: 0 18px;
+        display: none;
+        overflow: hidden;
+        background-color: #f1f1f1;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    });
+</script>
+
+
+
+@*@using OM_79_HUB.Models;
+@model IEnumerable<OM_79_HUB.Models.DB.OM79Hub.SignatureData>
+@{
+    string trafficsig, constructionsig, rightofwaysig, districtsig, bridgesig, maintenancesig;
+    var temp = Model.Where(t => t.SigType == "Traffic Engineer").ToList();
+
+    //Added the null coalescing operator with string to solve warning, idk if this is actually useful or if there's a better way to handle
+    //nullability warnings (probably with !)
+    trafficsig = temp.Count < 1 ? "Traffic Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "Maintenance Engineer").ToList();
+    maintenancesig = temp.Count < 1 ? "Maintenance Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
+    temp = Model.Where(t => t.SigType == "Construction Engineer").ToList();
+    constructionsig = temp.Count < 1 ? "Construction Engineer" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
+
     temp = Model.Where(t => t.SigType == "Right of Way Manager").ToList();
     rightofwaysig = temp.Count < 1 ? "Right of Way Manager" : temp.First().Signatures ?? "associated manager Sigs had count > 1 but no signature";
 
@@ -27,7 +384,7 @@
 
 <div class="input-group">
     <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
-    <input type="text" class="form-control" readonly placeholder="@bridgesig" />   @*@bridgesig*@
+    <input type="text" class="form-control" readonly placeholder="@bridgesig" />   @bridgesig
     <button class="btn btn-primary sign" value="Bridge Engineer">Sign</button>
 </div>
 <button class="collapsible">Bridge Engineer Details</button>
@@ -96,7 +453,7 @@
         </div>
     }
 }
-@foreach (var item in Model)
+foreach (var item in Model)
 {
     // Check if IsApprove is true
     if (item.IsApprove && item.SigType == "Traffic Engineer")
@@ -301,7 +658,7 @@
     }
 }
 </div>
-@*<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signModal">SignModal</button> *@
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signModal">SignModal</button> 
 <div class="modal" id="signModal">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -394,3 +751,4 @@
         }
     });
 </script>
+*@

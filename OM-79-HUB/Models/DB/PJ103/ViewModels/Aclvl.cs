@@ -181,7 +181,7 @@ namespace PJ103V3.Models.ViewModels
         [DisplayName("Median Width (ft.) (round to whole number)")]
         
         public int? MedianWidth { get; set; }
-        [DisplayName("Roadway Width (ft.) (round to whole number)")]
+        [DisplayName("Roadway Width (ft.) (Including Paved Shoulders)")]
         
         public int? PavementWidth { get; set; }
         [DisplayName("Special System")]
@@ -265,7 +265,7 @@ namespace PJ103V3.Models.ViewModels
         public int? Depth { get; set; }
 
         public int? SurfaceWidth { get; set; }
-        [DisplayName("Grade Width (ft.) (round to whole number)")]
+        [DisplayName("Grade Width (ft.) (Including Paved and Unpaved Shoulders)")]
         public int? GradeWidth { get; set; }
 
         public int? YearBuilt { get; set; }

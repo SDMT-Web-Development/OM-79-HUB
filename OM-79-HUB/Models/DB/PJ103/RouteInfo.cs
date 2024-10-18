@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PJ103V3.Models.DB;
 
@@ -63,9 +65,12 @@ public partial class RouteInfo
     public string? SurfaceTypeN { get; set; }
     [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
     [DisplayName("Starting MP")]
-    
+    [Required]
+    [Column(TypeName = "decimal(10, 4)")]
     public decimal? MPSegmentStart { get; set; }
     [DisplayName("Ending MP")]
     [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
+    [Required]
+    [Column(TypeName = "decimal(10, 4)")]
     public decimal? MPSegmentEnd { get; set; }
 }

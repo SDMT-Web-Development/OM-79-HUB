@@ -35,6 +35,11 @@
                 <input asp-for="RouteID" class="form-control" />
                 <span asp-validation-for="RouteID" class="text-danger"></span>
             </div>
+            <div class="col-md-4">
+                <label asp-for="EmailSubmit" class="control-label">@Html.DisplayNameFor(model => model.EmailSubmit) </label>
+                <input asp-for="EmailSubmit" class="form-control" type="email" />
+                <span asp-validation-for="RouteID" class="text-danger"></span>
+            </div>
             <div class="col-md-12">
                 <label asp-for="Otherbox" class="control-label">@Html.DisplayNameFor(model => model.Otherbox)<span class="required-asterisk">*</span></label>
                 <textarea asp-for="Otherbox" class="form-control" rows="4"></textarea>
@@ -138,6 +143,9 @@
                     RouteID: {
                         required: true
                     },
+                    EmailSubmit: {
+                        required: true
+                    },
                     Otherbox: {
                         required: true
                     }
@@ -154,6 +162,9 @@
                     },
                     RouteID: {
                         required: "Please enter the route ID."
+                    },
+                    EmailSubmit: {
+                        required: "Please enter your Email."
                     },
                     Otherbox: {
                         required: "Please fill in the comment box."

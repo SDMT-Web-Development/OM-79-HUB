@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Net;
+using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,13 +21,219 @@ namespace OM_79_HUB.Controllers
     {
         private readonly OM_79_HUBContext _context;
         private readonly OM79Context _OMcontext;
+        private readonly Pj103Context _PJcontext;
 
-        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context)
+        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context, Pj103Context pj103Context)
         {
             _context = context;
             _OMcontext = oM79Context;
+            _PJcontext = pj103Context;
         }
 
+        [HttpGet]
+        public IActionResult EditPackage(int? id)
+        {
+            // Use the id parameter to load the specific package data from the database
+            var om = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+
+            // If the package data with the given ID is not found, return a 404 Not Found response
+            if (om == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.TestUniqueID = id;
+
+
+            // Return the view with the loaded package data
+            return View(om);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdjustSegmentCount([FromBody] SegmentAdjustmentModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.action) || model.omTableId <= 0)
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            int? uniqueID = HttpContext.Session.GetInt32("UniqueID");
+            if (uniqueID == null)
+            {
+                return NotFound("OMID not found.");
+            }
+
+            try
+            {
+                // Retrieve the specific PJ103Workflow entry based on the OMTable entry ID passed from the client
+                var pj103Workflow = await _OMcontext.PJ103Workflow.FirstOrDefaultAsync(w => w.OMID == model.omTableId);
+                if (pj103Workflow == null)
+                {
+                    return NotFound("PJ103Workflow not found.");
+                }
+
+                // Adjust the segment count based on the action
+                if (model.action == "increase")
+                {
+                    pj103Workflow.NumberOfSegments = (pj103Workflow.NumberOfSegments ?? 0) + 1;
+                }
+                else if (model.action == "decrease" && pj103Workflow.NumberOfSegments > 0)
+                {
+                    pj103Workflow.NumberOfSegments -= 1;
+                }
+                else
+                {
+                    return BadRequest("Invalid action or segment count.");
+                }
+
+                await _OMcontext.SaveChangesAsync();
+
+                // Retrieve the current OMTable entry based on the passed ID
+                var currentItem = await _OMcontext.OMTable.FirstOrDefaultAsync(w => w.Id == model.omTableId);
+                if (currentItem == null)
+                {
+                    return NotFound("OMTable entry not found.");
+                }
+
+                // Retrieve submissions related to the current OMTable entry
+                var PJsAttachedToItem = await _PJcontext.Submissions.Where(e => e.OM79Id == currentItem.Id).ToListAsync();
+
+                var requiredCount = pj103Workflow.NumberOfSegments;
+                var currentCount = PJsAttachedToItem.Count;
+
+                // Check if the current number of segments meets or exceeds the required number of segments
+                if (currentCount >= requiredCount)
+                {
+                    // Retrieve the CENTRAL79HUB entry
+                    var currentHub = await _context.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == currentItem.HubId);
+                    if (currentHub == null)
+                    {
+                        return NotFound("CENTRAL79HUB entry not found.");
+                    }
+
+                    // Retrieve all OMTable entries attached to this hub
+                    var OMsAttachedToHub = await _OMcontext.OMTable.Where(e => e.HubId == currentHub.OMId).ToListAsync();
+
+                    // Retrieve the OM79Workflow entry related to this hub
+                    var currentOmWorkflow = await _context.OM79Workflow.FirstOrDefaultAsync(e => e.HubID == currentHub.OMId);
+                    if (currentOmWorkflow == null)
+                    {
+                        return NotFound("OM79Workflow entry not found.");
+                    }
+
+                    var requiredOmCount = currentOmWorkflow.NumberOfItems;
+                    var currentOmCount = OMsAttachedToHub.Count;
+
+                    if (currentOmCount >= requiredOmCount)
+                    {
+                        // Update the next step to "FinishSubmit" if all items and segments are complete
+                        currentOmWorkflow.NextStep = "FinishSubmit";
+                    }
+                    else
+                    {
+                        // Update the next step to "AddItem" if there are still more items to be added
+                        currentOmWorkflow.NextStep = "AddItem";
+                    }
+
+                    // Save changes to OM79Workflow
+                    await _context.SaveChangesAsync();
+                }
+
+                // If the segment count hasn't met the requirement, leave the next step unchanged
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"Error adjusting segment count: {ex.Message}");
+                return StatusCode(500, "An internal server error occurred.");
+            }
+        }
+
+        // Model to handle the segment adjustment
+        public class SegmentAdjustmentModel
+        {
+            public string action { get; set; } // 'increase' or 'decrease'
+            public int omTableId { get; set; } // The ID of the OMTable entry
+        }
+
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdjustItemCount([FromBody] ItemCountAdjustmentModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Action))
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            int? uniqueID = HttpContext.Session.GetInt32("UniqueID");
+            if (uniqueID == null)
+            {
+                return NotFound("Unique ID not found.");
+            }
+
+            try
+            {
+                // Retrieve the OM79Workflow entry based on the HubID stored in the session
+                var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == uniqueID.Value);
+                if (om79Workflow == null)
+                {
+                    return NotFound("OM79Workflow not found.");
+                }
+
+                if (model.Action == "increase")
+                {
+                    om79Workflow.NumberOfItems = (om79Workflow.NumberOfItems ?? 0) + 1;
+                }
+                else if (model.Action == "decrease" && (om79Workflow.NumberOfItems ?? 1) > 1)
+                {
+                    om79Workflow.NumberOfItems = (om79Workflow.NumberOfItems ?? 1) - 1;
+                }
+                else
+                {
+                    return BadRequest("Invalid action or item count.");
+                }
+
+                // Save changes after modifying the item count
+                await _context.SaveChangesAsync();
+
+                // Check if the current number of items matches the required number of items
+                var currentCount = await _OMcontext.OMTable.Where(e => e.HubId ==  uniqueID.Value).CountAsync();
+                var requiredCount = om79Workflow.NumberOfItems ?? 0; // Assuming RequiredNumberOfItems is stored in the workflow
+
+                if (currentCount >= requiredCount)
+                {
+                    // Update the next step to "FinishSubmit" if all items are complete
+                    om79Workflow.NextStep = "FinishSubmit";
+                }
+                else
+                {
+                    // Update the next step to "AddItem" if more items are still needed
+                    om79Workflow.NextStep = "AddItem";
+                }
+
+                // Save the changes after updating the next step
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"Error adjusting item count: {ex.Message}");
+                return StatusCode(500, "An internal server error occurred.");
+            }
+        }
+
+        public class ItemCountAdjustmentModel
+        {
+            public string Action { get; set; }
+        }
 
 
         //
@@ -48,7 +258,7 @@ namespace OM_79_HUB.Controllers
 
             // Set IsSubmitted to true
             om79.IsSubmitted = true;
-
+            om79.WorkflowStep = "SubmittedToDistrict";
             // Retrieve the OM79Workflow entry using HubID
             var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == id);
             if (om79Workflow != null)
@@ -60,10 +270,81 @@ namespace OM_79_HUB.Controllers
             // Save changes to the database
             await _context.SaveChangesAsync();
 
+
+            sendInitialWorkflowEmailToDistrictUsers(id);
+
+
             // Redirect to an appropriate action, such as the index page
             return RedirectToAction("Details", new { id = om79.OMId });
         }
 
+        public void sendInitialWorkflowEmailToDistrictUsers(int id)
+        {
+            try
+            {
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+                var districtToSendTo = omEntry.District;
+
+                var allDistrictUsers = _context.UserData
+                    .Where(e => e.District == districtToSendTo && !e.DistrictManager)
+                    .ToList();
+
+                // Group roles by user
+                var userRolesDictionary = allDistrictUsers
+                    .GroupBy(u => u.ENumber)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => new
+                        {
+                            User = g.First(),
+                            Roles = g.SelectMany(GetUserRoles).Distinct().ToList()
+                        });
+
+                foreach (var userRoleEntry in userRolesDictionary)
+                {
+                    var user = userRoleEntry.Value.User;
+                    var roles = string.Join(", ", userRoleEntry.Value.Roles);
+
+                    var message = new MailMessage
+                    {
+                        From = new MailAddress("DOTPJ103Srv@wv.gov")
+                    };
+                    message.To.Add(user.Email);
+                    message.Subject = $"OM79 Submitted For District [{user.District}] Review";
+                    message.Body = $"Hello {user.FirstName},<br><br>" +
+                                   $"An OM79 entry has been submitted from your district. You are currently listed for the following role(s) in the system and are responsible for reviewing and signing the OM79 in district {user.District}:<br><br>" +
+                                   $"{string.Join("<br>", userRoleEntry.Value.Roles)}.<br><br>" +
+                                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+                                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+                                   $"Note: If you hold multiple roles within your district, you will need to sign for each role separately using the link above.<br><br>" +
+                                   $"Thank you,<br>" +
+                                   $"OM79 Automated System";
+                    message.IsBodyHtml = true;
+
+                    var client = new SmtpClient
+                    {
+                        Host = "10.204.145.32",
+                        Port = 25,
+                        EnableSsl = false,
+                        Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                    };
+                    client.Send(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+            }
+        }
+
+        private IEnumerable<string> GetUserRoles(UserData user)
+        {
+            if (user.BridgeEngineer) yield return "Bridge Engineer";
+            if (user.TrafficEngineer) yield return "Traffic Engineer";
+            if (user.MaintenanceEngineer) yield return "Maintenance Engineer";
+            if (user.ConstructionEngineer) yield return "Construction Engineer";
+            if (user.RightOfWayManager) yield return "Right Of Way Manager";
+        }
 
         [HttpPost]
         public async Task<IActionResult> ArchiveOM79(int id)
@@ -90,6 +371,27 @@ namespace OM_79_HUB.Controllers
             return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
         }
 
+        // GET: CENTRAL79HUB/ArchivedIndexRescinded
+        public async Task<IActionResult> ArchivedIndexRescinded(string searchUserId, int? page)
+        {
+            ViewData["CurrentFilter"] = searchUserId;
+
+            // Filter the records where IsArchive is true and the workflow step is "CancelledRequestArchive"
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.IsArchive == true && m.WorkflowStep == "CancelledRequestArchive"
+                                      select m;
+
+            if (!String.IsNullOrEmpty(searchUserId))
+            {
+                central79HubEntries = central79HubEntries.Where(s => s.UserId.ToLower().Contains(searchUserId.ToLower()));
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedCentral79HubEntries);
+        }
+
         // GET: CENTRAL79HUB/ArchivedIndex
         public async Task<IActionResult> ArchivedIndex(string searchUserId, int? page)
         {
@@ -97,7 +399,7 @@ namespace OM_79_HUB.Controllers
 
             // Filter the records where IsArchive is true
             var central79HubEntries = from m in _context.CENTRAL79HUB
-                                      where m.IsArchive == true
+                                      where m.IsArchive == true && m.WorkflowStep != "CancelledRequestArchive"
                                       select m;
 
             if (!String.IsNullOrEmpty(searchUserId))
@@ -186,7 +488,7 @@ namespace OM_79_HUB.Controllers
         // GET: CENTRAL79HUB/Create
         public IActionResult Create()
         {
-
+            HttpContext.Session.Remove("UniqueID");
             Dropdowns();
             return View();
             
@@ -219,7 +521,7 @@ namespace OM_79_HUB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District,IDNumber,RouteID")] CENTRAL79HUB cENTRAL79HUB, int NumberOfItems)
+        public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District,IDNumber,RouteID, EmailSubmit")] CENTRAL79HUB cENTRAL79HUB, int NumberOfItems)
         {
             string userIdentity = User.Identity.Name;
             cENTRAL79HUB.UserId = userIdentity;
@@ -229,6 +531,9 @@ namespace OM_79_HUB.Controllers
                 cENTRAL79HUB.IsSubmitted = false;
                 cENTRAL79HUB.DateSubmitted = DateTime.Now;
                 cENTRAL79HUB.IsArchive = false;
+                cENTRAL79HUB.WorkflowStep = "NotStarted";
+                cENTRAL79HUB.Edited = false;
+                cENTRAL79HUB.HasGISReviewed = false;
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
 
@@ -301,11 +606,9 @@ namespace OM_79_HUB.Controllers
         }
 
         // POST: CENTRAL79HUB/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OMId,UserId,Otherbox,County,District")] CENTRAL79HUB cENTRAL79HUB)
+        public async Task<IActionResult> Edit(int id, [Bind("OMId,RouteID,EmailSubmit,Otherbox")] CENTRAL79HUB cENTRAL79HUB)
         {
             if (id != cENTRAL79HUB.OMId)
             {
@@ -314,26 +617,29 @@ namespace OM_79_HUB.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                // Retrieve the existing entity from the database
+                var existingEntity = await _context.CENTRAL79HUB.FindAsync(id);
+                if (existingEntity == null)
                 {
-                    _context.Update(cENTRAL79HUB);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CENTRAL79HUBExists(cENTRAL79HUB.OMId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+
+                // Update only the fields that were edited in the form
+                existingEntity.RouteID = cENTRAL79HUB.RouteID;
+                existingEntity.EmailSubmit = cENTRAL79HUB.EmailSubmit;
+                existingEntity.Otherbox = cENTRAL79HUB.Otherbox;
+
+                // Save changes
+                _context.Update(existingEntity);
+                await _context.SaveChangesAsync();
+
+                // Redirect to the EditPackage action
+                return RedirectToAction("EditPackage", new { id = cENTRAL79HUB.OMId });
             }
+
             return View(cENTRAL79HUB);
         }
+
 
         // GET: CENTRAL79HUB/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -377,47 +683,964 @@ namespace OM_79_HUB.Controllers
           return (_context.CENTRAL79HUB?.Any(e => e.OMId == id)).GetValueOrDefault();
         }
 
-        public  async Task<IActionResult> SignOMHub()
+        //// Same as signOMhub, but for central signatures
+        //public async Task<IActionResult> SignOMHubCentral()
+        //{
+        //    var app = Request.Form["apradio"];
+        //    var den = Request.Form["denradio"];
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    bool isCentralHDS = false;
+        //    bool isCentralGIS = false;
+        //    bool isCentralChief = false;
+        //    var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId ==  hubkey);     
+
+        //    if (app.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = true;
+        //        signature.IsDenied = false;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
+
+
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
+
+
+        //        if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralHDS")
+        //        {
+        //            // The HDS user just did their first approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralGIS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToGISManagers(hubkey); // Send email to GIS Managers
+        //        }
+        //        else if (signature.SigType == "GIS Manager" && omEntry.WorkflowStep == "SubmittedToCentralGIS")
+        //        {
+        //            // The GIS user just did their approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralSecondHDS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToSecondHDS(hubkey); // Send email to second HDS
+        //        }
+        //        else if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralSecondHDS")
+        //        {
+        //            // The HDS user just did their second approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralChief";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToChief(hubkey); // Send email to Chief
+        //        }
+        //        else if (signature.SigType == "Chief" && omEntry.WorkflowStep == "SubmittedToCentralChief")
+        //        {
+        //            // The chief just submitted their approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralThirdHDS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToThirdHDS(hubkey); // Send email to third HDS
+        //        }
+        //        else if (signature.SigType == "HDS" && omEntry.WorkflowStep == "SubmittedToCentralThirdHDS")
+        //        {
+        //            // The HDS just did their third approval
+        //            omEntry.WorkflowStep = "SubmittedToCentralLRS";
+        //            await _context.SaveChangesAsync();
+        //            SendWorkflowEmailToLRS(hubkey); // Send email to LRS
+        //        }
+        //        else if (signature.SigType == "LRS" && omEntry.WorkflowStep == "SubmittedToCentralLRS")
+        //        {
+        //            // At this point the workflow should be completed
+        //            // The LRS just submitted their confirmation
+        //            omEntry.WorkflowStep = "Finalized";
+        //            await _context.SaveChangesAsync();
+        //        }
+
+        //    }
+
+
+        //    if (den.FirstOrDefault() == "deny")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = false;
+        //        signature.IsDenied = true;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
+
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
+
+        //    }
+        //    return RedirectToAction(nameof(Details), new { id = hubkey });
+        //}
+
+
+
+        //public void SendWorkflowEmailToGISManagers(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
+
+        //        // Find all GIS Managers
+        //        var gisManagers = _context.UserData.Where(e => e.GISManager).ToList();
+        //        if (!gisManagers.Any())
+        //        {
+        //            Console.WriteLine("GIS Managers not found.");
+        //            return;
+        //        }
+
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for GIS Manager Review",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the GIS Manager, your review is crucial before the entry can be forwarded to the next step.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
+
+        //        // Add all GIS Managers to the recipient list
+        //        foreach (var gisManager in gisManagers)
+        //        {
+        //            message.To.Add(gisManager.Email);
+        //        }
+
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
+
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
+
+        //public void SendWorkflowEmailToSecondHDS(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
+
+        //        // Find all HDS users
+        //        var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
+        //        if (!hdsUsers.Any())
+        //        {
+        //            Console.WriteLine("HDS users not found.");
+        //            return;
+        //        }
+
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for Second HDS Review",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the GIS Manager and is now awaiting your second approval. As the HDS, your review is crucial before the entry can be forwarded to the Chief.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
+
+        //        // Add all HDS users to the recipient list
+        //        foreach (var hdsUser in hdsUsers)
+        //        {
+        //            message.To.Add(hdsUser.Email);
+        //        }
+
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
+
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
+
+        //public void SendWorkflowEmailToChief(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
+
+        //        // Find the Chief
+        //        var chief = _context.UserData.FirstOrDefault(e => e.Chief);
+        //        if (chief == null)
+        //        {
+        //            Console.WriteLine("Chief not found.");
+        //            return;
+        //        }
+
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for Chief Review",
+        //            Body = $"Hello {chief.FirstName},<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the Chief, your review is crucial before the entry can be finalized.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
+
+        //        message.To.Add(chief.Email);
+
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
+
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
+
+        //public void SendWorkflowEmailToThirdHDS(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
+
+        //        // Find all HDS users
+        //        var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
+        //        if (!hdsUsers.Any())
+        //        {
+        //            Console.WriteLine("HDS users not found.");
+        //            return;
+        //        }
+
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for Third HDS Review",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the Chief and is now awaiting your third approval. As the HDS, your review is crucial before the entry can be forwarded to the LRS.<br><br>" +
+        //                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
+
+        //        // Add all HDS users to the recipient list
+        //        foreach (var hdsUser in hdsUsers)
+        //        {
+        //            message.To.Add(hdsUser.Email);
+        //        }
+
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
+
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
+        //public void SendWorkflowEmailToLRS(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
+
+        //        // Find all LRS users
+        //        var lrsUsers = _context.UserData.Where(e => e.LRS).ToList();
+        //        if (!lrsUsers.Any())
+        //        {
+        //            Console.WriteLine("LRS users not found.");
+        //            return;
+        //        }
+
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for LRS Uploading",
+        //            Body = $"Hello,<br><br>" +
+        //                   $"An OM79 entry has been reviewed by the HDS and is now awaiting your confirmation. As the LRS, your action is crucial to finalize the entry.<br><br>" +
+        //                   $"Please click the link below to review and finalize the OM79 entry:<br><br>" +
+        //                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+        //                   $"Thank you for your attention to this matter.<br><br>" +
+        //                   $"Best regards,<br>" +
+        //                   $"OM79 Automated System",
+        //            IsBodyHtml = true
+        //        };
+
+        //        // Add all LRS users to the recipient list
+        //        foreach (var lrsUser in lrsUsers)
+        //        {
+        //            message.To.Add(lrsUser.Email);
+        //        }
+
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+        //        };
+
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
+
+
+        //public async Task<IActionResult> SignOMHub()
+        //{
+        //    var app = Request.Form["apradio"];
+        //    var den = Request.Form["denradio"];
+        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+        //    bool isDistrictManagerSigning = false;
+
+
+
+        //    if (app.FirstOrDefault() == "approve")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = true;
+        //        signature.IsDenied = false;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
+
+
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
+
+        //        if (signature.SigType == "District Manager")
+        //        {
+        //            isDistrictManagerSigning = true;
+        //        }
+
+        //        // Update the workflow step if approved
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
+        //        {
+        //            var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId).ToList();
+
+        //            // List of required roles
+        //            var requiredRoles = new List<string>
+        //            {
+        //                "Bridge Engineer",
+        //                "Traffic Engineer",
+        //                "Maintenance Engineer",
+        //                "Construction Engineer",
+        //                "Right Of Way Manager"
+        //            };
+
+        //            // Check if all required roles have signatures
+        //            bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+
+        //            if (allRolesSigned)
+        //            {
+        //                bool allRolesApproved = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role && sig.IsApprove));
+        //                if (allRolesApproved)
+        //                {
+        //                    omEntry.WorkflowStep = "SubmittedToDistrictManager";
+
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("==========All Signatures should be done here");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    Console.WriteLine("============================================");
+        //                    await _context.SaveChangesAsync();
+
+
+        //                    /////////// Send District Manager Email Here
+        //                    ///
+
+        //                    sendInitialWorkflowEmailToDistrictManager(hubkey);
+        //                }
+        //                else
+        //                {
+        //                    // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
+        //                    // send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
+
+        //                    sendDistrictUserDenialEmail(hubkey);
+
+        //                    foreach (var signatures in allSignatures)
+        //                    {
+        //                        signature.IsCurrentSig = false;
+        //                    }
+        //                    omEntry.WorkflowStep = "RestartFromDistrict";
+        //                    omEntry.IsSubmitted = false;
+
+
+        //                    await _context.SaveChangesAsync();
+        //                }
+        //            }
+        //            await _context.SaveChangesAsync();
+        //        }
+
+
+        //        // Check if the District Manager has just signed SubmittedToDistrictManager
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+        //        {
+        //            // This means the district manager has just signed and approved the OM79 entry to be sent to the central office
+        //            Console.WriteLine("District Manager has just signed and approved the OM79 entry.");
+
+        //            omEntry.WorkflowStep = "SubmittedToCentralHDS";
+        //            await _context.SaveChangesAsync();
+
+        //            // Send email to HDS
+        //            SendWorkflowEmailToHDS(hubkey);
+
+
+        //        }
+
+
+        //    }
+
+        //    if (den.FirstOrDefault() == "deny")
+        //    {
+        //        var signature = new SignatureData();
+        //        signature.HubKey = int.Parse(Request.Form["HubKey"]);
+        //        signature.IsApprove = false;
+        //        signature.IsDenied = true;
+        //        signature.Comments = Request.Form["commentsmodal"];
+        //        signature.Signatures = Request.Form["signaturemodal"];
+        //        signature.SigType = Request.Form["sigtype"];
+        //        signature.ENumber = HttpContext.User.Identity.Name;
+        //        signature.DateSubmitted = DateTime.Now;
+        //        signature.IsCurrentSig = true;
+
+        //        _context.Add(signature);
+        //        await _context.SaveChangesAsync();
+
+
+
+
+        //        if (signature.SigType == "District Manager")
+        //        {
+        //            isDistrictManagerSigning = true;
+        //        }
+
+
+        //        // Update the workflow step if denied
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == signature.HubKey);
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrict")
+        //        {
+        //            var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+
+        //            // List of required roles
+        //            var requiredRoles = new List<string>
+        //            {
+        //                "Bridge Engineer",
+        //                "Traffic Engineer",
+        //                "Maintenance Engineer",
+        //                "Construction Engineer",
+        //                "Right Of Way Manager"
+        //            };
+
+        //            // Check if all required roles have signatures
+        //            bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+
+        //            if (allRolesSigned)
+        //            {
+        //                // This is the case where everyone from the district has signed, but one or more district users declined the OM79, need to send it back to the initial user with an email
+        //                // Maybe send all active signature's comments to the user and restart the workflow and allow them to edit the items, segments, and om79 
+
+        //                sendDistrictUserDenialEmail(hubkey);
+
+        //                foreach (var signatures in allSignatures)
+        //                {
+        //                    signature.IsCurrentSig = false;
+        //                }
+        //                omEntry.WorkflowStep = "RestartFromDistrict";
+        //                omEntry.IsSubmitted = false;
+
+
+        //                await _context.SaveChangesAsync();
+        //            }
+        //        }
+
+
+
+
+        //        // Check if the District Manager has just signed
+        //        if (omEntry != null && omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+        //        {
+        //            // This means the district manager has just signed and denied the OM79 entry to be sent to the central office
+        //            Console.WriteLine("District Manager has just signed and denied the OM79 entry.");
+
+
+        //            sendDistrictManagerDenialEmail(hubkey);
+        //            var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+
+        //            foreach (var signatures in allSignatures)
+        //            {
+        //                signature.IsCurrentSig = false;
+        //            }
+        //            omEntry.WorkflowStep = "RestartFromDistrictManager";
+        //            omEntry.IsSubmitted = false;
+
+
+        //            await _context.SaveChangesAsync();                    
+        //        }
+        //    }
+
+        //    return RedirectToAction(nameof(Details), new { id = hubkey });
+        //}
+
+        public async Task<IActionResult> SignOMHub()
         {
-            var app = Request.Form["apradio"];
-            var den = Request.Form["denradio"];
-            if(app.FirstOrDefault() == "approve")
+            var decision = Request.Form["decision"];
+            var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
+            bool isDistrictManagerSigning = false;
+
+            var signature = new SignatureData
             {
-                var signature = new SignatureData();
-                signature.HubKey = int.Parse(Request.Form["HubKey"]);
-                signature.IsApprove = true;
-                signature.IsDenied = false;
-                signature.Comments = Request.Form["commentsmodal"];
-                signature.Signatures = Request.Form["signaturemodal"];
-                signature.SigType = Request.Form["sigtype"];
-                signature.ENumber = HttpContext.User.Identity.Name;
-                signature.DateSubmitted = DateTime.Now;
+                HubKey = hubkey,
+                IsApprove = decision == "approve",
+                IsDenied = decision == "deny",
+                Comments = Request.Form["commentsmodal"],
+                Signatures = Request.Form["signaturemodal"],
+                SigType = Request.Form["sigtype"],
+                ENumber = HttpContext.User.Identity.Name,
+                DateSubmitted = DateTime.Now,
+                IsCurrentSig = true,
+            };
 
-                
-                _context.Add(signature);
-                await _context.SaveChangesAsync();
-            }
-            if (den.FirstOrDefault() == "deny")
+            _context.Add(signature);
+            await _context.SaveChangesAsync();
+
+            var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
+            if (omEntry == null)
             {
-                var signature = new SignatureData();
-                signature.HubKey = int.Parse(Request.Form["HubKey"]);
-                signature.IsApprove = false;
-                signature.IsDenied = true;
-                signature.Comments = Request.Form["commentsmodal"];
-                signature.Signatures = Request.Form["signaturemodal"];
-                signature.SigType = Request.Form["sigtype"];
-                signature.ENumber = HttpContext.User.Identity.Name;
-                signature.DateSubmitted = DateTime.Now;
-
-
-
-                _context.Add(signature);
-                await _context.SaveChangesAsync();
+                return NotFound("OM Entry not found");
             }
-            var hubkey = int.Parse(Request.Form["HubKey"]);
+
+            if (signature.SigType == "District Manager")
+            {
+                isDistrictManagerSigning = true;
+            }
+
+            if (decision == "approve")
+            {
+                await HandleApproval(omEntry, signature, isDistrictManagerSigning);
+            }
+            else if (decision == "deny")
+            {
+                await HandleDenial(omEntry, signature, isDistrictManagerSigning);
+            }
 
             return RedirectToAction(nameof(Details), new { id = hubkey });
         }
+
+        private async Task HandleApproval(CENTRAL79HUB omEntry, SignatureData signature, bool isDistrictManagerSigning)
+        {
+            if (omEntry.WorkflowStep == "SubmittedToDistrict")
+            {
+                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+                var requiredRoles = new List<string>
+                    {
+                        "Bridge Engineer",
+                        "Traffic Engineer",
+                        "Maintenance Engineer",
+                        "Construction Engineer",
+                        "Right Of Way Manager"
+                    };
+
+                bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+                bool allRolesApproved = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role && sig.IsApprove));
+
+                if (allRolesSigned)
+                {
+                    if (allRolesApproved)
+                    {
+                        omEntry.WorkflowStep = "SubmittedToDistrictManager";
+                        await _context.SaveChangesAsync();
+                        sendInitialWorkflowEmailToDistrictManager(signature.HubKey ?? 0); // Convert nullable int to int
+                    }
+                    else
+                    {
+                        sendDistrictUserDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
+                        InvalidateSignatures(allSignatures);
+                        //omEntry.IsSubmitted = false;
+                        omEntry.WorkflowStep = "RestartFromDistrict";
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+
+            if (omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+            {
+                omEntry.WorkflowStep = "SubmittedToCentralHDS";
+                await _context.SaveChangesAsync();
+                SendWorkflowEmailToHDS(signature.HubKey ?? 0); // Convert nullable int to int
+            }
+        }
+
+        private async Task HandleDenial(CENTRAL79HUB omEntry, SignatureData signature, bool isDistrictManagerSigning)
+        {
+            if (omEntry.WorkflowStep == "SubmittedToDistrict")
+            {
+                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+                var requiredRoles = new List<string>
+        {
+            "Bridge Engineer",
+            "Traffic Engineer",
+            "Maintenance Engineer",
+            "Construction Engineer",
+            "Right Of Way Manager"
+        };
+
+                bool allRolesSigned = requiredRoles.All(role => allSignatures.Any(sig => sig.SigType == role));
+
+                if (allRolesSigned)
+                {
+                    sendDistrictUserDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
+                    InvalidateSignatures(allSignatures);
+                    omEntry.WorkflowStep = "RestartFromDistrict";
+                   //omEntry.IsSubmitted = false;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            if (omEntry.WorkflowStep == "SubmittedToDistrictManager" && isDistrictManagerSigning)
+            {
+                sendDistrictManagerDenialEmail(signature.HubKey ?? 0); // Convert nullable int to int
+                var allSignatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+                InvalidateSignatures(allSignatures);
+                omEntry.WorkflowStep = "RestartFromDistrictManager";
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private void InvalidateSignatures(List<SignatureData> signatures)
+        {
+            foreach (var signature in signatures)
+            {
+                signature.IsCurrentSig = false;
+                _context.Update(signature);  // Ensure that the entity state is updated
+            }
+        }
+
+        public void SendWorkflowEmailToHDS(int id)
+        {
+            try
+            {
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+                if (omEntry == null)
+                {
+                    Console.WriteLine("OM Entry not found.");
+                    return;
+                }
+
+                // Find all HDS users
+                var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
+                if (!hdsUsers.Any())
+                {
+                    Console.WriteLine("HDS users not found.");
+                    return;
+                }
+
+                // Compose the email
+                var message = new MailMessage
+                {
+                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    Subject = $"OM79 Entry Ready for HDS Review",
+                    Body = $"Hello,<br><br>" +
+                           $"An OM79 entry has been reviewed by the District Manager and is now awaiting your approval. As the HDS, your review is crucial before the entry can be forwarded to the next step.<br><br>" +
+                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+                           $"Thank you for your attention to this matter.<br><br>" +
+                           $"Best regards,<br>" +
+                           $"OM79 Automated System",
+                    IsBodyHtml = true
+                };
+
+                // Add all HDS users to the recipient list
+                foreach (var hdsUser in hdsUsers)
+                {
+                    message.To.Add(hdsUser.Email);
+                }
+
+                // Send the email
+                var client = new SmtpClient
+                {
+                    Host = "10.204.145.32",
+                    Port = 25,
+                    EnableSsl = false,
+                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                };
+
+                client.Send(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+            }
+        }
+
+
+        public void sendDistrictManagerDenialEmail(int id)
+        {
+            try
+            {
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+                if (omEntry == null)
+                {
+                    Console.WriteLine("OM Entry not found.");
+                    return;
+                }
+
+                var initialUser = omEntry.EmailSubmit;
+                var signatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true && e.SigType == "District Manager").ToList();
+
+                // Compose the email body with comments
+                var bodyBuilder = new StringBuilder();
+                bodyBuilder.AppendLine("Hello,<br><br>");
+                bodyBuilder.AppendLine("The district manager has denied an OM79 entry that you submitted. Here are their comments:<br><br>");
+
+                foreach (var signature in signatures)
+                {
+                    string approvalStatus = signature.IsApprove ? "&#x2705; Approved" : signature.IsDenied ? "&#x274C; Denied" : "Pending";
+                    string color = signature.IsApprove ? "green" : "red";
+
+                    bodyBuilder.AppendLine($"<strong>{signature.SigType}:</strong> {signature.Signatures} <span style='color:{color};'>{approvalStatus}</span><br>");
+                    bodyBuilder.AppendLine($"<strong>Comments:</strong> {signature.Comments}<br><br>");
+                }
+
+                bodyBuilder.AppendLine("Please review the requested changes/concerns from your district manager and update the entry accordingly. You can access your entry using the link below:<br><br>");
+                bodyBuilder.AppendLine($"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>");
+                bodyBuilder.AppendLine("Thank you,<br>OM79 Automated System");
+
+
+                // Compose the email
+                var message = new MailMessage
+                {
+                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    Subject = "OM79 Entry Denial Notification",
+                    Body = bodyBuilder.ToString(),
+                    IsBodyHtml = true
+                };
+
+                message.To.Add(initialUser);
+
+                var client = new SmtpClient
+                {
+                    Host = "10.204.145.32",
+                    Port = 25,
+                    EnableSsl = false,
+                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                };
+                client.Send(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+            }
+        }
+        public void sendDistrictUserDenialEmail(int id)
+        {
+            try
+            {
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+                if (omEntry == null)
+                {
+                    Console.WriteLine("OM Entry not found.");
+                    return;
+                }
+
+                var initialUser = omEntry.EmailSubmit;
+                var signatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+
+                // Compose the email body with comments
+                var bodyBuilder = new StringBuilder();
+                bodyBuilder.AppendLine("Hello,<br><br>");
+                bodyBuilder.AppendLine("One or more of the district-level users has denied an OM79 entry that you submitted. Here are the comments:<br><br>");
+
+                foreach (var signature in signatures)
+                {
+                    string approvalStatus = signature.IsApprove ? "&#x2705; Approved" : signature.IsDenied ? "&#x274C; Denied" : "Pending";
+                    string color = signature.IsApprove ? "green" : "red";
+
+                    bodyBuilder.AppendLine($"<strong>{signature.SigType}:</strong> {signature.Signatures} <span style='color:{color};'>{approvalStatus}</span><br>");
+                    bodyBuilder.AppendLine($"<strong>Comments:</strong> {signature.Comments}<br><br>");
+                }
+
+                bodyBuilder.AppendLine("Please review the requested changes/concerns from your district and update the entry accordingly. You can access your entry using the link below:<br><br>");
+                bodyBuilder.AppendLine($"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>");
+                bodyBuilder.AppendLine("Thank you,<br>OM79 Automated System");
+
+
+                // Compose the email
+                var message = new MailMessage
+                {
+                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    Subject = "OM79 Entry Denial Notification",
+                    Body = bodyBuilder.ToString(),
+                    IsBodyHtml = true
+                };
+
+                message.To.Add(initialUser);
+
+                var client = new SmtpClient
+                {
+                    Host = "10.204.145.32",
+                    Port = 25,
+                    EnableSsl = false,
+                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                };
+                client.Send(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+            }
+        }
+
+        public void sendInitialWorkflowEmailToDistrictManager(int id)
+        {
+            try
+            {
+                var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+                if (omEntry == null)
+                {
+                    Console.WriteLine("OM Entry not found.");
+                    return;
+                }
+
+                var districtToSendTo = omEntry.District;
+
+                // Find the district manager
+                var districtManager = _context.UserData.FirstOrDefault(e => e.District == districtToSendTo && e.DistrictManager);
+                if (districtManager == null)
+                {
+                    Console.WriteLine("District Manager not found.");
+                    return;
+                }
+
+                // Compose the email
+                var message = new MailMessage
+                {
+                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    Subject = $"OM79 Entry Ready for District [{districtManager.District}] Manager Review",
+                    Body = $"Hello {districtManager.FirstName},<br><br>" +
+                           $"An OM79 entry from your district has been reviewed and is now awaiting your approval. As the District Manager, your review is crucial before the entry can be forwarded to the central office.<br><br>" +
+                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
+                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
+                           $"Thank you for your attention to this matter.<br><br>" +
+                           $"Best regards,<br>" +
+                           $"OM79 Automated System",
+                    IsBodyHtml = true
+                };
+
+                message.To.Add(districtManager.Email);
+
+                // Send the email
+                var client = new SmtpClient
+                {
+                    Host = "10.204.145.32",
+                    Port = 25,
+                    EnableSsl = false,
+                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                };
+
+                client.Send(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+            }
+        }
+
+
+
+
+
+
         public void Dropdowns ()
         {
             List<SelectListItem> CountyDropdown = new()

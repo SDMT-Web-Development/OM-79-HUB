@@ -30,20 +30,63 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
                         </li>
+                        @*
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Indexes</a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">OM79 Forms List</a>
                             </div>
                         </li>
+                        *@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Searching</a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "OM79")">Item Index</a>
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "OM79")">Archived Item Index</a>
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "CENTRAL79HUB")">Archived OM79 Index</a>
+                                @*<a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("YourIndex", "Central79Hub")">Your Submissions</a>*@
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "OM79")">Active Item Index</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">Active OM79 Index</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "OM79")">Finalized Item Index Archive</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "CENTRAL79HUB")">Finalized OM79 Index Archive</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndexRescinded", "CENTRAL79HUB")">Rescinded OM79 Index Archive</a>
+
                             </div>
                         </li>
+
+
+
+
+                        @*These will change in the future and only show the links to what the user has access to*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Administrator</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("DistrictAccountSystem", "AccountSystemAndWorkflow")">District Admin</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("StatewideAccountSystem", "AccountSystemAndWorkflow")">Central Office Admin</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("AdminAccountSystem", "AccountSystemAndWorkflow")">System Admin</a>
+                            </div>
+                        </li>
+                        
+                        @*
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">District Signatories</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "AccountSystemAndWorkflow")">Go Here To Approve/Deny OM79s From your district</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "AccountSystemAndWorkflow")">Go Here To Approve/Deny OM79s from all districts</a>
+                            </div>
+                        </li>
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                        @*=====================================================================================*@
+                      
                     </ul>
                     <p class="nav navbar-text" style="color: white">Hello, @User.Identity?.Name!</p>
                 </div>

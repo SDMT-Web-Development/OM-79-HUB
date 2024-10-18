@@ -13,7 +13,7 @@ namespace OM_79_HUB.Components
 
         public IViewComponentResult Invoke(int hubID)
         {
-            var entries = _context.SignatureData.Where(entry => entry.HubKey == hubID).ToList();
+            var entries = _context.SignatureData.Where(entry => entry.HubKey == hubID && entry.IsCurrentSig == true).ToList();
             return View("_linkedSignatures.cshtml",entries);
         }
     }
