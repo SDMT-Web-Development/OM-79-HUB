@@ -73,21 +73,28 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMCentralHDS" asp-controller="CentralSignatureWorkflow">
+                        <form asp-action="SignOMCentralHDS" asp-controller="CentralSignatureWorkflow" id="signFormHDS">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="" name="sigtype" id="sigtype" />
+
                             <label for="approveHDS">Approve</label>
-                            <input type="radio" id="approveHDS" name="decisionHDS" value="approve" />
+                            <input type="radio" id="approveHDS" name="decisionHDS" value="approve" class="decision-radio-HDS" />
                             <label for="editHDS">Edited</label>&nbsp;
-                            <input type="radio" id="editHDS" name="decisionHDS" value="edited" />
+                            <input type="radio" id="editHDS" name="decisionHDS" value="edited" class="decision-radio-HDS" />
+
                             <br />
+
                             <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <input type="text" id="sigboxHDS" name="signaturemodal" class="form-control signature-input-HDS" />
+
                             <br />
+
                             <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <textarea id="commentsHDS" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+
+                            <input type="submit" id="modalsubmitbuttonHDS" class="btn btn-success" disabled />
                         </form>
                     </div>
                 </div>
@@ -125,21 +132,29 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMCentralGIS" asp-controller="CentralSignatureWorkflow">
+                        <form asp-action="SignOMCentralGIS" asp-controller="CentralSignatureWorkflow" id="signFormGIS">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="" name="sigtype" id="sigtype" />
+
                             <label for="approveGIS">Approve</label>
-                            <input type="radio" id="approveGIS" name="decisionGIS" value="approve" />
+                            <input type="radio" id="approveGIS" name="decisionGIS" value="approve" class="decision-radio-GIS" />
+
                             <label for="editGIS">Edited</label>&nbsp;
-                            <input type="radio" id="editGIS" name="decisionGIS" value="edited" />
+                            <input type="radio" id="editGIS" name="decisionGIS" value="edited" class="decision-radio-GIS" />
+
                             <br />
+
                             <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <input type="text" id="sigboxGIS" name="signaturemodal" class="form-control signature-input-GIS" />
+
                             <br />
+
                             <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <textarea id="commentsGIS" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+
+                            <input type="submit" id="modalsubmitbuttonGIS" class="btn btn-success" disabled />
                         </form>
                     </div>
                 </div>
@@ -211,22 +226,31 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMCentralDistrictManager" asp-controller="CentralSignatureWorkflow">
+                        <form asp-action="SignOMCentralDistrictManager" asp-controller="CentralSignatureWorkflow" id="signFormDistrictManager">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="" name="sigtype" id="sigtype" />
+
                             <label for="approveDistrict">Approve</label>
-                            <input type="radio" id="approveDistrict" name="decisionDistrict" value="approve" />
+                            <input type="radio" id="approveDistrict" name="decisionDistrict" value="approve" class="decision-radio-DistrictManager" />
+
                             <label for="editDistrict">Edited</label>&nbsp;
-                            <input type="radio" id="editDistrict" name="decisionDistrict" value="edited" />
+                            <input type="radio" id="editDistrict" name="decisionDistrict" value="edited" class="decision-radio-DistrictManager" />
+
                             <br />
+
                             <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <input type="text" id="sigboxDistrictManager" name="signaturemodal" class="form-control signature-input-DistrictManager" />
+
                             <br />
+
                             <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <textarea id="commentsDistrictManager" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+
+                            <input type="submit" id="modalsubmitbuttonDistrictManager" class="btn btn-success" disabled />
                         </form>
+
                     </div>
                 </div>
             </div>
@@ -298,21 +322,29 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMCentralRegionalEngineer" asp-controller="CentralSignatureWorkflow">
+                        <form asp-action="SignOMCentralRegionalEngineer" asp-controller="CentralSignatureWorkflow" id="signFormRegionalEngineer">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="Regional Engineer" name="sigtype" id="sigtype" />
+
                             <label for="approveRegionalEngineer">Approve</label>
-                            <input type="radio" id="approveRegionalEngineer" name="decisionRegionalEngineer" value="approve" />
+                            <input type="radio" id="approveRegionalEngineer" name="decisionRegionalEngineer" value="approve" class="decision-radio-RegionalEngineer" />
+
                             <label for="denyRegionalEngineer">Deny</label>&nbsp;
-                            <input type="radio" id="denyRegionalEngineer" name="decisionRegionalEngineer" value="deny" />
+                            <input type="radio" id="denyRegionalEngineer" name="decisionRegionalEngineer" value="deny" class="decision-radio-RegionalEngineer" />
+
                             <br />
+
                             <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <input type="text" id="sigboxRegionalEngineer" name="signaturemodal" class="form-control signature-input-RegionalEngineer" />
+
                             <br />
+
                             <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <textarea id="commentsRegionalEngineer" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+
+                            <input type="submit" id="modalsubmitbuttonRegionalEngineer" class="btn btn-success" disabled />
                         </form>
                     </div>
                 </div>
@@ -386,22 +418,31 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMCentralDirectorOfOperations" asp-controller="CentralSignatureWorkflow">
+                        <form asp-action="SignOMCentralDirectorOfOperations" asp-controller="CentralSignatureWorkflow" id="signFormDirectorOfOperations">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="Director of Operations" name="sigtype" id="diropsigtype" />
+
                             <label for="approveDirectorOfOperations">Approve</label>
-                            <input type="radio" id="approveDirectorOfOperations" name="decisionDirectorOfOperations" value="approve" />
+                            <input type="radio" id="approveDirectorOfOperations" name="decisionDirectorOfOperations" value="approve" class="decision-radio-DirectorOfOperations" />
+
                             <label for="denyDirectorOfOperations">Deny</label>&nbsp;
-                            <input type="radio" id="denyDirectorOfOperations" name="decisionDirectorOfOperations" value="deny" />
+                            <input type="radio" id="denyDirectorOfOperations" name="decisionDirectorOfOperations" value="deny" class="decision-radio-DirectorOfOperations" />
+
                             <br />
+
                             <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <input type="text" id="sigboxDirectorOfOperations" name="signaturemodal" class="form-control signature-input-DirectorOfOperations" />
+
                             <br />
+
                             <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <textarea id="commentsDirectorOfOperations" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+
+                            <input type="submit" id="modalsubmitbuttonDirectorOfOperations" class="btn btn-success" disabled />
                         </form>
+
                     </div>
                 </div>
             </div>
@@ -472,22 +513,31 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMCentralChiefEngineerOfOperations" asp-controller="CentralSignatureWorkflow">
+                        <form asp-action="SignOMCentralChiefEngineerOfOperations" asp-controller="CentralSignatureWorkflow" id="signFormChiefEngineerOfOperations">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="Chief Engineer of Operations" name="sigtype" id="chiefsigtype" />
+
                             <label for="approveChiefEngineer">Approve</label>
-                            <input type="radio" id="approveChiefEngineer" name="decisionChiefEngineer" value="approve" />
+                            <input type="radio" id="approveChiefEngineer" name="decisionChiefEngineer" value="approve" class="decision-radio-ChiefEngineerOfOperations" />
+
                             <label for="denyChiefEngineer">Deny</label>&nbsp;
-                            <input type="radio" id="denyChiefEngineer" name="decisionChiefEngineer" value="deny" />
+                            <input type="radio" id="denyChiefEngineer" name="decisionChiefEngineer" value="deny" class="decision-radio-ChiefEngineerOfOperations" />
+
                             <br />
+
                             <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <input type="text" id="sigboxChiefEngineerOfOperations" name="signaturemodal" class="form-control signature-input-ChiefEngineerOfOperations" />
+
                             <br />
+
                             <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <textarea id="commentsChiefEngineerOfOperations" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+
+                            <input type="submit" id="modalsubmitbuttonChiefEngineerOfOperations" class="btn btn-success" disabled />
                         </form>
+
                     </div>
                 </div>
             </div>
@@ -559,21 +609,29 @@
             <div class="modal-body" id="containedform">
                 <div class="row">
                     <div class="col-md-4">
-                        <form asp-action="SignOMCentralDeniedDistrictManager" asp-controller="CentralSignatureWorkflow">
+                        <form asp-action="SignOMCentralDeniedDistrictManager" asp-controller="CentralSignatureWorkflow" id="signFormDeniedDistrictManager">
                             <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
                             <input type="hidden" value="District Manager" name="sigtype" id="dismansigtype" />
+
                             <label for="editDeniedDM">Edit</label>
-                            <input type="radio" id="editDeniedDM" name="decisionDeniedDM" value="edit" />
+                            <input type="radio" id="editDeniedDM" name="decisionDeniedDM" value="edit" class="decision-radio-DeniedDistrictManager" />
+
                             <label for="closeDeniedDM">Close</label>&nbsp;
-                            <input type="radio" id="closeDeniedDM" name="decisionDeniedDM" value="close" />
+                            <input type="radio" id="closeDeniedDM" name="decisionDeniedDM" value="close" class="decision-radio-DeniedDistrictManager" />
+
                             <br />
+
                             <label class="form-label" for="signaturemodal">Signature</label>
-                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+                            <input type="text" id="sigboxDeniedDistrictManager" name="signaturemodal" class="form-control signature-input-DeniedDistrictManager" />
+
                             <br />
+
                             <label class="form-label" for="commentsmodal">Comments</label>
-                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+                            <textarea id="commentsDeniedDistrictManager" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
                             <br />
-                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" />
+
+                            <input type="submit" id="modalsubmitbuttonDeniedDistrictManager" class="btn btn-success" disabled />
                         </form>
                     </div>
                 </div>
@@ -652,6 +710,42 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Helper function to enable/disable submit buttons based on conditions
+        function toggleSubmitButton(modalPrefix) {
+            const signature = document.querySelector(`#sigbox${modalPrefix}`).value.trim();
+            const decisionRadios = document.querySelectorAll(`.decision-radio-${modalPrefix}:checked`);
+            const submitButton = document.querySelector(`#modalsubmitbutton${modalPrefix}`);
+
+            if (signature && decisionRadios.length > 0) {
+                submitButton.removeAttribute('disabled');
+            } else {
+                submitButton.setAttribute('disabled', 'disabled');
+            }
+        }
+
+        // Add event listeners to check validation for each form
+        function setupValidation(modalPrefix) {
+            document.querySelector(`#sigbox${modalPrefix}`).addEventListener('input', function () {
+                toggleSubmitButton(modalPrefix);
+            });
+
+            document.querySelectorAll(`.decision-radio-${modalPrefix}`).forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    toggleSubmitButton(modalPrefix);
+                });
+            });
+        }
+
+        // Call the setupValidation for each modal form
+        setupValidation('HDS'); // for HDS form
+        setupValidation('GIS'); // for GIS form
+        setupValidation('DistrictManager'); // for District Manager form
+        setupValidation('RegionalEngineer'); // for Regional Engineer form
+        setupValidation('DirectorOfOperations'); // for Director of Operations form
+        setupValidation('ChiefEngineerOfOperations'); // for Chief Engineer of Operations form
+        setupValidation('DeniedDistrictManager'); // for Denied District Manager form
+
+        // Collapsible button script for showing details
         var coll = document.getElementsByClassName("collapsible");
         var i;
 
@@ -667,42 +761,43 @@
             });
         }
 
-        // Ensure the sign button works
+        // Ensure the sign buttons work for opening modals
         $(".signCentralHDS").click(function () {
             $("#sigtype").val($(this).val());
             $("#signModalHDS").modal('show');
         });
-        // Ensure the sign button works
+
         $(".signCentralGIS").click(function () {
             $("#sigtype").val($(this).val());
             $("#signModalGIS").modal('show');
         });
-        // Ensure the sign button works
+
         $(".signCentralDistrictManager").click(function () {
             $("#sigtype").val($(this).val());
             $("#signModalDistrictManager").modal('show');
         });
-        // Ensure the sign button works
+
         $(".signCentralRegionalEngineer").click(function () {
             $("#sigtype").val($(this).val());
             $("#signModalRegionalEngineer").modal('show');
         });
-        // Ensure the sign button works
+
         $(".signCentralDirectorOfOperations").click(function () {
             $("#diropsigtype").val($(this).val());
             $("#signModalDirectorOfOperations").modal('show');
         });
-        // Ensure the sign button works
+
         $(".signCentralChiefEngineerOfOperations").click(function () {
             $("#chiefsigtype").val($(this).val());
             $("#signModalChiefEngineerOfOperations").modal('show');
         });
-        // Ensure the sign button works
+
         $(".signCentralDeniedDistrictManager").click(function () {
             $("#dismansigtype").val($(this).val());
             $("#signModalDeniedDistrictManager").modal('show');
         });
     });
+
 </script>
 
 

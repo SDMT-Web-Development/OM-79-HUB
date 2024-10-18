@@ -21,11 +21,13 @@ namespace OM_79_HUB.Controllers
     {
         private readonly OM_79_HUBContext _context;
         private readonly OM79Context _OMcontext;
+        private readonly Pj103Context _PJcontext;
 
-        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context)
+        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context, Pj103Context pj103Context)
         {
             _context = context;
             _OMcontext = oM79Context;
+            _PJcontext = pj103Context;
         }
 
         [HttpGet]
@@ -45,6 +47,192 @@ namespace OM_79_HUB.Controllers
 
             // Return the view with the loaded package data
             return View(om);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdjustSegmentCount([FromBody] SegmentAdjustmentModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.action) || model.omTableId <= 0)
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            int? uniqueID = HttpContext.Session.GetInt32("UniqueID");
+            if (uniqueID == null)
+            {
+                return NotFound("OMID not found.");
+            }
+
+            try
+            {
+                // Retrieve the specific PJ103Workflow entry based on the OMTable entry ID passed from the client
+                var pj103Workflow = await _OMcontext.PJ103Workflow.FirstOrDefaultAsync(w => w.OMID == model.omTableId);
+                if (pj103Workflow == null)
+                {
+                    return NotFound("PJ103Workflow not found.");
+                }
+
+                // Adjust the segment count based on the action
+                if (model.action == "increase")
+                {
+                    pj103Workflow.NumberOfSegments = (pj103Workflow.NumberOfSegments ?? 0) + 1;
+                }
+                else if (model.action == "decrease" && pj103Workflow.NumberOfSegments > 0)
+                {
+                    pj103Workflow.NumberOfSegments -= 1;
+                }
+                else
+                {
+                    return BadRequest("Invalid action or segment count.");
+                }
+
+                await _OMcontext.SaveChangesAsync();
+
+                // Retrieve the current OMTable entry based on the passed ID
+                var currentItem = await _OMcontext.OMTable.FirstOrDefaultAsync(w => w.Id == model.omTableId);
+                if (currentItem == null)
+                {
+                    return NotFound("OMTable entry not found.");
+                }
+
+                // Retrieve submissions related to the current OMTable entry
+                var PJsAttachedToItem = await _PJcontext.Submissions.Where(e => e.OM79Id == currentItem.Id).ToListAsync();
+
+                var requiredCount = pj103Workflow.NumberOfSegments;
+                var currentCount = PJsAttachedToItem.Count;
+
+                // Check if the current number of segments meets or exceeds the required number of segments
+                if (currentCount >= requiredCount)
+                {
+                    // Retrieve the CENTRAL79HUB entry
+                    var currentHub = await _context.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == currentItem.HubId);
+                    if (currentHub == null)
+                    {
+                        return NotFound("CENTRAL79HUB entry not found.");
+                    }
+
+                    // Retrieve all OMTable entries attached to this hub
+                    var OMsAttachedToHub = await _OMcontext.OMTable.Where(e => e.HubId == currentHub.OMId).ToListAsync();
+
+                    // Retrieve the OM79Workflow entry related to this hub
+                    var currentOmWorkflow = await _context.OM79Workflow.FirstOrDefaultAsync(e => e.HubID == currentHub.OMId);
+                    if (currentOmWorkflow == null)
+                    {
+                        return NotFound("OM79Workflow entry not found.");
+                    }
+
+                    var requiredOmCount = currentOmWorkflow.NumberOfItems;
+                    var currentOmCount = OMsAttachedToHub.Count;
+
+                    if (currentOmCount >= requiredOmCount)
+                    {
+                        // Update the next step to "FinishSubmit" if all items and segments are complete
+                        currentOmWorkflow.NextStep = "FinishSubmit";
+                    }
+                    else
+                    {
+                        // Update the next step to "AddItem" if there are still more items to be added
+                        currentOmWorkflow.NextStep = "AddItem";
+                    }
+
+                    // Save changes to OM79Workflow
+                    await _context.SaveChangesAsync();
+                }
+
+                // If the segment count hasn't met the requirement, leave the next step unchanged
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"Error adjusting segment count: {ex.Message}");
+                return StatusCode(500, "An internal server error occurred.");
+            }
+        }
+
+        // Model to handle the segment adjustment
+        public class SegmentAdjustmentModel
+        {
+            public string action { get; set; } // 'increase' or 'decrease'
+            public int omTableId { get; set; } // The ID of the OMTable entry
+        }
+
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdjustItemCount([FromBody] ItemCountAdjustmentModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Action))
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            int? uniqueID = HttpContext.Session.GetInt32("UniqueID");
+            if (uniqueID == null)
+            {
+                return NotFound("Unique ID not found.");
+            }
+
+            try
+            {
+                // Retrieve the OM79Workflow entry based on the HubID stored in the session
+                var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == uniqueID.Value);
+                if (om79Workflow == null)
+                {
+                    return NotFound("OM79Workflow not found.");
+                }
+
+                if (model.Action == "increase")
+                {
+                    om79Workflow.NumberOfItems = (om79Workflow.NumberOfItems ?? 0) + 1;
+                }
+                else if (model.Action == "decrease" && (om79Workflow.NumberOfItems ?? 1) > 1)
+                {
+                    om79Workflow.NumberOfItems = (om79Workflow.NumberOfItems ?? 1) - 1;
+                }
+                else
+                {
+                    return BadRequest("Invalid action or item count.");
+                }
+
+                // Save changes after modifying the item count
+                await _context.SaveChangesAsync();
+
+                // Check if the current number of items matches the required number of items
+                var currentCount = await _OMcontext.OMTable.Where(e => e.HubId ==  uniqueID.Value).CountAsync();
+                var requiredCount = om79Workflow.NumberOfItems ?? 0; // Assuming RequiredNumberOfItems is stored in the workflow
+
+                if (currentCount >= requiredCount)
+                {
+                    // Update the next step to "FinishSubmit" if all items are complete
+                    om79Workflow.NextStep = "FinishSubmit";
+                }
+                else
+                {
+                    // Update the next step to "AddItem" if more items are still needed
+                    om79Workflow.NextStep = "AddItem";
+                }
+
+                // Save the changes after updating the next step
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"Error adjusting item count: {ex.Message}");
+                return StatusCode(500, "An internal server error occurred.");
+            }
+        }
+
+        public class ItemCountAdjustmentModel
+        {
+            public string Action { get; set; }
         }
 
 
@@ -183,6 +371,27 @@ namespace OM_79_HUB.Controllers
             return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
         }
 
+        // GET: CENTRAL79HUB/ArchivedIndexRescinded
+        public async Task<IActionResult> ArchivedIndexRescinded(string searchUserId, int? page)
+        {
+            ViewData["CurrentFilter"] = searchUserId;
+
+            // Filter the records where IsArchive is true and the workflow step is "CancelledRequestArchive"
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.IsArchive == true && m.WorkflowStep == "CancelledRequestArchive"
+                                      select m;
+
+            if (!String.IsNullOrEmpty(searchUserId))
+            {
+                central79HubEntries = central79HubEntries.Where(s => s.UserId.ToLower().Contains(searchUserId.ToLower()));
+            }
+
+            int pageNumber = (page ?? 1);
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            return View(pagedCentral79HubEntries);
+        }
+
         // GET: CENTRAL79HUB/ArchivedIndex
         public async Task<IActionResult> ArchivedIndex(string searchUserId, int? page)
         {
@@ -190,7 +399,7 @@ namespace OM_79_HUB.Controllers
 
             // Filter the records where IsArchive is true
             var central79HubEntries = from m in _context.CENTRAL79HUB
-                                      where m.IsArchive == true
+                                      where m.IsArchive == true && m.WorkflowStep != "CancelledRequestArchive"
                                       select m;
 
             if (!String.IsNullOrEmpty(searchUserId))

@@ -2018,6 +2018,7 @@ namespace OM_79_HUB.Controllers
                 }
 
                 omEntry.WorkflowStep = "CancelledRequestArchive";
+                omEntry.IsArchive = true;
                 await _hubContext.SaveChangesAsync();
             }
 

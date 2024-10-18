@@ -20,6 +20,404 @@
     bool hasDistrictManagerSigned = Model.CurrentSignatures.Any(t => t.SigType == "District Manager");
 }
 
+@if (Model.OmEntry.WorkflowStep == "SubmittedToDistrict")
+{
+    <hr />
+    <p>Signature System: All district-level users (Bridge Engineer, Traffic Engineer, Maintenance Engineer, Construction Engineer, and Right of Way Manager) must sign the OM79. If everyone approves, it will be sent to the District Manager for review. If any user denies the OM79, all comments will be sent back to the initial user, and the document must be re-signed by all district users.</p>
+    <hr />
+
+    @if (Model.SigneesRoles.Contains("Bridge Engineer"))
+    {
+        <hr />
+        <h4>Bridge Engineer Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="bridgesiglabel">Bridge Engineer</span>
+            <input type="text" class="form-control" readonly value="@bridgesig" />
+            @if (!hasBridgeEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Bridge Engineer">Sign</button>
+            }
+        </div>
+        <button class="collapsible">Bridge Engineer Details</button>
+        <div class="content">
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Bridge Engineer"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+
+            }
+        </div>
+    }
+
+    @if (Model.SigneesRoles.Contains("Traffic Engineer"))
+    {
+        <hr />
+        <h4>Traffic Engineer Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="trafficsiglabel">Traffic Engineer</span>
+            <input type="text" class="form-control" readonly value="@trafficsig" />
+            @if (!hasTrafficEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Traffic Engineer">Sign</button>
+            }
+        </div>
+        <button class="collapsible">Traffic Engineer Details</button>
+        <div class="content">
+            <!-- Display signature details -->
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Traffic Engineer"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+
+            }
+        </div>
+    }
+
+    @if (Model.SigneesRoles.Contains("Maintenance Engineer"))
+    {
+        <hr />
+        <h4>Maintenance Engineer Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="maintenancesiglabel">Maintenance Engineer</span>
+            <input type="text" class="form-control" readonly value="@maintenancesig" />
+            @if (!hasMaintenanceEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Maintenance Engineer">Sign</button>
+            }
+        </div>
+        <button class="collapsible">Maintenance Engineer Details</button>
+        <div class="content">
+            <!-- Display signature details -->
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Maintenance Engineer"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+
+            }
+        </div>
+    }
+
+    @if (Model.SigneesRoles.Contains("Construction Engineer"))
+    {
+        <hr />
+        <h4>Construction Engineer Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="constructionsiglabel">Construction Engineer</span>
+            <input type="text" class="form-control" readonly value="@constructionsig" />
+            @if (!hasConstructionEngineerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Construction Engineer">Sign</button>
+            }
+        </div>
+        <button class="collapsible">Construction Engineer Details</button>
+        <div class="content">
+            <!-- Display signature details -->
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Construction Engineer"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+
+            }
+        </div>
+    }
+
+    @if (Model.SigneesRoles.Contains("Right Of Way Manager"))
+    {
+        <hr />
+        <h4>Right of Way Manager Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="rightofwaysiglabel">Right Of Way Manager</span>
+            <input type="text" class="form-control" readonly value="@rightofwaysig" />
+            @if (!hasRightOfWayManagerSigned)
+            {
+                <button class="btn btn-primary sign2" value="Right Of Way Manager">Sign</button>
+            }
+        </div>
+        <button class="collapsible">Right Of Way Manager Details</button>
+        <div class="content">
+            <!-- Display signature details -->
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "Right Of Way Manager"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+
+            }
+        </div>
+    }
+}
+
+@if (Model.OmEntry.WorkflowStep == "SubmittedToDistrictManager")
+{
+    @if (Model.SigneesRoles.Contains("District Manager"))
+    {
+        <hr />
+        <h4>District Manager Signature:</h4>
+        <hr />
+        <div class="input-group">
+            <span class="input-group-text" id="districtsiglabel">District Manager</span>
+            <input type="text" class="form-control" readonly value="@districtsig" />
+            @if (!hasDistrictManagerSigned)
+            {
+                <button class="btn btn-primary sign2" value="District Manager">Sign</button>
+            }
+            else
+            {
+                <p>Completed</p>
+            }
+        </div>
+        <button class="collapsible">District Manager Details</button>
+        <div class="content">
+            <!-- Display signature details -->
+            @foreach (var item in Model.CurrentSignatures.Where(s => s.SigType == "District Manager"))
+            {
+                <div class="signature-info">
+                    <p><strong>Signature:</strong> @item.Signatures</p>
+                </div>
+                <div class="comment-info">
+                    <p><strong>Comments:</strong> @item.Comments</p>
+                </div>
+                @if (item.IsApprove)
+                {
+                    <div class="approval-info">
+                        <p><strong>Approval Status:</strong> Approved</p>
+                    </div>
+                }
+                @if (item.IsDenied)
+                {
+                    <div class="denial-info">
+                        <p><strong>Denial Status:</strong> Denied</p>
+                    </div>
+                }
+
+            }
+        </div>
+    }
+}
+
+<!-- Modal for signing -->
+<div class="modal" id="signModal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Sign Requisition</h3>
+                <div class="justify-content-end">
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body" id="containedform">
+                <div class="row">
+                    <div class="col-md-4">
+                        <form asp-action="SignOMHub" asp-controller="CENTRAL79HUB" id="signForm">
+                            <input type="hidden" name="HubKey" value="@ViewBag.TestUniqueID" />
+                            <input type="hidden" value="" name="sigtype" id="sigtype" />
+
+                            <label for="approve">Approve</label>
+                            <input type="radio" id="approve" name="decision" value="approve" class="decision-radio" />
+                            <label for="deny">Deny</label>&nbsp;
+                            <input type="radio" id="deny" name="decision" value="deny" class="decision-radio" />
+
+                            <br />
+
+                            <label class="form-label" for="signaturemodal">Signature</label>
+                            <input type="text" id="sigbox" name="signaturemodal" class="form-control" />
+
+                            <br />
+
+                            <label class="form-label" for="commentsmodal">Comments</label>
+                            <textarea id="comments" name="commentsmodal" class="form-control" rows="4" cols="50"></textarea>
+
+                            <br />
+
+                            <input type="submit" id="modalsubmitbutton" class="btn btn-success" disabled />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styling for collapsible content -->
+<style>
+    .collapsible {
+        background-color: #777;
+        color: white;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+    }
+
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+
+    .active:after {
+        content: "\2212";
+    }
+
+    .content {
+        padding: 0 18px;
+        display: none;
+        overflow: hidden;
+        background-color: #f1f1f1;
+    }
+</style>
+
+<!-- JavaScript for collapsibles and form validation -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Collapsible buttons for signature details
+        var coll = document.getElementsByClassName("collapsible");
+        for (let i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                content.style.display = (content.style.display === "block") ? "none" : "block";
+            });
+        }
+
+        // Open modal and set sigtype
+        $(".sign2").click(function () {
+            $("#sigtype").val($(this).val());
+            $("#signModal").modal('show');
+        });
+
+        // Form validation for signature modal
+        function toggleSubmitButton() {
+            const signature = document.querySelector("#sigbox").value.trim();
+            const decisionRadios = document.querySelectorAll(".decision-radio:checked");
+            const submitButton = document.querySelector("#modalsubmitbutton");
+
+            if (signature && decisionRadios.length > 0) {
+                submitButton.removeAttribute('disabled');
+            } else {
+                submitButton.setAttribute('disabled', 'disabled');
+            }
+        }
+
+        // Event listeners for form validation
+        document.querySelector("#sigbox").addEventListener('input', toggleSubmitButton);
+        document.querySelectorAll(".decision-radio").forEach(function (radio) {
+            radio.addEventListener('change', toggleSubmitButton);
+        });
+    });
+</script>
+
+@*@using OM_79_HUB.Models;
+
+@model OM_79_HUB.Components.LinkedSignatureToSignViewComponent.SignaturesToSignViewModel
+
+@{
+    // Get signatures for each role
+    string bridgesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Bridge Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Bridge Engineer Not Signed";
+    string trafficsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Traffic Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Traffic Engineer Not Signed";
+    string maintenancesig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Maintenance Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Maintenance Engineer Not Signed";
+    string constructionsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Construction Engineer" && t.IsCurrentSig == true)?.Signatures ?? "Construction Engineer Not Signed";
+    string rightofwaysig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "Right Of Way Manager" && t.IsCurrentSig == true)?.Signatures ?? "Right Of Way Manager Not Signed";
+    string districtsig = Model.CurrentSignatures.FirstOrDefault(t => t.SigType == "District Manager" && t.IsCurrentSig == true)?.Signatures ?? "District Manager Not Signed";
+
+
+    bool hasBridgeEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Bridge Engineer");
+    bool hasTrafficEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Traffic Engineer");
+    bool hasMaintenanceEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Maintenance Engineer");
+    bool hasConstructionEngineerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Construction Engineer");
+    bool hasRightOfWayManagerSigned = Model.CurrentSignatures.Any(t => t.SigType == "Right Of Way Manager");
+    bool hasDistrictManagerSigned = Model.CurrentSignatures.Any(t => t.SigType == "District Manager");
+}
+
 
 @if (Model.OmEntry.WorkflowStep == "SubmittedToDistrict")
 {
@@ -361,4 +759,4 @@
             $("#signModal").modal('show');
         });
     });
-</script>
+</script>*@

@@ -32,7 +32,7 @@
 }
 
 <div style="padding-top: 20px; text-align: center;">
-    @*Header for the entrie panel*@
+    @*Header for the entry panel*@
     <h3 style="font-weight: bold; text-decoration: underline;">OM79 Workflow</h3>
     <div class="internal-right-column-content">
 
@@ -44,17 +44,66 @@
             @*Show when the entry has not been submitted for review*@
             @if (Model.Central79Hub.IsSubmitted == false)
             {
+
                 <div class="progress">
                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: @percentageCompleted%;" aria-valuenow="@percentageCompleted" aria-valuemin="0" aria-valuemax="100">
                         @percentageCompleted.ToString("0.00")%
                     </div>
                 </div>
-                <p>@completedItems / @requiredItems Items Completed.</p>
+
+                <div class="items-counter d-flex align-items-center justify-content-center mt-2">
+                    <!-- If the next step is AddItem or AddFirstItem, show the minus button -->
+                    @if (Model.OM79Workflow?.NextStep == "AddItem" || Model.OM79Workflow?.NextStep == "AddFirstItem" || Model.OM79Workflow?.NextStep == "FinishSubmit")
+                    {
+                        bool isDisabled = Model.OMRequiredCount == 1 || completedItems == requiredItems;
+                        <button style="
+                                        background-color: @(isDisabled ? "#d3d3d3" : "#f44336");
+                                        color: white;
+                                        border: none;
+                                        padding: 5px 10px;
+                                        border-radius: 5px;
+                                        cursor: @(isDisabled ? "not-allowed" : "pointer");
+                                        margin-right: 10px;
+                                        opacity: @(isDisabled ? "0.6" : "1");
+                                    "  
+                                onclick="adjustItemCount('decrease')"
+                        @(isDisabled ? "disabled" : "")>
+                            -
+                        </button>
+                    }
+
+                    <p style="font-weight: bold; margin: 0 10px;">@completedItems / @requiredItems Items Completed.</p>
+
+                    <!-- If the next step is AddItem or AddFirstItem, show the plus button -->
+                    @if (Model.OM79Workflow?.NextStep == "AddItem" || Model.OM79Workflow?.NextStep == "AddFirstItem" || Model.OM79Workflow?.NextStep == "FinishSubmit")
+                    {
+                        <button style="
+                                        background-color: #4CAF50;
+                                        color: white;
+                                        border: none;
+                                        padding: 5px 10px;
+                                        border-radius: 5px;
+                                        cursor: pointer;
+                                        margin-left: 10px;
+                                    "
+                                onclick="adjustItemCount('increase')">
+                            +
+                        </button>
+                    }
+                </div>
+
+
+
+
+
+
+                @*<p>@completedItems / @requiredItems Items Completed.</p>*@
 
                 <h4><u>Completed Item Records</u></h4>
                 <div class="completed">
                     @if (Model.OMTableList != null && Model.OMTableList.Any())
                     {
+                        var lastItem = Model.OMTableList.Last(); // Get the last item in the list
                         <ul>
                             @foreach (var item in Model.OMTableList)
                             {
@@ -84,18 +133,60 @@
                                     {
                                         int completedSegments = segments.Count();
                                         int requiredSegments = workflow.NumberOfSegments ?? 0;
+                                        bool isSegmentDisabled = requiredSegments == 1 || completedSegments == requiredSegments;
 
                                         <ul>
                                             <li style="text-align: left;">
                                                 @if (completedSegments >= requiredSegments)
                                                 {
-                                                    <span style="color: green;">&#10004; <!-- Checkmark --> </span>
+                                                   @* <span style="color: green;">&#10004; <!-- Checkmark --> </span>*@
                                                 }
                                                 else
                                                 {
                                                     <span style="color: red;">&#10008; <!-- X mark --> </span>
                                                 }
-                                                @completedSegments / @requiredSegments PJ103 Segments Completed <br />
+                                                <div class="segments-counter d-flex align-items-center justify-content-center mt-2">
+                                                    @if (Model.OM79Workflow?.NextStep == "AddSegment" && item == lastItem)
+                                                    {
+                                                        <!-- Show the minus button if the next step is AddSegment and this is the most recent OM -->
+                                                        <button style="
+                                                                    background-color: @(isSegmentDisabled ? "#d3d3d3" : "#f44336");
+                                                                    color: white;
+                                                                    border: none;
+                                                                    padding: 5px 10px;
+                                                                    border-radius: 5px;
+                                                                    cursor: @(isSegmentDisabled ? "not-allowed" : "pointer");
+                                                                    margin-right: 10px;
+                                                                    opacity: @(isSegmentDisabled ? "0.6" : "1");
+                                                                "
+                                                                onclick="adjustSegmentCount('decrease', @item.Id)"
+                                                        @(isSegmentDisabled ? "disabled" : "")>
+                                                            -
+                                                        </button>
+
+                                                        <p style="font-weight: bold; margin: 0 10px;">@completedSegments / @requiredSegments Segments Completed</p>
+
+                                                        <!-- Show the plus button if the next step is AddSegment and this is the most recent OM -->
+                                                        <button style="
+                                                                    background-color: #4CAF50;
+                                                                    color: white;
+                                                                    border: none;
+                                                                    padding: 5px 10px;
+                                                                    border-radius: 5px;
+                                                                    cursor: pointer;
+                                                                    margin-left: 10px;
+                                                                "
+                                                                onclick="adjustSegmentCount('increase', @item.Id)">
+                                                            +
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <!-- If the next step is not AddSegment or it's not the most recent item, display the plain text status -->
+                                                        <span style="color: green;">&#10004; <!-- Checkmark --> </span>
+                                                        <p style="margin: 0;">@completedSegments / @requiredSegments PJ103 Segments Completed</p>
+                                                    }
+                                                </div>
                                             </li>
                                         </ul>
                                     }
@@ -170,7 +261,7 @@
                     <p>Step: Restart from District</p>
                     @if (Model.IsCurrentUserOMEntryUser)
                     {
-                        <p>Note: Your OM79 entry was declined by the district. Please review and make the necessary edits below.</p>
+                        <p>Note: Your OM79 entry was denied by the district. Please review and make the necessary edits below.</p>
                         <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
                         <br />
                         <br/>
@@ -195,75 +286,79 @@
                             <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
                             <button type="submit" class="btn btn-primary">Finish & Submit For Review</button>
                         </form>
-                    }           
+                    }
+                    else
+                    {
+                        
+                    }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrict")
                 {
-                    <p>Step: Submitted to District</p>
+                    <p><strong>Status:</strong> Under District Review</p>
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToDistrictManager")
                 {
-                    <p>Step: Submitted to District Manager</p>
+                    <p><strong>Status:</strong> Under District Manager Review</p>
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralHDS")
                 {
-                    <p>Step: Submitted to Central HDS</p>
+                    <p><strong>Status:</strong> Under Central Office HDS Review</p>
                     @if (Model.IsHDSUser)
                     {
-                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">OM79 Package Editor</a>
                     }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralGIS")
                 {
-                    <p>Step: Submitted to Central GIS</p>
+                    <p><strong>Status:</strong> Under Central Office GIS Review</p>
                     @if (Model.IsGISUser)
                     {
-                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">OM79 Package Editor</a>
                     }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedBackToDistrictManager")
                 {
-                    <p>Step: Submitted Back to District Manager</p>
+                    <p><strong>Status:</strong> Under Further District Manager Review Following Central Office Evaluation</p>
                     @if (Model.IsDistrictManager)
                     {
-                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">OM79 Package Editor</a>
                     }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations")
                 {
-                    <p>Step: Submitted Back to District Manager from Operations</p>
+                    <p><strong>Status:</strong> Under Further District Manager Review Following Regional Evaluation</p>
                     @if (Model.IsDistrictManager)
                     {
-                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Make Edits</a>
+                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">OM79 Package Editor</a>
                     }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToRegionalEngineer")
                 {
-                    <p>Step: Submitted to Regional Engineer</p>
+                    <p><strong>Status:</strong> Under Regional Engineer Review</p>
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToDirectorOfOperations")
                 {
-                    <p>Step: Submitted to Director of Operations</p>
+                    <p><strong>Status:</strong> Under Director of Operations Review</p>
                 }
                 else if (Model.Central79Hub.WorkflowStep == "SubmittedToCentralChief")
                 {
-                    <p>Step: Submitted to Central Chief</p>
+                    <p><strong>Status:</strong> Under Central Chief Review</p>
                 }
                 else if (Model.Central79Hub.WorkflowStep == "CancelledRequestArchive")
                 {
-                    <p>Step: Cancelled Request Archive</p>
+                    <p><strong>Status:</strong> Request Cancelled and Archived</p>
                 }
                 else if (Model.Central79Hub.WorkflowStep == "Finalized")
                 {
-                    <p>Step: Finalized</p>
+                    <p><strong>Status:</strong> Request Finalized</p>
                 }
                 else if (Model.Central79Hub.WorkflowStep == "Archived")
                 {
-                    <p>Step: Archived</p>
+                    <p><strong>Status:</strong> Request Finalized and Archived</p>
                 }
                 else
                 {
-                    <p>This is where there can be info displayed about the signature workflow in the future, currently no way to edit OM79(s), Older OM(s) may display this...</p>
+                    <p>Error...</p>
                 }                
             }
         }
@@ -340,3 +435,55 @@
             background-color: gray;
         }
 </style>
+
+
+<script>
+    function adjustItemCount(action) {
+        const data = { action: action }; // 'increase' or 'decrease'
+
+        fetch('@Url.Action("AdjustItemCount", "CENTRAL79HUB")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (response.ok) {
+                    location.reload(); // Refresh the page to reflect the updated count
+                } else {
+                    alert("An error occurred while adjusting the item count.");
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+<script>
+    function adjustSegmentCount(action, omTableId) {
+        const data = { action: action, omTableId: omTableId }; // Include the omTableId in the data
+
+        fetch('@Url.Action("AdjustSegmentCount", "CENTRAL79HUB")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (response.ok) {
+                    location.reload(); // Refresh the page to reflect the updated segment count
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An error occurred while adjusting the segment count: " + error.message);
+            });
+    }
+</script>
+
+
+

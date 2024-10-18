@@ -38,7 +38,7 @@
                             <span class="entry-date">Report Date: @(entry.DateComplete?.ToString("yyyy-MM-dd") ?? "N/A")</span>
                         </div>
                         <div class="entry-actions d-flex">
-                            <a href="@Url.Action("Details", "PJ103", new { id = entry.SubmissionID })" class="btn btn-primary btn-lg me-2">View Details</a>
+                            <a href="@Url.Action("Edit", "PJ103", new { id = entry.SubmissionID })" class="btn btn-primary btn-lg me-2">Edit Segment</a>
                             <button class="btn btn-danger btn-lg delete-segment-pj103" data-bs-toggle="modal" data-bs-target="#deleteModalPJ103" data-segmentid="@entry.SubmissionID">Delete Segment</button>
                         </div>
                     </div>
