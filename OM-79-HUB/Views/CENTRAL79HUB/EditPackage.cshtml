@@ -125,6 +125,13 @@
     @await Component.InvokeAsync("LinkedEditOM", new { hubId = ViewBag.testUniqueID })
 </div>
 
+<br />
+<hr />
+<div>
+    <a href="@Url.Action("Details", "CENTRAL79HUB", new { id = Model.OMId })" class="btn btn-primary btn-lg">Return To Details Page</a>
+</div>
+<hr />
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var coll = document.getElementsByClassName("collapsible");

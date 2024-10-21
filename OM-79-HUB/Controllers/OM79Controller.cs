@@ -275,14 +275,19 @@ namespace OM_79_HUB.Data
 
 
 
-
+                        //TODO: Need to pull the isSubmitted variable here
                         //Need to skip the workflow stuff if someone is using the edit page to create a OM79:::
                         // Skip workflow steps if isSubmitted is true
-                        var isSubmitted = false;
-                        if (isSubmitted)
+
+                        // Retrieve the omhub object associated with the current oMTable.HubId
+                        var omhub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(o => o.OMId == oMTable.HubId);
+
+                        // Check if omhub is not null and if IsSubmitted is true
+                        if (omhub?.IsSubmitted == true)
                         {
                             return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = oMTable.HubId });
                         }
+
 
 
 
@@ -422,57 +427,100 @@ namespace OM_79_HUB.Data
         // GET: OMTables/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            DropDowns(); // Assuming this method populates dropdowns or other data for the view
+            Console.WriteLine("Edit GET called with id: " + id);
+
+            DropDowns(); // Ensure dropdowns are populated
+            Console.WriteLine("Dropdowns populated");
 
             if (id == null || _context.OMTable == null)
             {
+                Console.WriteLine("ID is null or OMTable is null");
                 return NotFound();
             }
 
             var oMTable = await _context.OMTable.FindAsync(id);
             if (oMTable == null)
             {
+                Console.WriteLine("OMTable with id " + id + " not found in the database.");
                 return NotFound();
             }
+
+            // Retain the DateComplete field but exclude it from the form
+            ViewBag.DateComplete = oMTable.DateComplete;
+            Console.WriteLine("DateComplete retained: " + oMTable.DateComplete);
+
             return View(oMTable);
         }
-        
 
 
         // POST: OMTables/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,DistrictNumber,County,SubmissionDate,Routing,RoadChangeType,Otherbox,RouteAssignment,RightOfWayWidth,Railroad,DOTAARNumber,RequestedBy,Comments,AdjacentProperty,APHouses,APBusinesses,APSchools,APOther,APOtherIdentify,Attachments,DESignature,Preparer")] OMTable oMTable)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,DistrictNumber,County,SubmissionDate,Routing,RoadChangeType,Otherbox,RouteAssignment,RightOfWayWidth,RightOther,Railroad,DOTAARNumber,RequestedBy,RequestedByName,Comments,AdjacentProperty,APHouses,APBusinesses,APSchools,APOther,APOtherIdentify,Attachments,DESignature,Preparer,Route,SubRoute,CoDate,CoDateTwo,HubId,SignSystem,ProjectNumber,RouteNumber,SubRouteNumber,StartingMilePoint,EndingMilePoint,MaintOrg,YearOfSurvey,BridgeInv,RailroadInv,RailroadAmount,BridgeAmount,BridgeNumbers,Supplemental,RAddition,RRedesignation,RMapCorrection,RAbandonment,RInventoryRemoval,RAmend,RRescind,ROther,IsArchive,RouteIDB")] OMTable oMTable)
         {
-            if (id != oMTable.Id)
+            Console.WriteLine("Edit POST called with id: " + id);
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                Console.WriteLine("ModelState is not valid");
+                foreach (var state in ModelState)
+                {
+                    if (state.Value.Errors.Count > 0)
+                    {
+                        Console.WriteLine($"Error in {state.Key}: {state.Value.Errors.First().ErrorMessage}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("ModelState is valid");
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Retain the DateComplete field from the database
+                var existingOMTable = await _context.OMTable.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+                if (existingOMTable != null)
                 {
-                    _context.Update(oMTable);
-                    await _context.SaveChangesAsync();
+                    oMTable.DateComplete = existingOMTable.DateComplete;
+                    Console.WriteLine("Retained DateComplete from DB: " + oMTable.DateComplete);
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!OMTableExists(oMTable.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    Console.WriteLine("Existing OMTable entry not found in DB.");
                 }
-                return RedirectToAction(nameof(Index));
+
+                // Update the entry
+                _context.Update(oMTable);
+                await _context.SaveChangesAsync();
+                Console.WriteLine("Successfully updated OMTable with id: " + id);
+
+                // Redirect to EditPackage with HubId after successful edit
+                return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = oMTable.HubId });
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                Console.WriteLine("DbUpdateConcurrencyException occurred.");
+                // Perform the existence check directly here
+                if (!_context.OMTable.Any(e => e.Id == oMTable.Id))
+                {
+                    Console.WriteLine("OMTable not found in DB during concurrency check.");
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            // If ModelState is invalid, re-populate dropdowns
+            Console.WriteLine("ModelState is invalid, re-populating dropdowns.");
+            DropDowns();
             return View(oMTable);
         }
+
+
+
 
 
         // GET: OMTables/Delete/5

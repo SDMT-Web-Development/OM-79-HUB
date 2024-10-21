@@ -372,10 +372,10 @@ namespace OM_79_HUB.Data
                 Console.WriteLine("----------------------------------------");
                 Console.WriteLine("----------------------------------------");
                 Console.WriteLine("----------------------------------------");
-                if (pjWorkflow == null)
+                if (pjWorkflow == null || hub.IsSubmitted == true)
                 {
                     //They are editing the package here
-                    return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
+                    return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hub.OMId });
                 }
 
 
@@ -554,6 +554,7 @@ namespace OM_79_HUB.Data
                 PeakLanes = routeInfo?.PeakLanes,
                 ReverseLanes = routeInfo?.ReverseLanes,
                 LaneWidth = routeInfo?.LaneWidth,
+                GradeWidth = routeInfo?.GradeWidth,
                 MedianWidth = routeInfo?.MedianWidth,
                 PavementWidth = routeInfo?.PavementWidth,
                 SpecialSys = routeInfo?.SpecialSys,
@@ -582,28 +583,105 @@ namespace OM_79_HUB.Data
 
 
 
-        // POST: Submissions/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SubmissionID,ProjectKey,ReportDate,County,RouteNumber,SubRouteNumber,ProjectNumber,DateComplete,NatureOfChange,MilesOfNewRoad,MaintOrg,YearOfSurvey,AccessControl,ThroughLanes,CounterPeakLanes,PeakLanes,ReverseLanes,LaneWidth,MedianWidth,PavementWidth,SpecialSys,FacilityType,FederalAid,FedForestHighway,MedianType,NHS,TruckRoute,GovIDOwnership,WVlegalClass,FunctionalClass,BridgeNumber,BridgeLocation,StationFrom,StationTo,CrossingName,WeightLimit,SubMaterial,SuperMaterial,FloorMaterial,ArchMaterial,TotalLength,ClearanceRoadway,ClearanceSidewalkRight,ClearanceSidewalkLeft,ClearanceStreamble,ClearancePortal,ClearanceAboveWater,PostedLoadLimits,ConstructionDate,WhomBuilt,HistoricalBridge,UserID,OtherBox")] Submission submission)
+        public async Task<IActionResult> Edit(int id, Aclvl aclvlViewModel)
         {
-            if (id != submission.SubmissionID)
+            /*
+            if (id != aclvlViewModel.SubmissionID)
             {
                 return NotFound();
             }
-
+            */
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Retrieve the existing Submission entity from the database
+                    var submission = await _context.Submissions
+                        .FirstOrDefaultAsync(s => s.SubmissionID == id);
+
+                    if (submission == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Map data from the ViewModel back to the Submission entity
+                    submission.County = aclvlViewModel.County;
+                    submission.RouteNumber = aclvlViewModel.RouteNumber;
+                    submission.SubRouteNumber = aclvlViewModel.SubRouteNumber;
+                    submission.ProjectNumber = aclvlViewModel.ProjectNumber;
+                    submission.DateComplete = aclvlViewModel.DateComplete;
+                    submission.NatureOfChange = aclvlViewModel.NatureOfChange;
+                    submission.StartingMilePoint = aclvlViewModel.StartingMilePoint;
+                    submission.EndingMilePoint = aclvlViewModel.EndingMilePoint;
+                    submission.SignSystem = aclvlViewModel.SignSystem;
+                    submission.RailroadInv = aclvlViewModel.RailroadInv;
+                    submission.BridgeInv = aclvlViewModel.BridgeInv;
+                    submission.OtherBox = aclvlViewModel.OtherBox;
+                    submission.DateComplete = aclvlViewModel.DateComplete;
+                    // Map any other properties as needed
+
+                    // Retrieve the related RouteInfo entity
+                    var routeInfo = await _context.RouteInfo
+                        .FirstOrDefaultAsync(r => r.SubmissionID == id);
+
+                    if (routeInfo == null)
+                    {
+                        // If RouteInfo doesn't exist, create a new one
+                        routeInfo = new RouteInfo
+                        {
+                            SubmissionID = id
+                        };
+                        _context.RouteInfo.Add(routeInfo);
+                    }
+
+                    // Map data from the ViewModel back to the RouteInfo entity
+                    routeInfo.AccessControl = aclvlViewModel.AccessControl;
+                    routeInfo.ThroughLanes = aclvlViewModel.ThroughLanes;
+                    routeInfo.CounterPeakLanes = aclvlViewModel.CounterPeakLanes;
+                    routeInfo.PeakLanes = aclvlViewModel.PeakLanes;
+                    routeInfo.ReverseLanes = aclvlViewModel.ReverseLanes;
+                    routeInfo.LaneWidth = aclvlViewModel.LaneWidth;
+                    routeInfo.MedianWidth = aclvlViewModel.MedianWidth;
+                    routeInfo.GradeWidth = aclvlViewModel.GradeWidth;
+                    routeInfo.PavementWidth = aclvlViewModel.PavementWidth;
+                    routeInfo.SpecialSys = aclvlViewModel.SpecialSys;
+                    routeInfo.FacilityType = aclvlViewModel.FacilityType;
+                    routeInfo.FederalAid = aclvlViewModel.FederalAid;
+                    routeInfo.FedForestHighway = aclvlViewModel.FedForestHighway;
+                    routeInfo.MedianType = aclvlViewModel.MedianType;
+                    routeInfo.NHS = aclvlViewModel.NHS;
+                    routeInfo.TruckRoute = aclvlViewModel.TruckRoute;
+                    routeInfo.GovIDOwnership = aclvlViewModel.GovIDOwnership;
+                    routeInfo.WVlegalClass = aclvlViewModel.WVlegalClass;
+                    routeInfo.FunctionalClass = aclvlViewModel.FunctionalClass;
+                    routeInfo.SurfaceTypeN = aclvlViewModel.SurfaceTypeN;
+                    routeInfo.MPSegmentStart = aclvlViewModel.MPSegmentStart;
+                    routeInfo.MPSegmentEnd = aclvlViewModel.MPSegmentEnd;
+                    // Map any other properties as needed
+
+                    // Update the entities in the context
                     _context.Update(submission);
+                    _context.Update(routeInfo);
+
+                    // Save all changes to the database
                     await _context.SaveChangesAsync();
+
+                    var item = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == submission.OM79Id);
+
+                    if (item == null)
+                    {
+                        return NotFound();
+                    }
+
+                    var hubID = item.HubId;
+
+                    return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubID });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!SubmissionExists(submission.SubmissionID))
+                    if (!aclvlViewModel.SubmissionID.HasValue || !SubmissionExists(aclvlViewModel.SubmissionID.Value))
                     {
                         return NotFound();
                     }
@@ -612,10 +690,13 @@ namespace OM_79_HUB.Data
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(submission);
+
+            // If ModelState is invalid, re-populate dropdowns and return the view
+            DropDowns();
+            return View(aclvlViewModel);
         }
+
 
         // GET: Submissions/Delete/5
         [HttpGet]

@@ -5,10 +5,15 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Nature of Change Section</h2>
+<h2>Edit Nature of Change Section</h2>
 
 <div class="container">
-    <form asp-action="Edit" method="post" enctype="multipart/form-data" class="row">
+    <form asp-action="Edit">
+
+        <input type="hidden" asp-for="SubmissionID" />
+        <input type="hidden" asp-for="DateComplete" />
+
+
         <!-- Access Control, Through Lanes, Counter Peak Lanes -->
         <div class="form-row d-flex flex-wrap">
             <div class="form-group col-md-4 mb-3">
@@ -135,9 +140,18 @@
                 <select asp-for="TruckRoute" class="form-control" asp-items="@ViewBag.TruckDropdown"></select>
                 <span asp-validation-for="TruckRoute" class="text-danger"></span>
             </div>
-            <div class="form-group col-md-4 mb-3">
+            @*<div class="form-group col-md-4 mb-3">
                 <label asp-for="MPSegmentStart" class="control-label">@Html.DisplayNameFor(model => model.MPSegmentStart)<span class="text-danger">*</span></label>
-                <input asp-for="MPSegmentStart" class="form-control" type="number" step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" />
+                <input asp-for="MPSegmentStart" class="form-control" type="number" step="0.001" min="0" pattern="^\d+(\.\d{1,4})?$" />
+                <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
+            </div>*@
+            <div class="form-group col-md-4 mb-3">
+                <label asp-for="MPSegmentStart" class="control-label">
+                    @Html.DisplayNameFor(model => model.MPSegmentStart)
+                    <span class="text-danger">*</span>
+                </label>
+                <input asp-for="MPSegmentStart" class="form-control" type="number"
+                       step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" asp-format="{0:F3}" />
                 <span asp-validation-for="MPSegmentStart" class="text-danger"></span>
             </div>
         </div>
@@ -146,8 +160,12 @@
         <div class="form-row d-flex flex-wrap">
             <!-- Ending MP -->
             <div class="form-group col-md-4 mb-3">
-                <label asp-for="MPSegmentEnd" class="control-label">@Html.DisplayNameFor(model => model.MPSegmentEnd)<span class="text-danger">*</span></label>
-                <input asp-for="MPSegmentEnd" class="form-control" type="number" step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" />
+                <label asp-for="MPSegmentEnd" class="control-label">
+                    @Html.DisplayNameFor(model => model.MPSegmentEnd)
+                    <span class="text-danger">*</span>
+                </label>
+                <input asp-for="MPSegmentEnd" class="form-control" type="number"
+                       step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" asp-format="{0:F3}" />
                 <span asp-validation-for="MPSegmentEnd" class="text-danger"></span>
             </div>
             <div class="form-group col-md-8 mb-3">
@@ -157,16 +175,21 @@
             </div>
         </div>
 
+        <br />
         <div class="form-group mt-4">
             <button type="submit" class="btn btn-primary">Save Segment Changes</button>
         </div>
         <br />
-        <div>
-            <a asp-action="EditPackage" asp-controller="CENTRAL79HUB" asp-route-id="@ViewBag.OMId" class="btn btn-secondary">Return to Package Editor</a>
-        </div>
+        <br />
     </form>
 </div>
 
+<div>
+    <a asp-action="EditPackage" asp-controller="CENTRAL79HUB" asp-route-id="@ViewBag.OMId" class="btn btn-secondary">Return to Package Editor</a>
+</div>
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
