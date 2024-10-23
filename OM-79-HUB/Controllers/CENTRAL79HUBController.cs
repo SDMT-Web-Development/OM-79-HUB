@@ -438,6 +438,41 @@ namespace OM_79_HUB.Controllers
             return View(pagedCentral79HubEntries);
         }
 
+        // GET: CENTRAL79HUB
+        public async Task<IActionResult> MyIndex(int? page)
+        {
+            // Store the current logged-in user's identity
+            string currentUserId = User.Identity.Name;
+
+            // Filter the records where the UserId matches the current user
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.UserId == currentUserId
+                                      select m;
+
+            // Map WorkflowStep to an integer for ordering
+            central79HubEntries = central79HubEntries.OrderBy(entry =>
+                entry.WorkflowStep == null || entry.WorkflowStep == "NotStarted" ? 1 :
+                entry.WorkflowStep == "RestartFromDistrict" || entry.WorkflowStep == "RestartFromDistrictManager" ? 2 :
+                entry.WorkflowStep == "SubmittedToDistrict" || entry.WorkflowStep == "SubmittedToDistrictManager" ? 3 :
+                entry.WorkflowStep == "SubmittedToCentralHDS" || entry.WorkflowStep == "SubmittedToCentralGIS" ||
+                entry.WorkflowStep == "SubmittedBackToDistrictManager" || entry.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations" ||
+                entry.WorkflowStep == "SubmittedToRegionalEngineer" || entry.WorkflowStep == "SubmittedToDirectorOfOperations" ||
+                entry.WorkflowStep == "SubmittedToCentralChief" ? 4 :
+                entry.WorkflowStep == "CancelledRequestArchive" ? 5 :
+                entry.WorkflowStep == "Finalized" ? 6 :
+                7 // Default value for any other WorkflowStep
+            );
+
+            // Set the page number, defaulting to 1 if no page is provided
+            int pageNumber = page ?? 1;
+
+            // Paginate the results with 50 records per page
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            // Return the view with the paginated results
+            return View(pagedCentral79HubEntries);
+        }
+
 
 
         // GET: CENTRAL79HUB

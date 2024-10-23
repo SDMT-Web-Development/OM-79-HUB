@@ -1,0 +1,212 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<CENTRAL79HUB>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My OM79 Submissions";
+}
+
+<br />
+<h1 style="font-weight: bold">My OM79 Submissions</h1>
+<hr />
+
+<!-- Legend for the WorkflowStep colors -->
+<h4>Legend</h4>
+<ul>
+    <li><span class="badge my-bg-warning text-dark">Yellow</span> - Awaiting Submission</li>
+    <li><span class="badge my-bg-danger">Red</span> - Awaiting Requested Changes</li>
+    <li><span class="badge my-bg-info text-dark">Blue</span> - Under District Review</li>
+    <li><span class="badge my-bg-purple">Purple</span> - Under Central Office Review</li>
+    <li><span class="badge my-bg-secondary">Grey</span> - Request Rescinded and Archived</li>
+    <li><span class="badge my-bg-success">Green</span> - Request Finalized and Archived</li>
+</ul>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().UserId)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().Otherbox)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().County)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().District)</th>
+            <th>Workflow Step</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var rowClass = "";
+            var displayWorkflowStep = "";
+
+            switch (item.WorkflowStep)
+            {
+                case null:
+                case "NotStarted":
+                    rowClass = "my-bg-warning"; // Yellow
+                    displayWorkflowStep = "Awaiting Submission";
+                    break;
+                case "RestartFromDistrict":
+                case "RestartFromDistrictManager":
+                    rowClass = "my-bg-danger"; // Red
+                    displayWorkflowStep = "Awaiting Requested Changes";
+                    break;
+                case "SubmittedToDistrict":
+                case "SubmittedToDistrictManager":
+                    rowClass = "my-bg-info"; // Blue
+                    displayWorkflowStep = "Under District Review";
+                    break;
+                case "SubmittedToCentralHDS":
+                case "SubmittedToCentralGIS":
+                case "SubmittedBackToDistrictManager":
+                case "SubmittedBackToDistrictManagerFromOperations":
+                case "SubmittedToRegionalEngineer":
+                case "SubmittedToDirectorOfOperations":
+                case "SubmittedToCentralChief":
+                    rowClass = "my-bg-purple"; // Purple
+                    displayWorkflowStep = "Under Central Office Review";
+                    break;
+                case "CancelledRequestArchive":
+                    rowClass = "my-bg-secondary"; // Grey
+                    displayWorkflowStep = "Request Rescinded and Archived";
+                    break;
+                case "Finalized":
+                    rowClass = "my-bg-success"; // Green
+                    displayWorkflowStep = "Request Finalized and Archived";
+                    break;
+            }
+
+            <tr>
+                <td class="@rowClass">@Html.DisplayFor(modelItem => item.UserId)</td>
+                <td class="@rowClass">@Html.DisplayFor(modelItem => item.Otherbox)</td>
+                <td class="@rowClass">@Html.DisplayFor(modelItem => item.County)</td>
+                <td class="@rowClass">@Html.DisplayFor(modelItem => item.District)</td>
+                <td class="@rowClass">@displayWorkflowStep</td>
+                <td class="@rowClass">
+                    <a asp-action="Details" asp-route-id="@item.OMId">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-between custom-pagination">
+    <div>
+        @Html.PagedListPager(Model, page => Url.Action("Index", new { page }),
+        new PagedListRenderOptions
+        {
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" },
+        LinkToPreviousPageFormat = "<span>&lsaquo;</span>",
+        LinkToNextPageFormat = "<span>&rsaquo;</span>",
+        LinkToFirstPageFormat = "<span>&laquo;</span>",
+        LinkToLastPageFormat = "<span>&raquo;</span>",
+        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage = PagedListDisplayMode.Always,
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 3 // Adjust this number as needed
+        })
+    </div>
+</div>
+
+<style>
+    /* Custom background color classes for MyIndex.cshtml */
+    .my-bg-warning {
+        background-color: #ffc107 !important; /* Yellow */
+        color: #000 !important;
+    }
+
+    .my-bg-danger {
+        background-color: #dc3545 !important; /* Red */
+        color: #fff !important;
+    }
+
+    .my-bg-info {
+        background-color: #17a2b8 !important; /* Light blue */
+        color: #fff !important;
+    }
+
+    .my-bg-purple {
+        background-color: #6f42c1 !important; /* Purple */
+        color: #fff !important;
+    }
+
+    .my-bg-secondary {
+        background-color: #6c757d !important; /* Grey */
+        color: #fff !important;
+    }
+
+    .my-bg-success {
+        background-color: #28a745 !important; /* Green */
+        color: #fff !important;
+    }
+        /* Set link color to white in cells with dark backgrounds */
+        .my-bg-danger a,
+        .my-bg-purple a,
+        .my-bg-secondary a,
+        .my-bg-success a,
+        .my-bg-info a {
+            color: #fff !important;
+        }
+
+    /* Set link color to black in cells with light backgrounds */
+    .my-bg-warning a {
+        color: #000 !important;
+    }
+
+    /* Pagination styles */
+    .custom-pagination .pagination {
+        display: flex;
+        padding-left: 0;
+        list-style: none;
+        border-radius: 0.25rem;
+    }
+
+    .custom-pagination .page-item {
+        margin: 0 0.25rem;
+    }
+
+    .custom-pagination .page-link {
+        position: relative;
+        display: block;
+        padding: 0.5rem 0.75rem;
+        margin-left: -1px;
+        line-height: 1.25;
+        color: #007bff;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        text-decoration: none;
+    }
+
+        .custom-pagination .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+    .custom-pagination .page-item.active .page-link {
+        z-index: 1;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .custom-pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
+
+    .custom-pagination .page-item .page-link span {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        line-height: 1em;
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>

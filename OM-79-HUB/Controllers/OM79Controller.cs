@@ -99,10 +99,17 @@ namespace OM_79_HUB.Data
             ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["CurrentFilter"] = searchRouteIDB;
 
-            // Filter the records where IsArchive is true
+            // First, get all the HubIds from CENTRAL79HUB where WorkflowStep is not "CancelledRequestArchive"
+            var validHubIds = await _context2.CENTRAL79HUB
+                                              .Where(h => h.WorkflowStep != "CancelledRequestArchive")
+                                              .Select(h => h.OMId)  // Assuming OMId is the HubId in OMTable
+                                              .ToListAsync();
+
+            // Now fetch the OMTable entries using _context where IsArchive is not true and HubId is in the validHubIds list
             var omTables = from m in _context.OMTable
-                           where m.IsArchive == true
+                           where m.IsArchive == true && m.HubId.HasValue && validHubIds.Contains(m.HubId.Value)
                            select m;
+
 
             if (!String.IsNullOrEmpty(searchRouteIDB))
             {
@@ -192,7 +199,19 @@ namespace OM_79_HUB.Data
             Console.WriteLine("Starting OMTables/Create Action...");
             Console.WriteLine($"Received Datsubmit: {Datsubmit}");
             Console.WriteLine("------------------------------------------------------------------------------------------");
-
+            var districtToCounties = new Dictionary<string, List<string>>()
+                {
+                    {"1", new List<string>{"Boone", "Clay", "Kanawha", "Mason", "Putnam"}},
+                    {"2", new List<string>{"Cabell", "Lincoln", "Logan", "Mingo", "Wayne"}},
+                    {"3", new List<string>{"Calhoun", "Jackson", "Pleasants", "Ritchie", "Roane", "Wirt", "Wood"}},
+                    {"4", new List<string>{"Doddridge", "Harrison", "Marion", "Monongalia", "Preston", "Taylor"}},
+                    {"5", new List<string>{"Berkeley", "Grant", "Hampshire", "Hardy", "Jefferson", "Mineral", "Morgan"}},
+                    {"6", new List<string>{"Brooke", "Hancock", "Marshall", "Ohio", "Tyler", "Wetzel"}},
+                    {"7", new List<string>{"Barbour", "Braxton", "Gilmer", "Lewis", "Upshur", "Webster"}},
+                    {"8", new List<string>{"Pendleton", "Pocahontas", "Randolph", "Tucker"}},
+                    {"9", new List<string>{"Fayette", "Greenbrier", "Monroe", "Nicholas", "Summers"}},
+                    {"10", new List<string>{"McDowell", "Mercer", "Raleigh", "Wyoming"}}
+                };
             try
             {
                 if (ModelState.IsValid)
@@ -204,6 +223,15 @@ namespace OM_79_HUB.Data
                         if (oMTable.County == null)
                         {
                             oMTable.County = CountyMappings.FirstOrDefault(x => x.Value == countyCode).Key;
+                        }
+                        // Map the county to the district number
+                        foreach (var district in districtToCounties)
+                        {
+                            if (district.Value.Contains(oMTable.County))
+                            {
+                                oMTable.DistrictNumber = int.Parse(district.Key);
+                                break; // District found, break the loop
+                            }
                         }
                         string paddedRoute = (oMTable.Route ?? 0).ToString("D4");
                         string paddedSubRoute = (oMTable.SubRoute ?? 0).ToString("D2");
