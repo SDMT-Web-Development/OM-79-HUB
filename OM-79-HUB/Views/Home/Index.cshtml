@@ -1,15 +1,97 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome to the OM79 Application";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    
-    <a asp-controller="CENTRAL79HUB" asp-action="Create">Create a New OM79 Form</a>
-    <form action="/CENTRAL79HUB/Create" method="function">
-        <!-- Your form fields go here -->
-        <!-- For example: -->
-        <!-- <input type="text" name="PropertyName" /> -->
-      @*  <button type="submit">Create and Redirect</button> *@
-    </form>
+<!-- Hero Section -->
+<div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">@ViewData["Title"]</h1>
+        <p class="lead">Easily submit and manage your OM79 forms.</p>
+    </div>
 </div>
+
+
+<!-- Main Content -->
+<div class="container mt-5">
+    <div class="row justify-content-center mt-5">
+        <!-- Create New OM79 Form Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 text-center shadow">
+                <div class="card-body">
+                    <div class="icon-container bg-primary text-white rounded-circle mb-3 mx-auto">
+                        <i class="fas fa-file-alt fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Create New OM79 Form</h5>
+                    <p class="card-text">Start a new OM79 form submission.</p>
+                    <a href="@Url.Action("Create", "CENTRAL79HUB")" class="btn btn-outline-primary stretched-link">Create New OM79</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 text-center shadow">
+                <div class="card-body">
+                    <div class="icon-container bg-info text-white rounded-circle mb-3 mx-auto">
+                        <i class="fas fa-question-circle fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Need Help Getting Started?</h5>
+                    <p class="card-text">Visit our resources page for guides, support, and more.</p>
+                    <a href="@Url.Action("Resources", "Home")" class="btn btn-outline-info stretched-link">Go to Resources</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        height: 300px;
+        position: relative;
+        background-blend-mode: darken;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+        .hero-section h1,
+        .hero-section p {
+            color: #fff;
+        }
+
+    /* Icon Container Styles */
+    .icon-container {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    /* Card Hover Effect */
+    .card:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s;
+    }
+
+    /* Button Hover Effect */
+    .btn {
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+        .btn:hover {
+            color: #fff;
+        }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+    }
+</style>
+
+<!-- Include Bootstrap CSS and Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">

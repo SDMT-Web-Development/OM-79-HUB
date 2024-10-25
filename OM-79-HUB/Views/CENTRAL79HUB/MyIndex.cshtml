@@ -7,20 +7,13 @@
     ViewData["Title"] = "My OM79 Submissions";
 }
 
-<br />
-<h1 style="font-weight: bold">My OM79 Submissions</h1>
-<hr />
-
-<!-- Legend for the WorkflowStep colors -->
-<h4>Legend</h4>
-<ul>
-    <li><span class="badge my-bg-warning text-dark">Yellow</span> - Awaiting Submission</li>
-    <li><span class="badge my-bg-danger">Red</span> - Awaiting Requested Changes</li>
-    <li><span class="badge my-bg-info text-dark">Blue</span> - Under District Review</li>
-    <li><span class="badge my-bg-purple">Purple</span> - Under Central Office Review</li>
-    <li><span class="badge my-bg-secondary">Grey</span> - Request Rescinded and Archived</li>
-    <li><span class="badge my-bg-success">Green</span> - Request Finalized and Archived</li>
-</ul>
+<!-- Hero Section -->
+<div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">My OM79 Submissions</h1>
+        <p class="lead">Track and manage your OM79 form submissions with ease.</p>
+    </div>
+</div>
 
 <table class="table">
     <thead>
@@ -34,26 +27,27 @@
         </tr>
     </thead>
     <tbody>
+        @{
+            // Initialize variables to track the current group and row index
+            string currentGroup = null;
+            int rowIndex = 0;
+        }
         @foreach (var item in Model)
         {
-            var rowClass = "";
+            // Map WorkflowStep to display text
             var displayWorkflowStep = "";
-
             switch (item.WorkflowStep)
             {
                 case null:
                 case "NotStarted":
-                    rowClass = "my-bg-warning"; // Yellow
                     displayWorkflowStep = "Awaiting Submission";
                     break;
                 case "RestartFromDistrict":
                 case "RestartFromDistrictManager":
-                    rowClass = "my-bg-danger"; // Red
                     displayWorkflowStep = "Awaiting Requested Changes";
                     break;
                 case "SubmittedToDistrict":
                 case "SubmittedToDistrictManager":
-                    rowClass = "my-bg-info"; // Blue
                     displayWorkflowStep = "Under District Review";
                     break;
                 case "SubmittedToCentralHDS":
@@ -63,26 +57,69 @@
                 case "SubmittedToRegionalEngineer":
                 case "SubmittedToDirectorOfOperations":
                 case "SubmittedToCentralChief":
-                    rowClass = "my-bg-purple"; // Purple
                     displayWorkflowStep = "Under Central Office Review";
                     break;
                 case "CancelledRequestArchive":
-                    rowClass = "my-bg-secondary"; // Grey
                     displayWorkflowStep = "Request Rescinded and Archived";
                     break;
                 case "Finalized":
-                    rowClass = "my-bg-success"; // Green
                     displayWorkflowStep = "Request Finalized and Archived";
+                    break;
+                default:
+                    displayWorkflowStep = "Unknown";
                     break;
             }
 
-            <tr>
-                <td class="@rowClass">@Html.DisplayFor(modelItem => item.UserId)</td>
-                <td class="@rowClass">@Html.DisplayFor(modelItem => item.Otherbox)</td>
-                <td class="@rowClass">@Html.DisplayFor(modelItem => item.County)</td>
-                <td class="@rowClass">@Html.DisplayFor(modelItem => item.District)</td>
-                <td class="@rowClass">@displayWorkflowStep</td>
-                <td class="@rowClass">
+            // **Determine headerClass based on displayWorkflowStep**
+            string headerClass = "";
+            switch (displayWorkflowStep)
+            {
+                case "Awaiting Submission":
+                    headerClass = "my-bg-warning text-dark";
+                    break;
+                case "Awaiting Requested Changes":
+                    headerClass = "my-bg-danger text-white";
+                    break;
+                case "Under District Review":
+                    headerClass = "my-bg-info text-dark";
+                    break;
+                case "Under Central Office Review":
+                    headerClass = "my-bg-purple text-white";
+                    break;
+                case "Request Rescinded and Archived":
+                    headerClass = "my-bg-secondary text-white";
+                    break;
+                case "Request Finalized and Archived":
+                    headerClass = "my-bg-success text-white";
+                    break;
+                default:
+                    headerClass = "bg-light text-dark";
+                    break;
+            }
+
+            // If this item's group is different from the current group, output a header
+            if (currentGroup != displayWorkflowStep)
+            {
+                currentGroup = displayWorkflowStep;
+                <tr>
+                    <td colspan="6" class="fw-bold @headerClass">@currentGroup</td>
+                </tr>
+
+                // Reset rowIndex for each new group to alternate colors within each group
+                rowIndex = 0;
+            }
+
+            // Increment rowIndex and determine rowClass
+            rowIndex++;
+            string rowClass = (rowIndex % 2 == 0) ? "table-row-even" : "table-row-odd";
+            // The rest of your row remains the same
+            <tr class="@rowClass">
+                <td>@Html.DisplayFor(modelItem => item.UserId)</td>
+                <td>@Html.DisplayFor(modelItem => item.Otherbox)</td>
+                <td>@Html.DisplayFor(modelItem => item.County)</td>
+                <td>@Html.DisplayFor(modelItem => item.District)</td>
+                <td>@displayWorkflowStep</td>
+                <td>
                     <a asp-action="Details" asp-route-id="@item.OMId">Details</a>
                 </td>
             </tr>
@@ -111,8 +148,80 @@
     </div>
 </div>
 
+
+
+<!-- Legend for the WorkflowStep colors -->
+<div class="container mt-4">
+    <h4 class="text-center mb-3">Legend</h4>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 justify-content-center">
+        <div class="col">
+            <div class="legend-item my-bg-warning text-dark p-2 rounded">
+                <span class="badge text-dark"></span> Awaiting Submission
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-danger text-white p-2 rounded">
+                <span class="badge text-white"></span> Awaiting Requested Changes
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-info text-white p-2 rounded">
+                <span class="badge text-dark"></span> Under District Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-purple text-white p-2 rounded">
+                <span class="badge text-white"></span> Under Central Office Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-secondary text-white p-2 rounded">
+                <span class="badge text-white"></span> Request Rescinded and Archived
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-success text-white p-2 rounded">
+                <span class="badge text-white"></span> Request Finalized and Archived
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Styles for Legend -->
 <style>
-    /* Custom background color classes for MyIndex.cshtml */
+    .table-row-even {
+        background-color: white !important; /* Light grey */
+    }
+
+    .table-row-odd {
+        background-color: grey !important; /* White */
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+</style>
+
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        height: 300px;
+        position: relative;
+        background-blend-mode: darken;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+        .hero-section h1,
+        .hero-section p {
+            color: #fff;
+        }
     .my-bg-warning {
         background-color: #ffc107 !important; /* Yellow */
         color: #000 !important;

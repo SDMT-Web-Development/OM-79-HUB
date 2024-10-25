@@ -10,6 +10,257 @@
     @RenderSection("Styles", required: false)
 </head>
 <body>
+    <header class="navbar-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <img alt="List View" src="@Url.Content("~/Assets/dot.png")" style="width:50px; height:50px; margin-right: 10px; margin-top: 5px;" />
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">OM-79</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Central79Hub" asp-action="MyIndex" style="font-weight: bold;">My Submissions</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">OM79 Records</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "OM79")">Active Item Index</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">Active OM79 Index</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "OM79")">Finalized Item Index Archive</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "CENTRAL79HUB")">Finalized OM79 Index Archive</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndexRescinded", "CENTRAL79HUB")">Rescinded OM79 Index Archive</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Administrator</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("DistrictAccountSystem", "AccountSystemAndWorkflow")">District Admin</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("StatewideAccountSystem", "AccountSystemAndWorkflow")">Central Office Admin</a>
+                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("AdminAccountSystem", "AccountSystemAndWorkflow")">System Admin</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <p class="nav navbar-text" style="color: white">@User.Identity?.Name!</p>
+                <!-- Toggle Button for Workflow Manager -->
+                <button class="btn btn-outline-light ms-3 btn-toggle-workflow" type="button" data-bs-toggle="collapse" data-bs-target="#workflowManagerCollapse" aria-expanded="true" aria-controls="workflowManagerCollapse">
+                    <i class="fas fa-tasks me-2 toggle-icon"></i>Toggle Workflow
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="full-width-container">
+        <div class="content-container">
+            <div class="main-content">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+            <!-- Collapsible Workflow Manager -->
+            <div class="collapse fade show" id="workflowManagerCollapse">
+                <div class="right-column">
+                    @await Component.InvokeAsync("Workflow")
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - West Virginia Department of Transportation - <a asp-area="" asp-controller="Home" asp-action="Resources">Resources / Privacy Policy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Optiona--->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleButton = document.querySelector('[data-bs-target="#workflowManagerCollapse"]');
+            const workflowCollapseElement = document.getElementById('workflowManagerCollapse');
+            const contentContainer = document.querySelector('.content-container');
+            const toggleIcon = toggleButton.querySelector('.toggle-icon');
+
+            const updateBodyClass = () => {
+                const workflowOpen = workflowCollapseElement.classList.contains('show');
+                if (workflowOpen) {
+                    document.body.classList.add('workflow-open');
+                    document.body.classList.remove('workflow-closed');
+                    // Update Icon to 'fa-times' when open
+                    toggleIcon.classList.remove('fa-tasks');
+                    toggleIcon.classList.add('fa-times');
+                } else {
+                    document.body.classList.remove('workflow-open');
+                    document.body.classList.add('workflow-closed');
+                    // Update Icon to 'fa-tasks' when closed
+                    toggleIcon.classList.remove('fa-times');
+                    toggleIcon.classList.add('fa-tasks');
+                }
+            };
+
+            // Initialize based on localStorage
+            const isCollapsed = localStorage.getItem('workflowManagerCollapsed') === 'true';
+
+            if (isCollapsed) {
+                // Hide the collapse without animation
+                const bsCollapse = bootstrap.Collapse.getInstance(workflowCollapseElement) || new bootstrap.Collapse(workflowCollapseElement, { toggle: false });
+                bsCollapse.hide();
+            } else {
+                // Show the collapse without animation
+                const bsCollapse = bootstrap.Collapse.getInstance(workflowCollapseElement) || new bootstrap.Collapse(workflowCollapseElement, { toggle: false });
+                bsCollapse.show();
+            }
+
+            updateBodyClass();
+
+            // Listen for collapse events
+            workflowCollapseElement.addEventListener('hidden.bs.collapse', function () {
+                localStorage.setItem('workflowManagerCollapsed', 'true');
+                updateBodyClass();
+            });
+
+            workflowCollapseElement.addEventListener('shown.bs.collapse', function () {
+                localStorage.setItem('workflowManagerCollapsed', 'false');
+                updateBodyClass();
+            });
+
+            // Initial layout adjustment
+            window.addEventListener('resize', updateBodyClass);
+        });
+    </script>
+
+
+</body>
+</html>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+
+    /* Default navbar width */
+    .navbar-wrapper {
+        width: 100%;
+        transition: width 0.3s ease;
+    }
+
+    /* Navbar width when workflow is open */
+    body.workflow-open .navbar-wrapper {
+        width: calc(100% - 25%);
+    }
+
+    /* Main content margin when workflow is open */
+    body.workflow-open .main-content {
+        margin-right: 25%;
+    }
+
+    /* Main content margin when workflow is closed */
+    body.workflow-closed .main-content {
+        margin-right: 0;
+    }
+
+    .navbar-collapse {
+        transition: padding-right 0.3s ease;
+    }
+
+    /* Optional: Adjust padding if necessary */
+    body.workflow-open .navbar-collapse {
+        padding-right: 25%;
+    }
+
+    body.workflow-closed .navbar-collapse {
+        padding-right: 20%;
+    }
+
+    .full-width-container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .content-container {
+        display: flex;
+        flex-direction: row;
+        min-height: 100vh; /* Full viewport height */
+        transition: margin-right 0.3s ease;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        transition: margin-right 0.3s ease;
+    }
+
+    .right-column {
+        width: 25%;
+        position: fixed;
+        right: 0;
+        top: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        background-color: #f8f9fa;
+        height: 100vh;
+        z-index: 2;
+        overflow: auto;
+        border-left: 2px solid #ccc;
+        transition: width 0.3s ease, opacity 0.3s ease;
+    }
+
+    .collapse.fade:not(.show) .right-column {
+        opacity: 0;
+        width: 0;
+    }
+
+    .collapse.fade.show .right-column {
+        opacity: 1;
+        width: 25%;
+    }
+
+    .btn-toggle-workflow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-toggle-workflow .fas {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-toggle-workflow.collapsed .fas {
+            transform: rotate(180deg);
+        }
+</style>
+
+
+
+
+@*<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - OM_79_HUB</title>
+    <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
@@ -25,44 +276,21 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy" style="font-weight: bold;">Privacy</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
                         </li>
-                        @*
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Indexes</a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">OM79 Forms List</a>
-                            </div>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Central79Hub" asp-action="MyIndex" style="font-weight: bold;">My Submissions</a>
                         </li>
-                        *@
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Searching</a>
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">OM79 Records</a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("MyIndex", "Central79Hub")">My Submissions</a>
                                 <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "OM79")">Active Item Index</a>
                                 <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">Active OM79 Index</a>
                                 <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "OM79")">Finalized Item Index Archive</a>
                                 <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndex", "CENTRAL79HUB")">Finalized OM79 Index Archive</a>
                                 <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("ArchivedIndexRescinded", "CENTRAL79HUB")">Rescinded OM79 Index Archive</a>
-
                             </div>
                         </li>
-
-
-
-
-                        @*These will change in the future and only show the links to what the user has access to*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Administrator</a>
                             <div class="dropdown-menu">
@@ -71,25 +299,13 @@
                                 <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("AdminAccountSystem", "AccountSystemAndWorkflow")">System Admin</a>
                             </div>
                         </li>
-                        
-                        @*
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">District Signatories</a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "AccountSystemAndWorkflow")">Go Here To Approve/Deny OM79s From your district</a>
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "AccountSystemAndWorkflow")">Go Here To Approve/Deny OM79s from all districts</a>
-                            </div>
-                        </li>
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                        @*=====================================================================================*@
-                      
                     </ul>
                     <p class="nav navbar-text" style="color: white">Hello, @User.Identity?.Name!</p>
                 </div>
+                <!-- Toggle Button for Workflow Manager -->
+                <button class="btn btn-outline-light ms-3 btn-toggle-workflow" type="button" data-bs-toggle="collapse" data-bs-target="#workflowManagerCollapse" aria-expanded="true" aria-controls="workflowManagerCollapse">
+                    <i class="fas fa-times me-2"></i>Toggle Workflow
+                </button>
             </div>
         </nav>
     </header>
@@ -100,14 +316,17 @@
                     @RenderBody()
                 </main>
             </div>
-            <div class="right-column">
-                @await Component.InvokeAsync("Workflow")
+            <!-- Collapsible Workflow Manager -->
+            <div class="collapse fade show" id="workflowManagerCollapse">
+                <div class="right-column">
+                    @await Component.InvokeAsync("Workflow")
+                </div>
             </div>
         </div>
     </div>
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - West Virginia Department of Transportation - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2024 - West Virginia Department of Transportation - <a asp-area="" asp-controller="Home" asp-action="Resources">Resources / Privacy Policy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -115,8 +334,60 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Optional: Remember Workflow Manager State -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleButton = document.querySelector('[data-bs-target="#workflowManagerCollapse"]');
+            const workflowCollapseElement = document.getElementById('workflowManagerCollapse');
+            const contentContainer = document.querySelector('.content-container');
+
+            // Initialize Bootstrap Collapse without toggling on page load
+            const workflowCollapse = new bootstrap.Collapse(workflowCollapseElement, {
+                toggle: false
+            });
+
+            // Retrieve user's preference from localStorage
+            const isCollapsed = localStorage.getItem('workflowManagerCollapsed') === 'true';
+
+            if (isCollapsed) {
+                workflowCollapse.hide();
+                contentContainer.classList.add('collapsed');
+            } else {
+                workflowCollapse.show();
+                contentContainer.classList.remove('collapsed');
+            }
+
+            // Listen for collapse events to update localStorage and layout
+            workflowCollapseElement.addEventListener('hidden.bs.collapse', function () {
+                localStorage.setItem('workflowManagerCollapsed', 'true');
+                toggleButton.classList.add('collapsed');
+                toggleButton.querySelector('.fas').classList.remove('fa-times');
+                toggleButton.querySelector('.fas').classList.add('fa-tasks');
+                contentContainer.classList.add('collapsed');
+            });
+
+            workflowCollapseElement.addEventListener('shown.bs.collapse', function () {
+                localStorage.setItem('workflowManagerCollapsed', 'false');
+                toggleButton.classList.remove('collapsed');
+                toggleButton.querySelector('.fas').classList.remove('fa-tasks');
+                toggleButton.querySelector('.fas').classList.add('fa-times');
+                contentContainer.classList.remove('collapsed');
+            });
+
+            // Initialize the toggle button icon based on current state
+            if (workflowCollapseElement.classList.contains('show')) {
+                toggleButton.querySelector('.fas').classList.remove('fa-tasks');
+                toggleButton.querySelector('.fas').classList.add('fa-times');
+            } else {
+                toggleButton.querySelector('.fas').classList.remove('fa-times');
+                toggleButton.querySelector('.fas').classList.add('fa-tasks');
+            }
+        });
+    </script>
 </body>
 </html>
+
 
 <style>
     html, body {
@@ -125,209 +396,59 @@
     }
 
     .navbar-collapse {
-        padding-right: 20%; /* Adjust based on the width of the right column */
+        padding-right: 0;
     }
 
     .full-width-container {
         width: 100%;
-        padding-left: 10%;
         margin: 0;
+        padding: 0;
     }
 
     .content-container {
         display: flex;
         flex-direction: row;
         min-height: 100vh; /* Full viewport height */
+        transition: all 0.3s ease;
     }
 
     .main-content {
         flex: 1;
-        padding-right: 25%; /* Ensure the main content does not overlap the fixed right column */
+        padding: 20px;
+        transition: flex 0.3s ease;
     }
 
     .right-column {
-        width: 20%;
-        position: fixed;
-        right: 0;
-        top: 0; /* Ensure it covers the navbar */
-        display: flex;
-        justify-content: center;
-        align-items: flex-start; /* Align to top */
+        width: 25%; /* Adjust to desired width */
         background-color: #f8f9fa;
-        height: 100vh; /* Full viewport height */
-        z-index: 2; /* Ensure it stays on top of other elements */
-        overflow: auto; /* Allow scrolling within the right column */
-        border: 2px solid #ccc; /* Add border around the right column */
+        border-left: 2px solid #ccc;
+        overflow: auto;
+        transition: width 0.3s ease, opacity 0.3s ease;
+        position: fixed;
+        top: 70px; /* Matches header height */
+        bottom: 0;
+        right: 0;
+        z-index: 1030;
     }
 
-    header {
-        height: 70px; /* Adjust to the actual height of your header */
-        z-index: 1; /* Ensure header stays below the right column */
-        position: relative;
+    /* Smooth Fade Transition for Workflow Manager */
+    .collapse.fade:not(.show) .right-column {
+        opacity: 0;
+        width: 0; /* Hide the width when collapsed */
     }
 
-    footer {
-        height: 70px; /* Adjust to the actual height of your footer */
-        z-index: 1; /* Ensure footer stays below the right column */
-        position: relative;
+    .collapse.fade.show .right-column {
+        opacity: 1;
+        width: 25%; /* Set width when expanded */
+    }
+
+    /* Adjust main-content when workflow manager is collapsed */
+    .content-container.collapsed .main-content {
+        margin-right: 0;
+    }
+
+    .content-container:not(.collapsed) .main-content {
+        margin-right: 25%; /* Adjust to the width of the right-column */
     }
 </style>
-
-
-@*<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - OM_79_HUB</title>
-    <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
-    <style>
-        .full-width-container {
-            width: 100%;
-            padding-left: 10%;
-            margin: 0;
-        }
-
-        .right-column {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            background-color: #f8f9fa; /* Optional: Background color for visibility */
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container-fluid">
-                <img alt="List View" src="@Url.Content("~/Assets/dot.png")" style="width:50px; height:50px; margin-right: 10px; margin-top: 5px;" />
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">OM-79</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy" style="font-weight: bold;">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Indexes</a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">OM79 Forms List</a>
-                            </div>
-                        </li>
-                    </ul>
-                    <p class="nav navbar-text" style="color: white">Hello, @User.Identity?.Name!</p>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="full-width-container">
-        <div class="row">
-            <div class="col-md-9">
-                <main role="main" class="pb-3">
-                    @RenderBody()
-                </main>
-            </div>
-            <div class="col-md-3 right-column">
-                @await Component.InvokeAsync("Workflow")
-            </div>
-        </div>
-    </div>
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2024 - West Virginia Department of Transportation - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>*@
-
-
-
-
-@*<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - OM_79_HUB</title>
-    <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
-</head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container-fluid">
-                <img alt="List View" src="@Url.Content("~/Assets/dot.png")" style="width:50px; height:50px; margin-right: 10px; margin-top: 5px;" />
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">OM-79</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index" style="font-weight: bold;">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy" style="font-weight: bold;">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Resources" style="font-weight: bold;">Resources</a>
-                        </li>
-
-
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">Indexes</a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" style="font-weight: bold;" href="@Url.Action("Index", "Central79Hub")">OM79 Forms List</a>
-                               @*  <a class="dropdown-item" href="@Url.Action("Index", "OM79")">OM-79 Item Index</a>
-                                <a class="dropdown-item" href="@Url.Action("Index", "PJ103")">PJ103 Segment Index</a> *@
-                               @*  <div class="dropdown-divider"></div> *@
-                            @*</div>
-                        </li>
-
-                        
-
-                    </ul>
-                    <p class="nav navbar-text" style="color: white">Hello, @User.Identity?.Name!</p>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2024 - West Virginia Department of Transportation - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>
 *@

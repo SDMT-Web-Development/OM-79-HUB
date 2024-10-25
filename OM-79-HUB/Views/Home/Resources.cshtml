@@ -1,9 +1,336 @@
 ﻿@{
-    ViewData["Title"] = "Resources";
+    ViewData["Title"] = "Resources and Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
-<p>For any questions on reguarding this form, please reach out to the email listed bellow.</p>
+<!-- Hero Section -->
+<div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">@ViewData["Title"]</h1>
+        <p class="lead">Your one-stop resource for support and information.</p>
+    </div>
+</div>
 
-<!-- Display the email address with a link that opens in a new tab -->
-<a href="mailto:HDSHelpDesk@wv.gov" id="emailLink" target="_blank">HDSHelpDesk@wv.gov</a>
 
+<!-- Main Content -->
+<div class="container mt-5">
+    <!-- Resource Cards -->
+    <div class="row mt-5">
+        <!-- Support Ticket Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center shadow">
+                <div class="card-body">
+                    <div class="icon-container bg-dark text-white rounded-circle mb-3 mx-auto">
+                        <i class="fas fa-ticket-alt fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Support Ticket</h5>
+                    <p class="card-text">Submit a support ticket.</p>
+                    <a href="https://dotapps.transportation.wv.gov/ITicket/Default" class="btn btn-outline-dark stretched-link" target="_blank" rel="noopener noreferrer">Submit Ticket</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Support Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center shadow">
+                <div class="card-body">
+                    <div class="icon-container bg-primary text-white rounded-circle mb-3 mx-auto">
+                        <i class="fas fa-envelope fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Email Support</h5>
+                    <p class="card-text">Get in touch via email.</p>
+                    <a href="mailto:DOTHDS@wv.gov" class="btn btn-outline-primary stretched-link" target="_blank" rel="noopener noreferrer">Email Us</a>
+                </div>
+            </div>
+        </div>
+        <!-- Documentation Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center shadow">
+                <div class="card-body">
+                    <div class="icon-container bg-info text-white rounded-circle mb-3 mx-auto">
+                        <i class="fas fa-book fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Documentation</h5>
+                    <p class="card-text">Access user guides.</p>
+                    <a href="https://docs.google.com/document/d/1VtljPy334rI9Q4rP3gIJGbCpedCO9pa9IvC5bn2k-7M/edit?usp=sharing" class="btn btn-outline-info stretched-link" target="_blank" rel="noopener noreferrer">View Docs</a>
+                </div>
+            </div>
+        </div>
+        <!-- Privacy Policy Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center shadow">
+                <div class="card-body">
+                    <div class="icon-container bg-dark text-white rounded-circle mb-3 mx-auto">
+                        <i class="fas fa-user-secret fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Privacy Policy</h5>
+                    <p class="card-text">Read our policy.</p>
+                    <a href="https://transportation.wv.gov/Pages/privacy.aspx" class="btn btn-outline-dark stretched-link" target="_blank" rel="noopener noreferrer">Read Policy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Frequently Asked Questions Section -->
+    <div class="mt-5">
+        <h2 class="text-center mb-4">Frequently Asked Questions (Under Construction)</h2>
+        <div class="accordion" id="faqAccordion">
+            <!-- FAQ Item 1 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingOne">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseOne" aria-expanded="false" aria-controls="faqCollapseOne">
+                        <i class="fas fa-question-circle me-2 text-primary"></i> How do I submit a new OM79 request?
+                    </button>
+                </h2>
+                <div id="faqCollapseOne" class="accordion-collapse collapse" aria-labelledby="faqHeadingOne" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        To submit a new OM79 request, please visit our
+                        <a href="@Url.Action("Index", "Home")" class="text-primary fw-bold">Home page</a>, where you’ll find the "Create New OM79" button. Click it to begin filling out the necessary fields for your request. Make sure to provide detailed information to expedite the approval process.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 2 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseTwo" aria-expanded="false" aria-controls="faqCollapseTwo">
+                        <i class="fas fa-question-circle me-2 text-primary"></i> How can I check the status of my request?
+                    </button>
+                </h2>
+                <div id="faqCollapseTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadingTwo" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        You can check the status of your request by visiting the
+                        <a href="@Url.Action("MyIndex", "Central79Hub")" class="text-primary fw-bold">My Submissions</a> page. Here, you'll find a list of all your requests along with their current status.
+                    </div>
+                </div>
+            </div>
+            <!-- FAQ Item 3 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeadingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseThree" aria-expanded="false" aria-controls="faqCollapseThree">
+                        <i class="fas fa-question-circle me-2 text-primary"></i> How can I continue working on an unsubmitted OM79 form?
+                    </button>
+                </h2>
+                <div id="faqCollapseThree" class="accordion-collapse collapse" aria-labelledby="faqHeadingThree" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        To continue working on an unsubmitted OM79 form, go to the
+                        <a href="@Url.Action("MyIndex", "Central79Hub")" class="text-primary fw-bold">My Submissions</a> page. Find the entry you wish to continue working on and click on the "Details" button. This will load the form into the side panel workflow manager, allowing you to pick up where you left off and continue making changes.
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Additional FAQ Items -->
+            <!-- ... (Add more FAQs as needed) -->
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        height: 300px;
+        position: relative;
+        background-color: rgba(0, 0, 0, 0.5);
+        background-blend-mode: darken;
+    }
+
+        .hero-section h1,
+        .hero-section p {
+            color: #fff;
+        }
+
+    /* Icon Container Styles */
+    .icon-container {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    /* Card Hover Effect */
+    .card:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s;
+    }
+
+    /* Accordion Icon Styles */
+    .accordion-button::after {
+        display: none;
+    }
+
+    .accordion-button.collapsed .fas.fa-question-circle {
+        transform: rotate(0deg);
+        transition: transform 0.3s;
+    }
+
+    .accordion-button:not(.collapsed) .fas.fa-question-circle {
+        transform: rotate(180deg);
+        transition: transform 0.3s;
+    }
+
+    /* Button Hover Effect */
+    .btn {
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+        .btn:hover {
+            color: #fff;
+        }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+    }
+
+    .btn-outline-dark:hover {
+        background-color: #212529;
+    }
+</style>
+
+<!-- Include Bootstrap JS and Font Awesome (if not already included) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+
+
+@*@{
+    ViewData["Title"] = "Resources and Privacy Policy";
+}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">@ViewData["Title"]</h1>
+    <p class="lead text-center">
+        If you have any questions regarding this form or need assistance, please feel free to reach out to us.
+    </p>
+    <div class="row mt-5">
+        <!-- Email Support Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-envelope fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Email Support</h5>
+                    <p class="card-text">Get in touch via email.</p>
+                    <a href="mailto:DOTHDS@wv.gov" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Email Us (Live Only)</a>
+                </div>
+            </div>
+        </div>
+        <!-- Support Ticket Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-ticket-alt fa-3x mb-3 text-secondary"></i>
+                    <h5 class="card-title">Support Ticket</h5>
+                    <p class="card-text">Submit a support ticket.</p>
+                    <a href="https://dotapps.transportation.wv.gov/ITicket/Default" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">Submit Ticket (Live Only)</a>
+                </div>
+            </div>
+        </div>
+        <!-- Documentation Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-book fa-3x mb-3 text-info"></i>
+                    <h5 class="card-title">Documentation</h5>
+                    <p class="card-text">Access user guides.</p>
+                    <a href="https://docs.google.com/document/d/1VtljPy334rI9Q4rP3gIJGbCpedCO9pa9IvC5bn2k-7M/edit?usp=sharing" class="btn btn-info" target="_blank" rel="noopener noreferrer">View Docs (Under Construction)</a>
+                </div>
+            </div>
+        </div>
+        <!-- Privacy Policy Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-user-secret fa-3x mb-3 text-dark"></i>
+                    <h5 class="card-title">Privacy Policy</h5>
+                    <p class="card-text">Read our policy.</p>
+                    <a href="https://transportation.wv.gov/Pages/privacy.aspx" class="btn btn-dark" target="_blank" rel="noopener noreferrer">Read Policy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p class="text-center text-muted mt-5">
+        We are here to assist you with any inquiries or issues you may have.
+    </p>
+</div>
+
+
+<!-- Frequently Asked Questions Section -->
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Frequently Asked Questions (Under Construction)</h2>
+    <div class="accordion" id="faqAccordion">
+        <!-- FAQ Item 1 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqHeadingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseOne" aria-expanded="true" aria-controls="faqCollapseOne">
+                    How do I submit a new OM79 request?
+                </button>
+            </h2>
+            <div id="faqCollapseOne" class="accordion-collapse collapse show" aria-labelledby="faqHeadingOne" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    To submit a new OM79 request, navigate to the "Submit Request" page and fill out the required fields. Make sure to provide detailed information to expedite the approval process.
+                </div>
+            </div>
+        </div>
+        <!-- FAQ Item 2 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqHeadingTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseTwo" aria-expanded="false" aria-controls="faqCollapseTwo">
+                    How can I check the status of my request?
+                </button>
+            </h2>
+            <div id="faqCollapseTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadingTwo" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    You can check the status of your request by visiting the "My Submissions" page. Here you'll find a list of all your requests along with their current status.
+                </div>
+            </div>
+        </div>
+        <!-- FAQ Item 3 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqHeadingThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseThree" aria-expanded="false" aria-controls="faqCollapseThree">
+                    Who do I contact for technical support?
+                </button>
+            </h2>
+            <div id="faqCollapseThree" class="accordion-collapse collapse" aria-labelledby="faqHeadingThree" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    For technical support, please use the "Email Support" or "Submit a Support Ticket" options above. Our support team is available to assist you with any issues.
+                </div>
+            </div>
+        </div>
+        <!-- FAQ Item 4 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqHeadingFour">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFour" aria-expanded="false" aria-controls="faqCollapseFour">
+                    What browsers are supported?
+                </button>
+            </h2>
+            <div id="faqCollapseFour" class="accordion-collapse collapse" aria-labelledby="faqHeadingFour" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    The OM79 application supports the latest versions of Chrome, Firefox, Edge, and Safari. For the best experience, please ensure your browser is up to date.
+                </div>
+            </div>
+        </div>
+        <!-- FAQ Item 5 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faqHeadingFive">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFive" aria-expanded="false" aria-controls="faqCollapseFive">
+                    How do I reset my password?
+                </button>
+            </h2>
+            <div id="faqCollapseFive" class="accordion-collapse collapse" aria-labelledby="faqHeadingFive" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Passwords are managed through your network credentials. Please contact your system administrator if you need assistance with resetting your password.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+*@
