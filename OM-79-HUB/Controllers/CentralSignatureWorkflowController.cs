@@ -2020,6 +2020,16 @@ namespace OM_79_HUB.Controllers
                 omEntry.WorkflowStep = "CancelledRequestArchive";
                 omEntry.IsArchive = true;
                 await _hubContext.SaveChangesAsync();
+
+                var allItems = await _om79Context.OMTable.Where(e => e.HubId == omEntry.OMId).ToListAsync();
+
+                foreach (var item in allItems)
+                {
+                    item.IsArchive = true;
+                }
+                await _om79Context.SaveChangesAsync();
+
+
             }
 
             return RedirectToAction("Details", "Central79Hub", new { id = hubkey });

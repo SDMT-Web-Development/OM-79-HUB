@@ -209,18 +209,17 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label asp-for="YearOfSurvey" class="control-label"></label>
+                    <label asp-for="YearOfSurvey" class="control-label">@Html.DisplayNameFor(model => model.YearOfSurvey)</label>
                     <select asp-for="YearOfSurvey" class="form-control" style="color: #000;">
                         <option value="">Select Year</option>
-                        @for (int year = 2025; year >= 1950; year--)
+                        @for (int year = DateTime.Now.Year - 10; year <= DateTime.Now.Year + 5; year++)
                         {
                             <option value="@year">@year</option>
                         }
                     </select>
                     <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
-
-
                 </div>
+
                 <div class="col-md-4" style="display:none;">
                     <label asp-for="DateComplete" class="control-label"></label>
                     <input asp-for="DateComplete" type="hidden" class="form-control" Value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")" />

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
@@ -31,7 +32,7 @@ namespace OM_79_HUB.Controllers
         }
 
         [HttpGet]
-        public IActionResult EditPackage(int? id)
+        public async Task<IActionResult> EditPackage(int? id)
         {
             // Use the id parameter to load the specific package data from the database
             var om = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
@@ -40,6 +41,15 @@ namespace OM_79_HUB.Controllers
             if (om == null)
             {
                 return NotFound();
+            }
+
+            //Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context.CENTRAL79HUB.FirstOrDefaultAsync(h => h.OMId == id);
+            var user = User.Identity.Name;
+            var validUser = await checkComplexPermission(user, hub);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
             }
 
             ViewBag.TestUniqueID = id;
@@ -346,6 +356,88 @@ namespace OM_79_HUB.Controllers
             if (user.RightOfWayManager) yield return "Right Of Way Manager";
         }
 
+
+        private async Task<bool> checkComplexPermission(string currentUser, CENTRAL79HUB passedHub)
+        {
+            if (string.IsNullOrEmpty(currentUser) || passedHub.OMId == null)
+            {
+                return false;
+            }
+
+            var currentStep = passedHub.WorkflowStep;
+            var isUserAuthorized = false;
+
+            // Normalize the current user's E-number
+            string normalizedUser = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            var normalizedHubUser = passedHub.UserId.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            var district = passedHub.District;
+
+            Console.WriteLine($"Current Step: {currentStep}"); // Or use a logging framework
+            Console.WriteLine($"Normalized User: {normalizedUser}");
+            Console.WriteLine($"Normalized Hub User: {normalizedHubUser}");
+        
+            switch (currentStep)
+            {
+                case "RestartFromDistrict":
+                case "RestartFromDistrictManager":
+                    // Only the user associated with the hub entry can access this
+                    isUserAuthorized = normalizedUser == normalizedHubUser;
+                    break;
+
+                case "SubmittedToDistrict":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDistrictManager":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralHDS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _context.UserData
+                        .AnyAsync(u => u.HDS && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToCentralGIS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _context.UserData
+                        .AnyAsync(u => u.GISManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedBackToDistrictManager":
+                case "SubmittedBackToDistrictManagerFromOperations":
+                    // Allow access if the current user's ENumber matches a UserData entry where District matches and they are a DistrictManager
+                    isUserAuthorized = await _context.UserData
+                        .AnyAsync(u => u.District == district && u.DistrictManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToRegionalEngineer":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDirectorOfOperations":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralChief":
+                    isUserAuthorized = false;
+                    break;
+
+                case "CancelledRequestArchive":
+                case "Finalized":
+                    // Typically, no edits or deletes allowed once archived or finalized.
+                    isUserAuthorized = false;
+                    break;
+
+                default:
+                    // Any other cases not explicitly handled above
+                    isUserAuthorized = false;
+                    break;
+            }
+
+            return isUserAuthorized;
+        }
+
         [HttpPost]
         public async Task<IActionResult> ArchiveOM79(int id)
         {
@@ -371,9 +463,19 @@ namespace OM_79_HUB.Controllers
             return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
         }
 
+
+
         // GET: CENTRAL79HUB/ArchivedIndexRescinded
         public async Task<IActionResult> ArchivedIndexRescinded(string searchUserId, int? page)
         {
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
             ViewData["CurrentFilter"] = searchUserId;
 
             // Filter the records where IsArchive is true and the workflow step is "CancelledRequestArchive"
@@ -392,9 +494,43 @@ namespace OM_79_HUB.Controllers
             return View(pagedCentral79HubEntries);
         }
 
+        private async Task<bool> CheckForAccessPermission(string currentUser)
+        {
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                return false;
+            }
+
+            // Normalize the ENumber (assuming case-insensitive)
+            string normalizedENumber = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+
+            // Check in AdminData
+            bool isAdmin = await _context.AdminData
+                .AnyAsync(a => a.ENumber.ToLower() == normalizedENumber);
+
+            if (isAdmin)
+            {
+                return true;
+            }
+
+            // Check in UserData
+            bool isUser = await _context.UserData
+                .AnyAsync(u => u.ENumber.ToLower() == normalizedENumber);
+
+            return isUser;
+        }
+
         // GET: CENTRAL79HUB/ArchivedIndex
         public async Task<IActionResult> ArchivedIndex(string searchUserId, int? page)
         {
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+            
             ViewData["CurrentFilter"] = searchUserId;
 
             // Filter the records where IsArchive is true
@@ -420,6 +556,14 @@ namespace OM_79_HUB.Controllers
         // GET: CENTRAL79HUB
         public async Task<IActionResult> Index(string searchUserId, int? page)
         {
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
             ViewData["CurrentFilter"] = searchUserId;
 
             // Filter the records where IsArchive is not true
@@ -435,6 +579,41 @@ namespace OM_79_HUB.Controllers
             int pageNumber = (page ?? 1);
             var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
 
+            return View(pagedCentral79HubEntries);
+        }
+
+        // GET: CENTRAL79HUB
+        public async Task<IActionResult> MyIndex(int? page)
+        {
+            // Store the current logged-in user's identity
+            string currentUserId = User.Identity.Name;
+
+            // Filter the records where the UserId matches the current user
+            var central79HubEntries = from m in _context.CENTRAL79HUB
+                                      where m.UserId == currentUserId
+                                      select m;
+
+            // Map WorkflowStep to an integer for ordering
+            central79HubEntries = central79HubEntries.OrderBy(entry =>
+                entry.WorkflowStep == null || entry.WorkflowStep == "NotStarted" ? 1 :
+                entry.WorkflowStep == "RestartFromDistrict" || entry.WorkflowStep == "RestartFromDistrictManager" ? 2 :
+                entry.WorkflowStep == "SubmittedToDistrict" || entry.WorkflowStep == "SubmittedToDistrictManager" ? 3 :
+                entry.WorkflowStep == "SubmittedToCentralHDS" || entry.WorkflowStep == "SubmittedToCentralGIS" ||
+                entry.WorkflowStep == "SubmittedBackToDistrictManager" || entry.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations" ||
+                entry.WorkflowStep == "SubmittedToRegionalEngineer" || entry.WorkflowStep == "SubmittedToDirectorOfOperations" ||
+                entry.WorkflowStep == "SubmittedToCentralChief" ? 4 :
+                entry.WorkflowStep == "CancelledRequestArchive" ? 5 :
+                entry.WorkflowStep == "Finalized" ? 6 :
+                7 // Default value for any other WorkflowStep
+            );
+
+            // Set the page number, defaulting to 1 if no page is provided
+            int pageNumber = page ?? 1;
+
+            // Paginate the results with 50 records per page
+            var pagedCentral79HubEntries = await central79HubEntries.ToPagedListAsync(pageNumber, 50);
+
+            // Return the view with the paginated results
             return View(pagedCentral79HubEntries);
         }
 
@@ -477,6 +656,16 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
+            // Check if the current user has access permission
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+
+            // Allow access if the user has permission or is the user associated with the CENTRAL79HUB entry
+            if (!validUser && currentUser != cENTRAL79HUB.UserId)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
 
             HttpContext.Session.SetInt32("UniqueID", id.Value);
 
@@ -494,6 +683,8 @@ namespace OM_79_HUB.Controllers
             
         }
 
+        //New account system this are not needed"         public IActionResult AdminCreate(), post
+        /*
         // GET: CENTRAL79HUB/Admin
         public IActionResult AdminCreate()
         {
@@ -501,6 +692,8 @@ namespace OM_79_HUB.Controllers
             return View();
 
         }
+        */
+        /*
         // POST: CENTRAL79HUB/Admin
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -518,7 +711,7 @@ namespace OM_79_HUB.Controllers
             }
             return View(userdata);
         }
-
+        */
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("OMId,UserId,Otherbox,County,District,IDNumber,RouteID, EmailSubmit")] CENTRAL79HUB cENTRAL79HUB, int NumberOfItems)
@@ -597,6 +790,16 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
+            // Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context.CENTRAL79HUB.FirstOrDefaultAsync(h => h.OMId == id);
+            var user = User.Identity.Name;
+            var validUser = await checkComplexPermission(user, hub);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+
             var cENTRAL79HUB = await _context.CENTRAL79HUB.FindAsync(id);
             if (cENTRAL79HUB == null)
             {
@@ -649,6 +852,19 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
+
+            //Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context.CENTRAL79HUB.FirstOrDefaultAsync(h => h.OMId == id);
+            var user = User.Identity.Name;
+            var validUser = await checkComplexPermission(user, hub);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+
+
+
             var cENTRAL79HUB = await _context.CENTRAL79HUB
                 .FirstOrDefaultAsync(m => m.OMId == id);
             if (cENTRAL79HUB == null)
@@ -668,6 +884,16 @@ namespace OM_79_HUB.Controllers
             {
                 return Problem("Entity set 'OM_79_HUBContext.CENTRAL79HUB'  is null.");
             }
+            //Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context.CENTRAL79HUB.FirstOrDefaultAsync(h => h.OMId == id);
+            var user = User.Identity.Name;
+            var validUser = await checkComplexPermission(user, hub);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+
             var cENTRAL79HUB = await _context.CENTRAL79HUB.FindAsync(id);
             if (cENTRAL79HUB != null)
             {

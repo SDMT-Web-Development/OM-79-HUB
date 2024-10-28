@@ -254,10 +254,10 @@ namespace OM_79_HUB.Controllers
 
             if (reports.Any())
             {
-                // Merge and generate PDF
-                Document
-                    .Merge(reports.ToArray())
-                    .GeneratePdf(fileName);
+                //// Merge and generate PDF
+                //Document
+                //    .Merge(reports.ToArray())
+                //    .GeneratePdf(fileName);
 
                 //-----------------------------------------------------------
                 // Local PDF Generation
