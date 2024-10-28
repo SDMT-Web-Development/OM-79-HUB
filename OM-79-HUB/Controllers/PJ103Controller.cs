@@ -13,6 +13,7 @@ using OM_79_HUB.DTOs;
 using OM_79_HUB.Models;
 using OM79.Models.DB;
 using OM_79_HUB.Models.DB.OM79Hub;
+using Microsoft.AspNetCore.SignalR;
 
 namespace OM_79_HUB.Data
 {
@@ -31,6 +32,9 @@ namespace OM_79_HUB.Data
             _hubContext = hubContext;   
         }
         // GET: Submissions
+
+        //Taking this out 
+        /*
         public async Task<IActionResult> Index()
         {
             // Define the list of admin enums
@@ -87,11 +91,23 @@ namespace OM_79_HUB.Data
             {
                 return NotFound();
             }
-
             var viewmodel = new Aclvl();
 
             // Mapping fields from submission to viewmodel
             var submission = await _context.Submissions.FirstOrDefaultAsync(m => m.SubmissionID == id);
+
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            var omTable = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == submission.OM79Id);
+            var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == omTable.HubId);
+
+            if (!(validUser) && (currentUser != hub.UserId))
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+        
             if (submission != null)
             {
                 viewmodel.SubmissionID = submission.SubmissionID;
@@ -580,7 +596,108 @@ namespace OM_79_HUB.Data
 
             return View(aclvlViewModel);
         }
+        private async Task<bool> CheckForAccessPermission(string? currentUser)
+        {
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                return false;
+            }
 
+            // Normalize the ENumber (assuming case-insensitive)
+            string normalizedENumber = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+
+            // Check in AdminData
+            bool isAdmin = await _hubContext.AdminData
+                .AnyAsync(a => a.ENumber.ToLower() == normalizedENumber);
+
+            if (isAdmin)
+            {
+                return true;
+            }
+
+            // Check in UserData
+            bool isUser = await _hubContext.UserData
+                .AnyAsync(u => u.ENumber.ToLower() == normalizedENumber);
+
+            return isUser;
+        }
+        private async Task<bool> checkComplexPermission(string currentUser, CENTRAL79HUB passedHub)
+        {
+            if (string.IsNullOrEmpty(currentUser) || passedHub.OMId == null)
+            {
+                return false;
+            }
+
+            var currentStep = passedHub.WorkflowStep;
+            var isUserAuthorized = false;
+
+            // Normalize the current user's E-number
+            string normalizedUser = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            var normalizedHubUser = passedHub.UserId.Replace("EXECUTIVE\\", "").Trim().ToLower();
+
+            var district = passedHub.District;
+
+            switch (currentStep)
+            {
+                case "RestartFromDistrict":
+                case "RestartFromDistrictManager":
+                    // Only the user associated with the hub entry can access this
+                    isUserAuthorized = normalizedUser == normalizedHubUser;
+                    break;
+
+                case "SubmittedToDistrict":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDistrictManager":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralHDS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _hubContext.UserData
+                        .AnyAsync(u => u.HDS && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToCentralGIS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _hubContext.UserData
+                        .AnyAsync(u => u.GISManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedBackToDistrictManager":
+                case "SubmittedBackToDistrictManagerFromOperations":
+                    // Allow access if the current user's ENumber matches a UserData entry where District matches and they are a DistrictManager
+                    isUserAuthorized = await _hubContext.UserData
+                        .AnyAsync(u => u.District == district && u.DistrictManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToRegionalEngineer":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDirectorOfOperations":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralChief":
+                    isUserAuthorized = false;
+                    break;
+
+                case "CancelledRequestArchive":
+                case "Finalized":
+                    // Typically, no edits or deletes allowed once archived or finalized.
+                    isUserAuthorized = false;
+                    break;
+
+                default:
+                    // Any other cases not explicitly handled above
+                    isUserAuthorized = false;
+                    break;
+            }
+
+            return isUserAuthorized;
+        }
 
 
         [HttpPost]
@@ -595,6 +712,15 @@ namespace OM_79_HUB.Data
             */
             if (ModelState.IsValid)
             {
+                //Need to only allow someone to access this when the workflow step is currently with this 
+                var oMTable = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == aclvlViewModel.OM79ID);
+                var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+                var user = User.Identity.Name;
+                var validUser = await checkComplexPermission(user, hub);
+                if (!validUser)
+                {
+                    return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+                }
                 try
                 {
                     // Retrieve the existing Submission entity from the database

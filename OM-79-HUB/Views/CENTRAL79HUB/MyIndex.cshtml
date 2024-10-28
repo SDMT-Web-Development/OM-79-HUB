@@ -120,8 +120,9 @@
                 <td>@Html.DisplayFor(modelItem => item.District)</td>
                 <td>@displayWorkflowStep</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.OMId">Details</a>
+                    <a asp-action="Details" asp-route-id="@item.OMId" class="btn btn-info">Details</a>
                 </td>
+                
             </tr>
         }
     </tbody>

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="~/css/OM_HUB_Bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/OM_79_HUB.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     @RenderSection("Styles", required: false)
 </head>
 <body>
@@ -30,6 +31,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Central79Hub" asp-action="MyIndex" style="font-weight: bold;">My Submissions</a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Central79Hub" asp-action="SignIndex" style="font-weight: bold;">Pending Signatures</a>
+                        </li>
+
+
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" style="font-weight: bold;" aria-haspopup="true" aria-expanded="false">OM79 Records</a>
                             <div class="dropdown-menu">
@@ -51,7 +58,6 @@
                     </ul>
                 </div>
 
-                <p class="nav navbar-text" style="color: white">@User.Identity?.Name!</p>
                 <!-- Toggle Button for Workflow Manager -->
                 <button class="btn btn-outline-light ms-3 btn-toggle-workflow" type="button" data-bs-toggle="collapse" data-bs-target="#workflowManagerCollapse" aria-expanded="true" aria-controls="workflowManagerCollapse">
                     <i class="fas fa-tasks me-2 toggle-icon"></i>Toggle Workflow

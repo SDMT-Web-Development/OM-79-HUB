@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HarfBuzzSharp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -59,8 +60,42 @@ namespace OM_79_HUB.Data
 
         //    return View(await omTables.ToListAsync());
         //}
+        private async Task<bool> CheckForAccessPermission(string? currentUser)
+        {
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                return false;
+            }
+
+            // Normalize the ENumber (assuming case-insensitive)
+            string normalizedENumber = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+
+            // Check in AdminData
+            bool isAdmin = await _context2.AdminData
+                .AnyAsync(a => a.ENumber.ToLower() == normalizedENumber);
+
+            if (isAdmin)
+            {
+                return true;
+            }
+
+            // Check in UserData
+            bool isUser = await _context2.UserData
+                .AnyAsync(u => u.ENumber.ToLower() == normalizedENumber);
+
+            return isUser;
+        }
+
         public async Task<IActionResult> Index(string searchRouteIDB, string sortOrder, int? page)
         {
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
             ViewData["CurrentSort"] = sortOrder;
             ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["CurrentFilter"] = searchRouteIDB;
@@ -95,6 +130,14 @@ namespace OM_79_HUB.Data
 
         public async Task<IActionResult> ArchivedIndex(string searchRouteIDB, string sortOrder, int? page)
         {
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
             ViewData["CurrentSort"] = sortOrder;
             ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["CurrentFilter"] = searchRouteIDB;
@@ -149,6 +192,25 @@ namespace OM_79_HUB.Data
             {
                 return NotFound();
             }
+
+            var hub = _context2.CENTRAL79HUB.FirstOrDefault(e => e.OMId == oMTable.HubId);
+            if (hub == null)
+            {
+                return NotFound();
+            }
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+
+            Console.WriteLine($"Current User: '{currentUser}'");
+            Console.WriteLine($"Hub UserId: '{hub.UserId}'");
+            
+            if (!(validUser) && (currentUser != hub.UserId))
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+
 
             return View(oMTable);
         }
@@ -466,12 +528,25 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
+
             var oMTable = await _context.OMTable.FindAsync(id);
             if (oMTable == null)
             {
                 Console.WriteLine("OMTable with id " + id + " not found in the database.");
                 return NotFound();
             }
+
+            //Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+            var user = User.Identity.Name;
+
+            var validUser = await checkComplexPermission(user, hub);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+            ViewBag.OMId = oMTable.HubId;
 
             // Retain the DateComplete field but exclude it from the form
             ViewBag.DateComplete = oMTable.DateComplete;
@@ -547,6 +622,83 @@ namespace OM_79_HUB.Data
             return View(oMTable);
         }
 
+        private async Task<bool> checkComplexPermission(string currentUser, CENTRAL79HUB passedHub)
+        {
+            if (string.IsNullOrEmpty(currentUser) || passedHub.OMId == null)
+            {
+                return false;
+            }
+
+            var currentStep = passedHub.WorkflowStep;
+            var isUserAuthorized = false;
+
+            // Normalize the current user's E-number
+            string normalizedUser = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            var normalizedHubUser = passedHub.UserId.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            
+            var district = passedHub.District;
+
+            switch (currentStep)
+            {
+                case "RestartFromDistrict":
+                case "RestartFromDistrictManager":
+                    // Only the user associated with the hub entry can access this
+                    isUserAuthorized = normalizedUser == normalizedHubUser;
+                    break;
+
+                case "SubmittedToDistrict":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDistrictManager":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralHDS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _context2.UserData
+                        .AnyAsync(u => u.HDS && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToCentralGIS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _context2.UserData
+                        .AnyAsync(u => u.GISManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedBackToDistrictManager":
+                case "SubmittedBackToDistrictManagerFromOperations":
+                    // Allow access if the current user's ENumber matches a UserData entry where District matches and they are a DistrictManager
+                    isUserAuthorized = await _context2.UserData
+                        .AnyAsync(u => u.District == district && u.DistrictManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToRegionalEngineer":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDirectorOfOperations":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralChief":
+                    isUserAuthorized = false;
+                    break;
+
+                case "CancelledRequestArchive":
+                case "Finalized":
+                    // Typically, no edits or deletes allowed once archived or finalized.
+                    isUserAuthorized = false;
+                    break;
+
+                default:
+                    // Any other cases not explicitly handled above
+                    isUserAuthorized = false;
+                    break;
+            }
+
+            return isUserAuthorized;
+        }
 
 
 
@@ -558,6 +710,28 @@ namespace OM_79_HUB.Data
             {
                 return NotFound();
             }
+            // Find the OMTable entry by id
+            var oMTable = await _context.OMTable
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (oMTable == null)
+            {
+                return NotFound();
+            }
+
+            
+            //Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+            var user = User.Identity.Name;
+
+
+            var validUser = await checkComplexPermission(user, hub);
+           
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+
 
             // Find and delete all related PJ103Workflow entries
             var workflows = await _context.PJ103Workflow
@@ -570,13 +744,7 @@ namespace OM_79_HUB.Data
                 await _context.SaveChangesAsync(); // Save changes after deleting the workflows
             }
 
-            // Find the OMTable entry by id
-            var oMTable = await _context.OMTable
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (oMTable == null)
-            {
-                return NotFound();
-            }
+          
 
             // Capture the HubId for redirection after deletion
             var hubId = oMTable.HubId;
