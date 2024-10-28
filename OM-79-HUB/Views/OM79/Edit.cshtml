@@ -2,136 +2,872 @@
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Changes to the State Road System";
 }
-
-<h1>Edit</h1>
-
-<h4>OMTable</h4>
 <hr />
+<h2 style="font-weight: bold">Edit Changes to the State Road System</h2>
+
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="DistrictNumber" class="control-label"></label>
-                <input asp-for="DistrictNumber" class="form-control" />
-                <span asp-validation-for="DistrictNumber" class="text-danger"></span>
+    <form asp-action="Edit" method="post">
+        @*<div asp-validation-summary="ModelOnly" class="text-danger"></div>*@
+
+
+        <!-- Hidden Inputs for OMTable values Retain this values -->
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="HubId" />
+        <input type="hidden" asp-for="DESignature" />
+        <input type="hidden" asp-for="Preparer" />
+        <input type="hidden" asp-for="DateComplete" value="@ViewBag.DateComplete" />
+        <input type="hidden" asp-for="IsArchive" />
+        <input type="hidden" asp-for="Routing" />
+        <input type="hidden" asp-for="CoDate" />
+        <input type="hidden" asp-for="CoDateTwo" />
+        <!-- Hidden Input for SubmissionDate -->
+        <input type="hidden" asp-for="SubmissionDate" />
+
+        <!-- Hidden Input for County -->
+        <input type="hidden" asp-for="County" />
+        <input type="hidden" asp-for="Otherbox" />
+        <input type="hidden" asp-for="RouteIDB" />
+        <!-- Hidden Inputs for the missing fields -->
+        <input type="hidden" asp-for="DistrictNumber" />
+        <input type="hidden" asp-for="Railroad" />
+        <input type="hidden" asp-for="DOTAARNumber" />
+
+        <!-- Hidden Inputs for the boolean fields -->
+        <input type="hidden" asp-for="RAddition" />
+        <input type="hidden" asp-for="RRedesignation" />
+        <input type="hidden" asp-for="RMapCorrection" />
+        <input type="hidden" asp-for="RAbandonment" />
+        <input type="hidden" asp-for="RInventoryRemoval" />
+        <input type="hidden" asp-for="RAmend" />
+        <input type="hidden" asp-for="RRescind" />
+        <input type="hidden" asp-for="ROther" />
+
+
+
+        <hr />
+        <h3>Road Change Type</h3>
+        <hr />
+        <!-- Road Change Type (Readonly) -->
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="RoadChangeType" class="control-label">@Html.DisplayNameFor(model => model.RoadChangeType)</label>
+                <!-- Displayed for user (disabled) -->
+                <input type="text" class="form-control" value="@Model.RoadChangeType" disabled />
+                <!-- Hidden input to send the value to the server -->
+                <input type="hidden" asp-for="RoadChangeType" />
             </div>
-            <div class="form-group">
-                <label asp-for="County" class="control-label"></label>
-                <input asp-for="County" class="form-control" />
-                <span asp-validation-for="County" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SubmissionDate" class="control-label"></label>
-                <input asp-for="SubmissionDate" class="form-control" />
-                <span asp-validation-for="SubmissionDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Routing" class="control-label"></label>
-                <input asp-for="Routing" class="form-control" />
-                <span asp-validation-for="Routing" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RoadChangeType" class="control-label"></label>
-                <input asp-for="RoadChangeType" class="form-control" />
-                <span asp-validation-for="RoadChangeType" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Otherbox" class="control-label"></label>
-                <input asp-for="Otherbox" class="form-control" />
-                <span asp-validation-for="Otherbox" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RouteAssignment" class="control-label"></label>
-                <input asp-for="RouteAssignment" class="form-control" />
-                <span asp-validation-for="RouteAssignment" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RightOfWayWidth" class="control-label"></label>
-                <input asp-for="RightOfWayWidth" class="form-control" />
-                <span asp-validation-for="RightOfWayWidth" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Railroad" class="control-label"></label>
-                <input asp-for="Railroad" class="form-control" />
-                <span asp-validation-for="Railroad" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DOTAARNumber" class="control-label"></label>
-                <input asp-for="DOTAARNumber" class="form-control" />
-                <span asp-validation-for="DOTAARNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RequestedBy" class="control-label"></label>
-                <input asp-for="RequestedBy" class="form-control" />
+        </div>
+
+
+        <!-- Requested By and Name -->
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="RequestedBy" class="control-label">@Html.DisplayNameFor(model => model.RequestedBy)</label>
+                <select asp-for="RequestedBy" name="RequestedBy" class="form-control" asp-items="@ViewBag.RequestDropdown"></select>
                 <span asp-validation-for="RequestedBy" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Comments" class="control-label"></label>
-                <input asp-for="Comments" class="form-control" />
+
+            <div class="col-md-4" id="RequestedByNameContainer">
+                <label asp-for="RequestedByName" class="control-label">@Html.DisplayNameFor(model => model.RequestedByName)</label>
+                <input asp-for="RequestedByName" class="form-control" />
+                <span asp-validation-for="RequestedByName" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Attachments -->
+        <div class="row">
+            <div class="col-md-12">
+                <label asp-for="Attachments" class="control-label">@Html.DisplayNameFor(model => model.Attachments)</label>
+                <textarea asp-for="Attachments" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Attachments" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Route Assignment, Route, and SubRoute -->
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="RouteAssignment" class="control-label">@Html.DisplayNameFor(model => model.RouteAssignment)</label>
+                <select asp-for="RouteAssignment" name="RouteAssignment" class="form-control" asp-items="@ViewBag.RADropdown"></select>
+                <span asp-validation-for="RouteAssignment" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Route" class="control-label">@Html.DisplayNameFor(model => model.Route)</label>
+                <input asp-for="Route" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="Route" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="SubRoute" class="control-label">@Html.DisplayNameFor(model => model.SubRoute)</label>
+                <input asp-for="SubRoute" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="SubRoute" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Supplemental, Right of Way Width, and Right Other -->
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="Supplemental" class="control-label">@Html.DisplayNameFor(model => model.Supplemental)</label>
+                <select asp-for="Supplemental" name="Supplemental" class="form-control" asp-items="@ViewBag.SuppDropdown"></select>
+                <span asp-validation-for="Supplemental" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="RightOfWayWidth" class="control-label">@Html.DisplayNameFor(model => model.RightOfWayWidth)</label>
+                <select asp-for="RightOfWayWidth" name="RightOfWayWidth" class="form-control" id="RightOfWayWidthDropdown">
+                    <option value="">Select Width</option>
+                    @foreach (var item in ViewBag.ROWDropdown)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                </select>
+                <span asp-validation-for="RightOfWayWidth" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4" id="RightOtherContainer" style="display:none;">
+                <label asp-for="RightOther" class="control-label">@Html.DisplayNameFor(model => model.RightOther) <span class="required-asterisk">*</span></label>
+                <input asp-for="RightOther" class="form-control" />
+                <span asp-validation-for="RightOther" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="row">
+            <div class="col-md-12">
+                <label asp-for="Comments" class="control-label">@Html.DisplayNameFor(model => model.Comments)</label>
+                <textarea asp-for="Comments" class="form-control" rows="4"></textarea>
                 <span asp-validation-for="Comments" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="AdjacentProperty" class="control-label"></label>
-                <input asp-for="AdjacentProperty" class="form-control" />
-                <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+        </div>
+
+        <hr />
+        <h3>Adjacent Property</h3>
+        <hr />
+
+        <!-- Adjacent Property (with calculations) -->
+        <div class="row">
+            <div class="col-md-4">
                 <label asp-for="APHouses" class="control-label"></label>
-                <input asp-for="APHouses" class="form-control" />
+                <input asp-for="APHouses" class="form-control calculate-sum" min="0" onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="APHouses" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="col-md-4">
                 <label asp-for="APBusinesses" class="control-label"></label>
-                <input asp-for="APBusinesses" class="form-control" />
+                <input asp-for="APBusinesses" class="form-control calculate-sum" min="0" onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="APBusinesses" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="col-md-4">
                 <label asp-for="APSchools" class="control-label"></label>
-                <input asp-for="APSchools" class="form-control" />
+                <input asp-for="APSchools" class="form-control calculate-sum" min="0" onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="APSchools" class="text-danger"></span>
             </div>
-            <div class="form-group">
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
                 <label asp-for="APOther" class="control-label"></label>
-                <input asp-for="APOther" class="form-control" />
+                <input asp-for="APOther" class="form-control calculate-sum" id="APOtherInput" min="0" onkeydown="validatePositiveNumber(event)" />
                 <span asp-validation-for="APOther" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="APOtherIdentify" class="control-label"></label>
+
+            <div class="col-md-4" id="APOtherIdentifyContainer" style="display:none;">
+                <label asp-for="APOtherIdentify" class="control-label">@Html.DisplayNameFor(model => model.APOtherIdentify) <span class="required-asterisk">*</span></label>
                 <input asp-for="APOtherIdentify" class="form-control" />
                 <span asp-validation-for="APOtherIdentify" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Attachments" class="control-label"></label>
-                <input asp-for="Attachments" class="form-control" />
-                <span asp-validation-for="Attachments" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DESignature" class="control-label"></label>
-                <input asp-for="DESignature" class="form-control" />
-                <span asp-validation-for="DESignature" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Preparer" class="control-label"></label>
-                <input asp-for="Preparer" class="form-control" />
-                <span asp-validation-for="Preparer" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
 
+            <div class="col-md-4">
+                <label asp-for="AdjacentProperty" class="control-label">@Html.DisplayNameFor(model => model.AdjacentProperty)</label>
+                <input asp-for="AdjacentProperty" class="form-control" type="number" min="0" readonly onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
+            </div>
+        </div>
+        <hr />
+        <h3>Bridge/Railroad Information</h3>
+        <hr />
+
+        <!-- Bridge/Railroad Information -->
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="BridgeInv" class="control-label">@Html.DisplayNameFor(model => model.BridgeInv)<span class="required-asterisk">*</span></label>
+                <select asp-for="BridgeInv" name="BridgeInv" class="form-control" id="BridgeInvDropdown" asp-items="@ViewBag.TFDropdown"></select>
+                <span asp-validation-for="BridgeInv" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4" id="BridgeAmountContainer" style="display:none;">
+                <label asp-for="BridgeAmount" class="control-label">@Html.DisplayNameFor(model => model.BridgeAmount)<span class="required-asterisk">*</span></label>
+                <input asp-for="BridgeAmount" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="BridgeAmount" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4" id="BridgeNumbersContainer" style="display:none;">
+                <label asp-for="BridgeNumbers" class="control-label">@Html.DisplayNameFor(model => model.BridgeNumbers) <span class="required-asterisk">*</span></label>
+                <input asp-for="BridgeNumbers" class="form-control" />
+                <span asp-validation-for="BridgeNumbers" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="RailroadInv" class="control-label">@Html.DisplayNameFor(model => model.RailroadInv)<span class="required-asterisk">*</span></label>
+                <select asp-for="RailroadInv" name="RailroadInv" class="form-control" id="RailroadInvDropdown" asp-items="@ViewBag.TFDropdown"></select>
+                <span asp-validation-for="RailroadInv" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4" id="RailroadAmountContainer" style="display:none;">
+                <label asp-for="RailroadAmount" class="control-label">@Html.DisplayNameFor(model => model.RailroadAmount) <span class="required-asterisk">*</span></label>
+                <input asp-for="RailroadAmount" class="form-control" />
+                <span asp-validation-for="RailroadAmount" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4" id="DOTAARNumberContainer" style="display:none;">
+                <label asp-for="DOTAARNumber" class="control-label">@Html.DisplayNameFor(model => model.DOTAARNumber) <span class="required-asterisk">*</span></label>
+                <input asp-for="DOTAARNumber" class="form-control" />
+                <span asp-validation-for="DOTAARNumber" class="text-danger"></span>
+            </div>
+        </div>
+
+
+        <hr />
+        <h3>General Information</h3>
+        <hr />
+
+        <!-- General Information -->
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="SignSystem" class="control-label">@Html.DisplayNameFor(model => model.SignSystem)</label>
+                <select asp-for="SignSystem" name="SignSystem" class="form-control" asp-items="@ViewBag.SignDropdown"></select>
+                <span asp-validation-for="SignSystem" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="ProjectNumber" class="control-label">@Html.DisplayNameFor(model => model.ProjectNumber)</label>
+                <input asp-for="ProjectNumber" class="form-control" />
+                <span asp-validation-for="ProjectNumber" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="YearOfSurvey" class="control-label">@Html.DisplayNameFor(model => model.YearOfSurvey)</label>
+                <select asp-for="YearOfSurvey" class="form-control" id="yearOfSurveyDropdown">
+                    <option value="">Select Year</option>
+                    @for (int year = DateTime.Now.Year - 10; year <= DateTime.Now.Year + 5; year++)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </select>
+                <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Route Number, SubRoute Number, and Maintenance Organization -->
+        <div class="row">
+            <div class="col-md-4">
+                <label asp-for="RouteNumber" class="control-label">@Html.DisplayNameFor(model => model.RouteNumber)</label>
+                <input asp-for="RouteNumber" class="form-control" type="number" step="1" min="0" max="9999" onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="RouteNumber" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="SubRouteNumber" class="control-label">@Html.DisplayNameFor(model => model.SubRouteNumber)</label>
+                <input asp-for="SubRouteNumber" class="form-control" type="number" step="1" min="0" max="99" onkeydown="validatePositiveNumber(event)" />
+                <span asp-validation-for="SubRouteNumber" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="MaintOrg" class="control-label">@Html.DisplayNameFor(model => model.MaintOrg)</label>
+                <select asp-for="MaintOrg" name="MaintOrg" class="form-control" asp-items="@ViewBag.DOHDropdown"></select>
+                <span asp-validation-for="MaintOrg" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Starting Mile Point and Ending Mile Point -->
+        <div class="row">
+            <!-- Starting Mile Point -->
+            <div class="col-md-4">
+                <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint)</label>
+                <input asp-for="StartingMilePoint" class="form-control" type="number"
+                       step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" asp-format="{0:F3}" />
+                <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
+            </div>
+
+            <!-- Ending Mile Point -->
+            <div class="col-md-4">
+                <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint)</label>
+                <input asp-for="EndingMilePoint" class="form-control" type="number"
+                       step="0.001" min="0" pattern="^\d+(\.\d{1,3})?$" asp-format="{0:F3}" />
+                <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
+            </div>
+        </div>
+
+
+        <!-- Hidden Fields -->
+        <input type="hidden" name="HubId" value="@Model.HubId" />
+        <input type="hidden" asp-for="DateComplete" value="@ViewBag.DateComplete" />
+        <br />
+        
+        <!-- Save Button -->
+        <div class="form-group mt-4">
+            <input type="submit" value="Save Item Changes" class="btn btn-primary" />
+        </div>
+    </form>
+</div>
+<br />
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="EditPackage" asp-controller="CENTRAL79HUB" asp-route-id="@ViewBag.OMId" class="btn btn-secondary">Return to Package Editor</a>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            // Script for AdjacentProperty calculation
+            function updateAdjacentPropertySum() {
+                var houses = parseFloat($('input[name="APHouses"]').val()) || 0;
+                var businesses = parseFloat($('input[name="APBusinesses"]').val()) || 0;
+                var schools = parseFloat($('input[name="APSchools"]').val()) || 0;
+                var other = parseFloat($('input[name="APOther"]').val()) || 0;
+
+                var total = houses + businesses + schools + other;
+
+                $('input[name="AdjacentProperty"]').val(total);
+            }
+
+            $('.calculate-sum').on('input', function () {
+                updateAdjacentPropertySum();
+            });
+
+            updateAdjacentPropertySum();
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            var selectedYear = $('#currentYearOfSurvey').val(); // Get the value from hidden input
+            if (selectedYear) {
+                $('#yearOfSurveyDropdown').val(selectedYear); // Set the dropdown to the selected year
+            }
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Function to show/hide the RightOther input box
+            function toggleRightOther() {
+                var selectedValue = $('#RightOfWayWidthDropdown').val();
+                if (selectedValue === "Other") {
+                    $('#RightOtherContainer').show();
+                    $('#RightOther').attr('required', 'required'); // Make RightOther required when shown
+                } else {
+                    $('#RightOtherContainer').hide();
+                    $('#RightOther').removeAttr('required'); // Remove the required attribute when hidden
+                }
+            }
+
+            // Initial check on page load
+            toggleRightOther();
+
+            // Event handler for dropdown change
+            $('#RightOfWayWidthDropdown').change(function () {
+                toggleRightOther();
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Function to show/hide Bridge fields based on "Yes"/"No"
+            function toggleBridgeFields() {
+                var bridgeInvSelected = $('#BridgeInvDropdown').val();
+                if (bridgeInvSelected === "True") {
+                    $('#BridgeAmountContainer').show();
+                    $('#BridgeNumbersContainer').show();
+                    $('#BridgeAmount').attr('required', 'required');
+                    $('#BridgeNumbers').attr('required', 'required');
+                } else {
+                    $('#BridgeAmountContainer').hide();
+                    $('#BridgeNumbersContainer').hide();
+                    $('#BridgeAmount').removeAttr('required');
+                    $('#BridgeNumbers').removeAttr('required');
+                }
+            }
+
+            // Function to show/hide Railroad fields based on "Yes"/"No"
+            function toggleRailroadFields() {
+                var railroadInvSelected = $('#RailroadInvDropdown').val();
+                if (railroadInvSelected === "True") {
+                    $('#RailroadAmountContainer').show();
+                    $('#DOTAARNumberContainer').show();
+                    $('#RailroadAmount').attr('required', 'required');
+                    $('#DOTAARNumber').attr('required', 'required');
+                } else {
+                    $('#RailroadAmountContainer').hide();
+                    $('#DOTAARNumberContainer').hide();
+                    $('#RailroadAmount').removeAttr('required');
+                    $('#DOTAARNumber').removeAttr('required');
+                }
+            }
+
+            // Initial check on page load to display fields based on existing values
+            toggleBridgeFields();
+            toggleRailroadFields();
+
+            // Event listeners for dropdown changes
+            $('#BridgeInvDropdown').on('change', function () {
+                toggleBridgeFields();
+            });
+
+            $('#RailroadInvDropdown').on('change', function () {
+                toggleRailroadFields();
+            });
+        });
+    </script>
+
+
+
+    <script>
+        $(document).ready(function () {
+            // Function to show/hide the APOtherIdentify field
+            function toggleAPOtherIdentify() {
+                var apOtherValue = $('#APOtherInput').val();
+                if (apOtherValue && parseFloat(apOtherValue) > 0) {
+                    $('#APOtherIdentifyContainer').show();
+                    $('#APOtherIdentify').attr('required', 'required');
+                } else {
+                    $('#APOtherIdentifyContainer').hide();
+                    $('#APOtherIdentify').removeAttr('required');
+                }
+            }
+
+            // Initial call on page load (in case there's a pre-existing value)
+            toggleAPOtherIdentify();
+
+            // Event listener for changes in the APOther input field
+            $('#APOtherInput').on('input', function () {
+                toggleAPOtherIdentify();
+            });
+        });
+    </script>
 }
+
+
+
+
+
+
+
+
+@*@model OMTable
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Changes to the State Road System";
+}
+
+<h2 style="font-weight: bold">Edit Changes to the State Road System</h2>
+<hr />
+
+<div class="row">
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <!-- Road Change Type (Readonly) -->
+        <div class="col-md-4">
+            <label asp-for="RoadChangeType" class="control-label">@Html.DisplayNameFor(model => model.RoadChangeType)</label>
+            <input type="text" class="form-control" value="@Model.RoadChangeType" disabled />
+        </div>
+
+        <!-- Requested By -->
+        <div class="col-md-4">
+            <label asp-for="RequestedBy" class="control-label">@Html.DisplayNameFor(model => model.RequestedBy)</label>
+            <select asp-for="RequestedBy" name="RequestedBy" class="form-control" asp-items="@ViewBag.RequestDropdown"></select>
+            <span asp-validation-for="RequestedBy" class="text-danger"></span>
+        </div>
+
+        <!-- Requested By Name -->
+        <div class="col-md-4" id="RequestedByNameContainer">
+            <label asp-for="RequestedByName" class="control-label">@Html.DisplayNameFor(model => model.RequestedByName)</label>
+            <input asp-for="RequestedByName" class="form-control" />
+            <span asp-validation-for="RequestedByName" class="text-danger"></span>
+        </div>
+
+        <!-- Attachments -->
+        <div class="col-md-12">
+            <label asp-for="Attachments" class="control-label">@Html.DisplayNameFor(model => model.Attachments)</label>
+            <textarea asp-for="Attachments" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Attachments" class="text-danger"></span>
+        </div>
+
+        <!-- Route Assignment -->
+        <div class="col-md-4">
+            <label asp-for="RouteAssignment" class="control-label">@Html.DisplayNameFor(model => model.RouteAssignment)</label>
+            <select asp-for="RouteAssignment" name="RouteAssignment" class="form-control" asp-items="@ViewBag.RADropdown"></select>
+            <span asp-validation-for="RouteAssignment" class="text-danger"></span>
+        </div>
+
+        <!-- Route -->
+        <div class="col-md-4">
+            <label asp-for="Route" class="control-label">@Html.DisplayNameFor(model => model.Route)</label>
+            <input asp-for="Route" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="Route" class="text-danger"></span>
+        </div>
+
+        <!-- SubRoute -->
+        <div class="col-md-4">
+            <label asp-for="SubRoute" class="control-label">@Html.DisplayNameFor(model => model.SubRoute)</label>
+            <input asp-for="SubRoute" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="SubRoute" class="text-danger"></span>
+        </div>
+
+        <!-- Supplemental -->
+        <div class="col-md-4">
+            <label asp-for="Supplemental" class="control-label">@Html.DisplayNameFor(model => model.Supplemental)</label>
+            <select asp-for="Supplemental" name="Supplemental" class="form-control" asp-items="@ViewBag.SuppDropdown"></select>
+            <span asp-validation-for="Supplemental" class="text-danger"></span>
+        </div>
+
+        <!-- Right of Way Width -->
+        <div class="col-md-4">
+            <label asp-for="RightOfWayWidth" class="control-label">@Html.DisplayNameFor(model => model.RightOfWayWidth)</label>
+            <select asp-for="RightOfWayWidth" name="RightOfWayWidth" class="form-control" id="RightOfWayWidthDropdown">
+                <option value="">Select Width</option>
+                @foreach (var item in ViewBag.ROWDropdown)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+            <span asp-validation-for="RightOfWayWidth" class="text-danger"></span>
+        </div>
+
+        <!-- RightOther Input Box -->
+        <div class="col-md-4" id="RightOtherContainer" style="display:none;">
+            <label asp-for="RightOther" class="control-label">@Html.DisplayNameFor(model => model.RightOther) <span class="required-asterisk">*</span></label>
+            <input asp-for="RightOther" class="form-control" />
+            <span asp-validation-for="RightOther" class="text-danger"></span>
+        </div>
+
+
+        <!-- Comments -->
+        <div class="col-md-12">
+            <label asp-for="Comments" class="control-label">@Html.DisplayNameFor(model => model.Comments)</label>
+            <textarea asp-for="Comments" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Comments" class="text-danger"></span>
+        </div>
+
+        <hr />
+        <h3>Adjacent Property</h3>
+        <hr />
+
+        <!-- Adjacent Property Houses -->
+        <div class="col-md-4">
+            <label asp-for="APHouses" class="control-label"></label>
+            <input asp-for="APHouses" class="form-control calculate-sum" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="APHouses" class="text-danger"></span>
+        </div>
+
+        <!-- Adjacent Property Businesses -->
+        <div class="col-md-4">
+            <label asp-for="APBusinesses" class="control-label"></label>
+            <input asp-for="APBusinesses" class="form-control calculate-sum" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="APBusinesses" class="text-danger"></span>
+        </div>
+
+        <!-- Adjacent Property Schools -->
+        <div class="col-md-4">
+            <label asp-for="APSchools" class="control-label"></label>
+            <input asp-for="APSchools" class="form-control calculate-sum" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="APSchools" class="text-danger"></span>
+        </div>
+
+        <!-- Adjacent Property Other -->
+        <div class="col-md-4">
+            <label asp-for="APOther" class="control-label"></label>
+            <input asp-for="APOther" class="form-control calculate-sum" id="APOtherInput" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="APOther" class="text-danger"></span>
+        </div>
+
+        <!-- Adjacent Property Other Identify (Hidden by Default) -->
+        <div class="col-md-4" id="APOtherIdentifyContainer" style="display:none;">
+            <label asp-for="APOtherIdentify" class="control-label">@Html.DisplayNameFor(model => model.APOtherIdentify) <span class="required-asterisk">*</span></label>
+            <input asp-for="APOtherIdentify" class="form-control" />
+            <span asp-validation-for="APOtherIdentify" class="text-danger"></span>
+        </div>
+
+
+        <!-- Adjacent Property Other Identify -->
+        <div class="col-md-4" id="APOtherIdentifyContainer">
+            <label asp-for="APOtherIdentify" class="control-label">@Html.DisplayNameFor(model => model.APOtherIdentify)</label>
+            <input asp-for="APOtherIdentify" class="form-control" />
+            <span asp-validation-for="APOtherIdentify" class="text-danger"></span>
+        </div>
+
+        <!-- Adjacent Property Total (Readonly) -->
+        <div class="col-md-4">
+            <label asp-for="AdjacentProperty" class="control-label">@Html.DisplayNameFor(model => model.AdjacentProperty)</label>
+            <input asp-for="AdjacentProperty" class="form-control" type="number" min="0" readonly onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
+        </div>
+
+        <hr />
+        <h3>Bridge/Railroad Information</h3>
+        <hr />
+
+        <!-- Bridge Inventory -->
+        <div class="col-md-4">
+            <label asp-for="BridgeInv" class="control-label">@Html.DisplayNameFor(model => model.BridgeInv)<span class="required-asterisk">*</span></label>
+            <select asp-for="BridgeInv" name="BridgeInv" class="form-control" id="BridgeInvDropdown" asp-items="@ViewBag.TFDropdown"></select>
+            <span asp-validation-for="BridgeInv" class="text-danger"></span>
+            <div id="bridgeInvError" class="text-danger"></div>
+        </div>
+
+        <!-- Bridge Amount (Shown when BridgeInv is "Yes") -->
+        <div class="col-md-4" id="BridgeAmountContainer" style="display:none;">
+            <label asp-for="BridgeAmount" class="control-label">@Html.DisplayNameFor(model => model.BridgeAmount)<span class="required-asterisk">*</span></label>
+            <input asp-for="BridgeAmount" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="BridgeAmount" class="text-danger"></span>
+        </div>
+
+        <!-- Bridge Numbers (Shown when BridgeInv is "Yes") -->
+        <div class="col-md-4" id="BridgeNumbersContainer" style="display:none;">
+            <label asp-for="BridgeNumbers" class="control-label">@Html.DisplayNameFor(model => model.BridgeNumbers) <span class="required-asterisk">*</span></label>
+            <input asp-for="BridgeNumbers" class="form-control" />
+            <span asp-validation-for="BridgeNumbers" class="text-danger"></span>
+        </div>
+
+        <!-- Railroad Inventory -->
+        <div class="col-md-4">
+            <label asp-for="RailroadInv" class="control-label">@Html.DisplayNameFor(model => model.RailroadInv)<span class="required-asterisk">*</span></label>
+            <select asp-for="RailroadInv" name="RailroadInv" class="form-control" id="RailroadInvDropdown" asp-items="@ViewBag.TFDropdown"></select>
+            <span asp-validation-for="RailroadInv" class="text-danger"></span>
+            <div id="railroadInvError" class="text-danger"></div>
+        </div>
+
+        <!-- Railroad Amount (Shown when RailroadInv is "Yes") -->
+        <div class="col-md-4" id="RailroadAmountContainer" style="display:none;">
+            <label asp-for="RailroadAmount" class="control-label">@Html.DisplayNameFor(model => model.RailroadAmount) <span class="required-asterisk">*</span></label>
+            <input asp-for="RailroadAmount" class="form-control" />
+            <span asp-validation-for="RailroadAmount" class="text-danger"></span>
+        </div>
+
+        <!-- DOTAAR Number (Shown when RailroadInv is "Yes") -->
+        <div class="col-md-4" id="DOTAARNumberContainer" style="display:none;">
+            <label asp-for="DOTAARNumber" class="control-label">@Html.DisplayNameFor(model => model.DOTAARNumber) <span class="required-asterisk">*</span></label>
+            <input asp-for="DOTAARNumber" class="form-control" />
+            <span asp-validation-for="DOTAARNumber" class="text-danger"></span>
+        </div>
+
+
+        <hr />
+        <h3>General Information</h3>
+        <hr />
+
+        <!-- Sign System -->
+        <div class="col-md-4">
+            <label asp-for="SignSystem" class="control-label">@Html.DisplayNameFor(model => model.SignSystem)</label>
+            <select asp-for="SignSystem" name="SignSystem" class="form-control" asp-items="@ViewBag.SignDropdown"></select>
+            <span asp-validation-for="SignSystem" class="text-danger"></span>
+        </div>
+
+        <!-- Project Number -->
+        <div class="col-md-4">
+            <label asp-for="ProjectNumber" class="control-label">@Html.DisplayNameFor(model => model.ProjectNumber)</label>
+            <input asp-for="ProjectNumber" class="form-control" />
+            <span asp-validation-for="ProjectNumber" class="text-danger"></span>
+        </div>
+        <!-- Year of Survey -->
+        <div class="col-md-4">
+            <label asp-for="YearOfSurvey" class="control-label">@Html.DisplayNameFor(model => model.YearOfSurvey)</label>
+            <select asp-for="YearOfSurvey" class="form-control" style="color: #000;" id="yearOfSurveyDropdown">
+                <option value="">Select Year</option>
+                @for (int year = DateTime.Now.Year - 10; year <= DateTime.Now.Year + 5; year++)
+                {
+                    <option value="@year">@year</option>
+                }
+            </select>
+            <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
+        </div>
+
+        <!-- Hidden input to store the current value -->
+        <input type="hidden" id="currentYearOfSurvey" value="@Model.YearOfSurvey" />
+
+
+
+
+            
+        <!-- Route Number -->
+        <div class="col-md-4">
+            <label asp-for="RouteNumber" class="control-label">@Html.DisplayNameFor(model => model.RouteNumber)</label>
+            <input asp-for="RouteNumber" class="form-control" type="number" step="1" min="0" max="9999" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="RouteNumber" class="text-danger"></span>
+        </div>
+
+        <!-- SubRoute Number -->
+        <div class="col-md-4">
+            <label asp-for="SubRouteNumber" class="control-label">@Html.DisplayNameFor(model => model.SubRouteNumber)</label>
+            <input asp-for="SubRouteNumber" class="form-control" type="number" step="1" min="0" max="99" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="SubRouteNumber" class="text-danger"></span>
+        </div>
+        <!-- Maintenance Organization -->
+        <div class="col-md-4">
+            <label asp-for="MaintOrg" class="control-label">@Html.DisplayNameFor(model => model.MaintOrg)</label>
+            <select asp-for="MaintOrg" name="MaintOrg" class="form-control" asp-items="@ViewBag.DOHDropdown"></select>
+            <span asp-validation-for="MaintOrg" class="text-danger"></span>
+            <div id="maintOrgError" class="text-danger"></div>
+        </div>
+        <!-- Starting Mile Point -->
+        <div class="col-md-4">
+            <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint)</label>
+            <input asp-for="StartingMilePoint" class="form-control" type="number" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
+        </div>
+
+        <!-- Ending Mile Point -->
+        <div class="col-md-4">
+            <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint)</label>
+            <input asp-for="EndingMilePoint" class="form-control" type="number" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
+            <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
+        </div>
+
+        <!-- Hidden Fields -->
+        <input type="hidden" name="HubId" value="@Model.HubId" />
+        <input type="hidden" asp-for="DateComplete" value="@ViewBag.DateComplete" />
+
+        <!-- Save Button -->
+        <div class="form-group mt-4">
+            <input type="submit" value="Save" class="btn btn-primary" />
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            // Script for AdjacentProperty calculation
+            function updateAdjacentPropertySum() {
+                var houses = parseFloat($('input[name="APHouses"]').val()) || 0;
+                var businesses = parseFloat($('input[name="APBusinesses"]').val()) || 0;
+                var schools = parseFloat($('input[name="APSchools"]').val()) || 0;
+                var other = parseFloat($('input[name="APOther"]').val()) || 0;
+
+                var total = houses + businesses + schools + other;
+
+                $('input[name="AdjacentProperty"]').val(total);
+            }
+
+            $('.calculate-sum').on('input', function () {
+                updateAdjacentPropertySum();
+            });
+
+            updateAdjacentPropertySum();
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            var selectedYear = $('#currentYearOfSurvey').val(); // Get the value from hidden input
+            if (selectedYear) {
+                $('#yearOfSurveyDropdown').val(selectedYear); // Set the dropdown to the selected year
+            }
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Function to show/hide the RightOther input box
+            function toggleRightOther() {
+                var selectedValue = $('#RightOfWayWidthDropdown').val();
+                if (selectedValue === "Other") {
+                    $('#RightOtherContainer').show();
+                    $('#RightOther').attr('required', 'required'); // Make RightOther required when shown
+                } else {
+                    $('#RightOtherContainer').hide();
+                    $('#RightOther').removeAttr('required'); // Remove the required attribute when hidden
+                }
+            }
+
+            // Initial check on page load
+            toggleRightOther();
+
+            // Event handler for dropdown change
+            $('#RightOfWayWidthDropdown').change(function () {
+                toggleRightOther();
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Function to show/hide Bridge fields
+            function toggleBridgeFields() {
+                var bridgeInvSelected = $('#BridgeInvDropdown').val();
+                if (bridgeInvSelected === "Yes") {
+                    $('#BridgeAmountContainer').show();
+                    $('#BridgeNumbersContainer').show();
+                    $('#BridgeAmount').attr('required', 'required');
+                    $('#BridgeNumbers').attr('required', 'required');
+                } else {
+                    $('#BridgeAmountContainer').hide();
+                    $('#BridgeNumbersContainer').hide();
+                    $('#BridgeAmount').removeAttr('required');
+                    $('#BridgeNumbers').removeAttr('required');
+                }
+            }
+
+            // Function to show/hide Railroad fields
+            function toggleRailroadFields() {
+                var railroadInvSelected = $('#RailroadInvDropdown').val();
+                if (railroadInvSelected === "Yes") {
+                    $('#RailroadAmountContainer').show();
+                    $('#DOTAARNumberContainer').show();
+                    $('#RailroadAmount').attr('required', 'required');
+                    $('#DOTAARNumber').attr('required', 'required');
+                } else {
+                    $('#RailroadAmountContainer').hide();
+                    $('#DOTAARNumberContainer').hide();
+                    $('#RailroadAmount').removeAttr('required');
+                    $('#DOTAARNumber').removeAttr('required');
+                }
+            }
+
+            // Initial call on page load
+            toggleBridgeFields();
+            toggleRailroadFields();
+
+            // Event listeners for dropdown changes
+            $('#BridgeInvDropdown').change(function () {
+                toggleBridgeFields();
+            });
+
+            $('#RailroadInvDropdown').change(function () {
+                toggleRailroadFields();
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Function to show/hide the APOtherIdentify field
+            function toggleAPOtherIdentify() {
+                var apOtherValue = $('#APOtherInput').val();
+                if (apOtherValue && parseFloat(apOtherValue) > 0) {
+                    $('#APOtherIdentifyContainer').show();
+                    $('#APOtherIdentify').attr('required', 'required');
+                } else {
+                    $('#APOtherIdentifyContainer').hide();
+                    $('#APOtherIdentify').removeAttr('required');
+                }
+            }
+
+            // Initial call on page load (in case there's a pre-existing value)
+            toggleAPOtherIdentify();
+
+            // Event listener for changes in the APOther input field
+            $('#APOtherInput').on('input', function () {
+                toggleAPOtherIdentify();
+            });
+        });
+    </script>
+
+
+}
+
+*@

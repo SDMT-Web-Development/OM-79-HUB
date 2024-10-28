@@ -13,6 +13,7 @@ using OM_79_HUB.DTOs;
 using OM_79_HUB.Models;
 using OM79.Models.DB;
 using OM_79_HUB.Models.DB.OM79Hub;
+using Microsoft.AspNetCore.SignalR;
 
 namespace OM_79_HUB.Data
 {
@@ -31,6 +32,9 @@ namespace OM_79_HUB.Data
             _hubContext = hubContext;   
         }
         // GET: Submissions
+
+        //Taking this out 
+        /*
         public async Task<IActionResult> Index()
         {
             // Define the list of admin enums
@@ -87,11 +91,23 @@ namespace OM_79_HUB.Data
             {
                 return NotFound();
             }
-
             var viewmodel = new Aclvl();
 
             // Mapping fields from submission to viewmodel
             var submission = await _context.Submissions.FirstOrDefaultAsync(m => m.SubmissionID == id);
+
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            var omTable = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == submission.OM79Id);
+            var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == omTable.HubId);
+
+            if (!(validUser) && (currentUser != hub.UserId))
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+        
             if (submission != null)
             {
                 viewmodel.SubmissionID = submission.SubmissionID;
@@ -358,6 +374,9 @@ namespace OM_79_HUB.Data
                 var pjWorkflow = await _oM79Context.PJ103Workflow.FirstOrDefaultAsync(o => o.OMID == om79ID);
                 Console.WriteLine($"PJ103Workflow entry: {pjWorkflow?.PJ103WorkflowID}, {pjWorkflow?.NumberOfSegments}");
 
+
+               
+
                 var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(o => o.OMId == om79.HubId);
                 Console.WriteLine($"CENTRAL79HUB entry: {hub?.OMId}, {hub?.County}");
 
@@ -369,6 +388,11 @@ namespace OM_79_HUB.Data
                 Console.WriteLine("----------------------------------------");
                 Console.WriteLine("----------------------------------------");
                 Console.WriteLine("----------------------------------------");
+                if (pjWorkflow == null || hub.IsSubmitted == true)
+                {
+                    //They are editing the package here
+                    return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hub.OMId });
+                }
 
 
                 // Get the list of PJ103 segments
@@ -385,7 +409,7 @@ namespace OM_79_HUB.Data
 
 
                 // Compare the count of PJ103 segments with pjWorkflow.NumberOfSegments
-                if (pj103Segments.Count < pjWorkflow.NumberOfSegments)
+                if (pj103Segments.Count < pjWorkflow.NumberOfSegments || pj103Segments.Count == 0)
                 {
                     return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
                 }
@@ -415,121 +439,375 @@ namespace OM_79_HUB.Data
 
               return View(submission);
           }
-          /*
-          [HttpPost]
-          [ValidateAntiForgeryToken]
-          public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments)
-          {
-              if (ModelState.IsValid)
-              {
-                  // Save the submission first to get an ID
-                  _context.Add(submission);
-                  await _context.SaveChangesAsync();
+        /*
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto, List<IFormFile> attachments)
+        {
+            if (ModelState.IsValid)
+            {
+                // Save the submission first to get an ID
+                _context.Add(submission);
+                await _context.SaveChangesAsync();
 
-                  // Update additional properties and sync tables after getting SubmissionID
-                  submission.DateComplete = DateTime.Now;
-                  dto.SubmissionID = submission.SubmissionID;
-                  synctables(submission.SubmissionID);
+                // Update additional properties and sync tables after getting SubmissionID
+                submission.DateComplete = DateTime.Now;
+                dto.SubmissionID = submission.SubmissionID;
+                synctables(submission.SubmissionID);
 
-                  // Save the attachments
-                  foreach (var attachmentFile in attachments)
-                  {
-                      var filePath = "~/wwwroot/PJAttachments"; // Save your file and get the path
-                      var attachment = new Attachments
-                      {
-                          FileName = attachmentFile.FileName,
-                          FilePath = filePath,
-                          SubmissionID = submission.SubmissionID  // Use the SubmissionID from the saved submission
-                      };
-                      _context.Attachments.Add(attachment);
-                  }
-
-                  // Save all changes to the database
-                  await _context.SaveChangesAsync();
-                  return RedirectToAction(nameof(Index));
-              }
-
-              void synctables(int ID)
-              {
-                  _context.BridgeRR.Add(dto.ToBridgeRR());
-                  _context.RouteInfo.Add(dto.ToRouteInfo());
-              }
-
-              return View(submission);
-          }
-          */
-
-
-                /*
-                // POST: Submissions/Create
-                // To protect from overposting attacks, enable the specific properties you want to bind to.
-                // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-                //   Create([Bind("SubmissionID,ProjectKey,ReportDate,County,RouteNumber,SubRouteNumber,ProjectNumber,DateComplete,NatureOfChange,MilesOfNewRoad,MaintOrg,YearOfSurvey,AccessControl,ThroughLanes,CounterPeakLanes,PeakLanes,ReverseLanes,LaneWidth,MedianWidth,PavementWidth,SpecialSys,FacilityType,FederalAid,FedForestHighway,MedianType,NHS,TruckRoute,GovIDOwnership,WVlegalClass,FunctionalClass,BridgeNumber,BridgeLocation,StationFrom,StationTo,CrossingName,WeightLimit,SubMaterial,SuperMaterial,FloorMaterial,ArchMaterial,TotalLength,ClearanceRoadway,ClearanceSidewalkRight,ClearanceSidewalkLeft,ClearanceStreamble,ClearancePortal,ClearanceAboveWater,PostedLoadLimits,ConstructionDate,WhomBuilt,HistoricalBridge,UserID,OtherBox,StartingMilePoint,EndingMilePoint,RailroadInv,NumberOfSpans,SignSystem")] Submission submission, AclvlDTOs dto)
-                [HttpPost]
-                [ValidateAntiForgeryToken]
-                public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto)
+                // Save the attachments
+                foreach (var attachmentFile in attachments)
                 {
-                    if (ModelState.IsValid)
+                    var filePath = "~/wwwroot/PJAttachments"; // Save your file and get the path
+                    var attachment = new Attachments
                     {
-                        _context.Add(submission);
-                        await _context.SaveChangesAsync();
-                        submission.DateComplete= DateTime.Now;
-                        dto.SubmissionID = submission.SubmissionID;
-                        synctables(submission.SubmissionID);
-                        await _context.SaveChangesAsync();
-                        return RedirectToAction(nameof(Index));
-                    }
-                    void synctables(int ID)
-                    {
-                        _context.BridgeRR.Add(dto.ToBridgeRR());
-                        // Create related objects from dto and add them to the context
-                        //    _context.Spans.Add(dto.ToSpan());
-                        _context.RouteInfo.Add(dto.ToRouteInfo());
-                       // _context.BridgeRR.Add(dto.ToBridgeRR());
-
-
-                    }
-                    return View(submission);
+                        FileName = attachmentFile.FileName,
+                        FilePath = filePath,
+                        SubmissionID = submission.SubmissionID  // Use the SubmissionID from the saved submission
+                    };
+                    _context.Attachments.Add(attachment);
                 }
-                */
-                // GET: Submissions/Edit/5
-                public async Task<IActionResult> Edit(int? id)
+
+                // Save all changes to the database
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            void synctables(int ID)
+            {
+                _context.BridgeRR.Add(dto.ToBridgeRR());
+                _context.RouteInfo.Add(dto.ToRouteInfo());
+            }
+
+            return View(submission);
+        }
+        */
+
+
+        /*
+        // POST: Submissions/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //   Create([Bind("SubmissionID,ProjectKey,ReportDate,County,RouteNumber,SubRouteNumber,ProjectNumber,DateComplete,NatureOfChange,MilesOfNewRoad,MaintOrg,YearOfSurvey,AccessControl,ThroughLanes,CounterPeakLanes,PeakLanes,ReverseLanes,LaneWidth,MedianWidth,PavementWidth,SpecialSys,FacilityType,FederalAid,FedForestHighway,MedianType,NHS,TruckRoute,GovIDOwnership,WVlegalClass,FunctionalClass,BridgeNumber,BridgeLocation,StationFrom,StationTo,CrossingName,WeightLimit,SubMaterial,SuperMaterial,FloorMaterial,ArchMaterial,TotalLength,ClearanceRoadway,ClearanceSidewalkRight,ClearanceSidewalkLeft,ClearanceStreamble,ClearancePortal,ClearanceAboveWater,PostedLoadLimits,ConstructionDate,WhomBuilt,HistoricalBridge,UserID,OtherBox,StartingMilePoint,EndingMilePoint,RailroadInv,NumberOfSpans,SignSystem")] Submission submission, AclvlDTOs dto)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Submission submission, AclvlDTOs dto)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(submission);
+                await _context.SaveChangesAsync();
+                submission.DateComplete= DateTime.Now;
+                dto.SubmissionID = submission.SubmissionID;
+                synctables(submission.SubmissionID);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            void synctables(int ID)
+            {
+                _context.BridgeRR.Add(dto.ToBridgeRR());
+                // Create related objects from dto and add them to the context
+                //    _context.Spans.Add(dto.ToSpan());
+                _context.RouteInfo.Add(dto.ToRouteInfo());
+               // _context.BridgeRR.Add(dto.ToBridgeRR());
+
+
+            }
+            return View(submission);
+        }
+        */
+
+
+
+
+
+        // GET: Submissions/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Submissions == null)
             {
                 return NotFound();
             }
 
-            var submission = await _context.Submissions.FindAsync(id);
+            // Find the submission
+            var submission = await _context.Submissions
+                .FirstOrDefaultAsync(s => s.SubmissionID == id);
+
             if (submission == null)
             {
                 return NotFound();
             }
-            return View(submission);
+
+            // Fetch the related RouteInfo entity using its foreign key (SubmissionID)
+            var routeInfo = await _context.RouteInfo
+                .FirstOrDefaultAsync(r => r.SubmissionID == submission.SubmissionID);
+
+            // Fetch the related OMTable entity using the OM79Id from the submission
+            var omTable = await _oM79Context.OMTable
+                .FirstOrDefaultAsync(om => om.Id == submission.OM79Id);
+
+            // Map data from the Submission entity to the Aclvl view model
+            var aclvlViewModel = new Aclvl
+            {
+                SubmissionID = submission.SubmissionID,
+                OM79ID = submission.OM79Id,
+                County = submission.County,
+                RouteNumber = submission.RouteNumber,
+                SubRouteNumber = submission.SubRouteNumber,
+                ProjectNumber = submission.ProjectNumber,
+                DateComplete = submission.DateComplete,
+                NatureOfChange = submission.NatureOfChange,
+                StartingMilePoint = submission.StartingMilePoint,
+                EndingMilePoint = submission.EndingMilePoint,
+                SignSystem = submission.SignSystem,
+                RailroadInv = submission.RailroadInv,
+                BridgeInv = submission.BridgeInv,
+                OtherBox = submission.OtherBox,
+                // Map fields from RouteInfo if it exists
+                AccessControl = routeInfo?.AccessControl,
+                ThroughLanes = routeInfo?.ThroughLanes,
+                CounterPeakLanes = routeInfo?.CounterPeakLanes,
+                PeakLanes = routeInfo?.PeakLanes,
+                ReverseLanes = routeInfo?.ReverseLanes,
+                LaneWidth = routeInfo?.LaneWidth,
+                GradeWidth = routeInfo?.GradeWidth,
+                MedianWidth = routeInfo?.MedianWidth,
+                PavementWidth = routeInfo?.PavementWidth,
+                SpecialSys = routeInfo?.SpecialSys,
+                FacilityType = routeInfo?.FacilityType,
+                FederalAid = routeInfo?.FederalAid,
+                FedForestHighway = routeInfo?.FedForestHighway,
+                MedianType = routeInfo?.MedianType,
+                NHS = routeInfo?.NHS,
+                TruckRoute = routeInfo?.TruckRoute,
+                GovIDOwnership = routeInfo?.GovIDOwnership,
+                WVlegalClass = routeInfo?.WVlegalClass,
+                FunctionalClass = routeInfo?.FunctionalClass,
+                SurfaceTypeN = routeInfo?.SurfaceTypeN,
+                MPSegmentStart = routeInfo?.MPSegmentStart,
+                MPSegmentEnd = routeInfo?.MPSegmentEnd
+            };
+
+            // Pass the HubId (OMId) from OMTable if available
+            ViewBag.OMId = omTable?.HubId;
+
+            // Populate dropdowns using the DropDowns method
+            DropDowns();
+
+            return View(aclvlViewModel);
+        }
+        private async Task<bool> CheckForAccessPermission(string? currentUser)
+        {
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                return false;
+            }
+
+            // Normalize the ENumber (assuming case-insensitive)
+            string normalizedENumber = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+
+            // Check in AdminData
+            bool isAdmin = await _hubContext.AdminData
+                .AnyAsync(a => a.ENumber.ToLower() == normalizedENumber);
+
+            if (isAdmin)
+            {
+                return true;
+            }
+
+            // Check in UserData
+            bool isUser = await _hubContext.UserData
+                .AnyAsync(u => u.ENumber.ToLower() == normalizedENumber);
+
+            return isUser;
+        }
+        private async Task<bool> checkComplexPermission(string currentUser, CENTRAL79HUB passedHub)
+        {
+            if (string.IsNullOrEmpty(currentUser) || passedHub.OMId == null)
+            {
+                return false;
+            }
+
+            var currentStep = passedHub.WorkflowStep;
+            var isUserAuthorized = false;
+
+            // Normalize the current user's E-number
+            string normalizedUser = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            var normalizedHubUser = passedHub.UserId.Replace("EXECUTIVE\\", "").Trim().ToLower();
+
+            var district = passedHub.District;
+
+            switch (currentStep)
+            {
+                case "RestartFromDistrict":
+                case "RestartFromDistrictManager":
+                    // Only the user associated with the hub entry can access this
+                    isUserAuthorized = normalizedUser == normalizedHubUser;
+                    break;
+
+                case "SubmittedToDistrict":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDistrictManager":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralHDS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _hubContext.UserData
+                        .AnyAsync(u => u.HDS && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToCentralGIS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _hubContext.UserData
+                        .AnyAsync(u => u.GISManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedBackToDistrictManager":
+                case "SubmittedBackToDistrictManagerFromOperations":
+                    // Allow access if the current user's ENumber matches a UserData entry where District matches and they are a DistrictManager
+                    isUserAuthorized = await _hubContext.UserData
+                        .AnyAsync(u => u.District == district && u.DistrictManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToRegionalEngineer":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDirectorOfOperations":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralChief":
+                    isUserAuthorized = false;
+                    break;
+
+                case "CancelledRequestArchive":
+                case "Finalized":
+                    // Typically, no edits or deletes allowed once archived or finalized.
+                    isUserAuthorized = false;
+                    break;
+
+                default:
+                    // Any other cases not explicitly handled above
+                    isUserAuthorized = false;
+                    break;
+            }
+
+            return isUserAuthorized;
         }
 
-        // POST: Submissions/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SubmissionID,ProjectKey,ReportDate,County,RouteNumber,SubRouteNumber,ProjectNumber,DateComplete,NatureOfChange,MilesOfNewRoad,MaintOrg,YearOfSurvey,AccessControl,ThroughLanes,CounterPeakLanes,PeakLanes,ReverseLanes,LaneWidth,MedianWidth,PavementWidth,SpecialSys,FacilityType,FederalAid,FedForestHighway,MedianType,NHS,TruckRoute,GovIDOwnership,WVlegalClass,FunctionalClass,BridgeNumber,BridgeLocation,StationFrom,StationTo,CrossingName,WeightLimit,SubMaterial,SuperMaterial,FloorMaterial,ArchMaterial,TotalLength,ClearanceRoadway,ClearanceSidewalkRight,ClearanceSidewalkLeft,ClearanceStreamble,ClearancePortal,ClearanceAboveWater,PostedLoadLimits,ConstructionDate,WhomBuilt,HistoricalBridge,UserID,OtherBox")] Submission submission)
+        public async Task<IActionResult> Edit(int id, Aclvl aclvlViewModel)
         {
-            if (id != submission.SubmissionID)
+            /*
+            if (id != aclvlViewModel.SubmissionID)
             {
                 return NotFound();
             }
-
+            */
             if (ModelState.IsValid)
             {
+                //Need to only allow someone to access this when the workflow step is currently with this 
+                var oMTable = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == aclvlViewModel.OM79ID);
+                var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+                var user = User.Identity.Name;
+                var validUser = await checkComplexPermission(user, hub);
+                if (!validUser)
+                {
+                    return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+                }
                 try
                 {
+                    // Retrieve the existing Submission entity from the database
+                    var submission = await _context.Submissions
+                        .FirstOrDefaultAsync(s => s.SubmissionID == id);
+
+                    if (submission == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Map data from the ViewModel back to the Submission entity
+                    submission.County = aclvlViewModel.County;
+                    submission.RouteNumber = aclvlViewModel.RouteNumber;
+                    submission.SubRouteNumber = aclvlViewModel.SubRouteNumber;
+                    submission.ProjectNumber = aclvlViewModel.ProjectNumber;
+                    submission.DateComplete = aclvlViewModel.DateComplete;
+                    submission.NatureOfChange = aclvlViewModel.NatureOfChange;
+                    submission.StartingMilePoint = aclvlViewModel.StartingMilePoint;
+                    submission.EndingMilePoint = aclvlViewModel.EndingMilePoint;
+                    submission.SignSystem = aclvlViewModel.SignSystem;
+                    submission.RailroadInv = aclvlViewModel.RailroadInv;
+                    submission.BridgeInv = aclvlViewModel.BridgeInv;
+                    submission.OtherBox = aclvlViewModel.OtherBox;
+                    submission.DateComplete = aclvlViewModel.DateComplete;
+                    // Map any other properties as needed
+
+                    // Retrieve the related RouteInfo entity
+                    var routeInfo = await _context.RouteInfo
+                        .FirstOrDefaultAsync(r => r.SubmissionID == id);
+
+                    if (routeInfo == null)
+                    {
+                        // If RouteInfo doesn't exist, create a new one
+                        routeInfo = new RouteInfo
+                        {
+                            SubmissionID = id
+                        };
+                        _context.RouteInfo.Add(routeInfo);
+                    }
+
+                    // Map data from the ViewModel back to the RouteInfo entity
+                    routeInfo.AccessControl = aclvlViewModel.AccessControl;
+                    routeInfo.ThroughLanes = aclvlViewModel.ThroughLanes;
+                    routeInfo.CounterPeakLanes = aclvlViewModel.CounterPeakLanes;
+                    routeInfo.PeakLanes = aclvlViewModel.PeakLanes;
+                    routeInfo.ReverseLanes = aclvlViewModel.ReverseLanes;
+                    routeInfo.LaneWidth = aclvlViewModel.LaneWidth;
+                    routeInfo.MedianWidth = aclvlViewModel.MedianWidth;
+                    routeInfo.GradeWidth = aclvlViewModel.GradeWidth;
+                    routeInfo.PavementWidth = aclvlViewModel.PavementWidth;
+                    routeInfo.SpecialSys = aclvlViewModel.SpecialSys;
+                    routeInfo.FacilityType = aclvlViewModel.FacilityType;
+                    routeInfo.FederalAid = aclvlViewModel.FederalAid;
+                    routeInfo.FedForestHighway = aclvlViewModel.FedForestHighway;
+                    routeInfo.MedianType = aclvlViewModel.MedianType;
+                    routeInfo.NHS = aclvlViewModel.NHS;
+                    routeInfo.TruckRoute = aclvlViewModel.TruckRoute;
+                    routeInfo.GovIDOwnership = aclvlViewModel.GovIDOwnership;
+                    routeInfo.WVlegalClass = aclvlViewModel.WVlegalClass;
+                    routeInfo.FunctionalClass = aclvlViewModel.FunctionalClass;
+                    routeInfo.SurfaceTypeN = aclvlViewModel.SurfaceTypeN;
+                    routeInfo.MPSegmentStart = aclvlViewModel.MPSegmentStart;
+                    routeInfo.MPSegmentEnd = aclvlViewModel.MPSegmentEnd;
+                    // Map any other properties as needed
+
+                    // Update the entities in the context
                     _context.Update(submission);
+                    _context.Update(routeInfo);
+
+                    // Save all changes to the database
                     await _context.SaveChangesAsync();
+
+                    var item = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == submission.OM79Id);
+
+                    if (item == null)
+                    {
+                        return NotFound();
+                    }
+
+                    var hubID = item.HubId;
+
+                    return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubID });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!SubmissionExists(submission.SubmissionID))
+                    if (!aclvlViewModel.SubmissionID.HasValue || !SubmissionExists(aclvlViewModel.SubmissionID.Value))
                     {
                         return NotFound();
                     }
@@ -538,12 +816,16 @@ namespace OM_79_HUB.Data
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(submission);
+
+            // If ModelState is invalid, re-populate dropdowns and return the view
+            DropDowns();
+            return View(aclvlViewModel);
         }
-        
+
+
         // GET: Submissions/Delete/5
+        [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Submissions == null)
@@ -551,6 +833,7 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
+            // Fetch the submission entry by ID
             var submission = await _context.Submissions
                 .FirstOrDefaultAsync(m => m.SubmissionID == id);
             if (submission == null)
@@ -558,27 +841,38 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
-            return View(submission);
-        }
-        
-        // POST: Submissions/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Submissions == null)
+            // Delete related BridgeRR entry
+            var bridgeRR = await _context.BridgeRR
+                .FirstOrDefaultAsync(b => b.RailKey == id);
+            if (bridgeRR != null)
             {
-                return Problem("Entity set 'Pj103Context.Submissions'  is null.");
-            }
-            var submission = await _context.Submissions.FindAsync(id);
-            if (submission != null)
-            {
-                _context.Submissions.Remove(submission);
+                _context.BridgeRR.Remove(bridgeRR);
             }
 
+            // Delete related RouteInfo entry
+            var routeInfo = await _context.RouteInfo
+                .FirstOrDefaultAsync(r => r.SubmissionID == id);
+            if (routeInfo != null)
+            {
+                _context.RouteInfo.Remove(routeInfo);
+            }
+
+            // Finally, delete the Submission entry
+            _context.Submissions.Remove(submission);
+
+            // Save all changes
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            // Redirect back to the specific EditPackage page
+            var hubId = _oM79Context.OMTable
+                .Where(o => o.Id == submission.OM79Id)
+                .Select(o => o.HubId)
+                .FirstOrDefault();
+
+            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubId });
         }
+
+
 
         private bool SubmissionExists(int id)
         {

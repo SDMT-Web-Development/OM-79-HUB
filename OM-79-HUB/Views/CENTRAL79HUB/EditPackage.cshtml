@@ -1,0 +1,175 @@
+﻿@model CENTRAL79HUB
+<br /> 
+<h1>OM79 Package Editor</h1>
+
+<button type="button" class="collapsible">Understanding the Different Changes You Can Make To The OM79 (Click Here For More Information)</button>
+<div class="content">
+    <p>In this application, the data structure consists of three primary forms: <strong>OM79</strong>, <strong>Item</strong>, and <strong>Segment</strong>. These forms have hierarchical relationships, and certain actions on one form can affect the others.</p>
+
+    
+
+    <h3>OM79</h3>
+    <ul>
+        <li>
+            <strong>Modifying an OM79 Entity</strong>
+            <ul>
+                <li>You are able to edit the RouteID, Submitter's Email Address, and Comments.</li>
+            </ul>
+        </li>
+    </ul>
+
+
+    <h3>Item(s)</h3>
+    <ul>
+        <li>
+            <strong>Adding an Item</strong>
+            <ul>
+                <li>Creates a new Item under the OM79 entity.</li>
+                <li>This new Item can have zero or more Segments attached to it.</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Deleting an Item</strong>
+            <ul>
+                <li>When an Item is deleted, all Segments connected to that Item are also deleted.</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Modifying an Item</strong>
+            <ul>
+                <li>Changes to an Item can affect all its connected Segments.</li>
+                <li>If an Item is modified, you will need to ensure that the connected Segments still align with these changes.</li>
+            </ul>
+        </li>
+
+    </ul>
+
+    <h3>Segment(s)</h3>
+    <ul>
+        <li>
+            <strong>Adding a Segment</strong>
+            <ul>
+                <li>Creates a new Segment under a specific Item.</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Deleting a Segment</strong>
+            <ul>
+                <li>Removes the Segment without directly affecting its parent Item.</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Modifying a Segment</strong>
+            <ul>
+                <li>Altering a Segment typically does not affect its parent Item directly, but you may need to verify the information in the Item.</li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<hr />
+<div class="d-flex justify-content-between align-items-center">
+    <h4>OM79 Details</h4>
+    <br />
+    <a href="@Url.Action("Edit", "CENTRAL79HUB", new { id = Model.OMId })" class="btn btn-primary btn-lg">Edit OM79</a>
+</div>
+<hr />
+
+
+<br />
+
+<div class="row">
+    <!-- Display UserId -->
+    <div class="col-md-4">
+        <label asp-for="UserId" class="control-label">@Html.DisplayNameFor(model => model.UserId)</label>
+        <input asp-for="UserId" class="form-control" disabled />
+    </div>
+
+    <!-- Display District -->
+    <div class="col-md-4">
+        <label asp-for="District" class="control-label">@Html.DisplayNameFor(model => model.District)</label>
+        <input asp-for="District" class="form-control" disabled />
+    </div>
+
+    <!-- Display County -->
+    <div class="col-md-4">
+        <label asp-for="County" class="control-label">@Html.DisplayNameFor(model => model.County)</label>
+        <input asp-for="County" class="form-control" disabled />
+    </div>
+
+    <!-- Display RouteID -->
+    <div class="col-md-4">
+        <label asp-for="RouteID" class="control-label">@Html.DisplayNameFor(model => model.RouteID)</label>
+        <input asp-for="RouteID" class="form-control" disabled />
+    </div>
+
+    <!-- Display EmailSubmit -->
+    <div class="col-md-4">
+        <label asp-for="EmailSubmit" class="control-label">@Html.DisplayNameFor(model => model.EmailSubmit)</label>
+        <input asp-for="EmailSubmit" class="form-control" type="email" disabled />
+    </div>
+
+    <!-- Display Otherbox -->
+    <div class="col-md-12">
+        <label asp-for="Otherbox" class="control-label">@Html.DisplayNameFor(model => model.Otherbox)</label>
+        <textarea asp-for="Otherbox" class="form-control" rows="4" disabled></textarea>
+    </div>
+</div>
+
+
+<br />
+<br />
+
+
+<div id="OMContainer">
+    @await Component.InvokeAsync("LinkedEditOM", new { hubId = ViewBag.testUniqueID })
+</div>
+
+<br />
+<hr />
+<div>
+    <a href="@Url.Action("Details", "CENTRAL79HUB", new { id = Model.OMId })" class="btn btn-primary btn-lg">Return To Details Page</a>
+</div>
+<hr />
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    .collapsible {
+        background-color: #f1f1f1;
+        color: #333;
+        cursor: pointer;
+        padding: 10px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 16px;
+    }
+
+        .active, .collapsible:hover {
+            background-color: #ddd;
+        }
+
+    .content {
+        padding: 0 15px;
+        display: none;
+        overflow: hidden;
+        background-color: #f9f9f9;
+    }
+</style>

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HarfBuzzSharp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -23,13 +24,15 @@ namespace OM_79_HUB.Data
     public class OM79Controller : Controller
     {
         private readonly OM79Context _context;
-        private readonly OM_79_HUBContext _context2; 
+        private readonly OM_79_HUBContext _context2;
+        private readonly Pj103Context _pjContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public OM79Controller(OM79Context context, OM_79_HUBContext context2, IWebHostEnvironment webHostEnvironment)
+        public OM79Controller(OM79Context context, OM_79_HUBContext context2, Pj103Context pjContext, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _context2 = context2;
+            _pjContext = pjContext;
             _webHostEnvironment = webHostEnvironment;
         }
         //// GET: OMTables
@@ -57,8 +60,42 @@ namespace OM_79_HUB.Data
 
         //    return View(await omTables.ToListAsync());
         //}
+        private async Task<bool> CheckForAccessPermission(string? currentUser)
+        {
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                return false;
+            }
+
+            // Normalize the ENumber (assuming case-insensitive)
+            string normalizedENumber = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+
+            // Check in AdminData
+            bool isAdmin = await _context2.AdminData
+                .AnyAsync(a => a.ENumber.ToLower() == normalizedENumber);
+
+            if (isAdmin)
+            {
+                return true;
+            }
+
+            // Check in UserData
+            bool isUser = await _context2.UserData
+                .AnyAsync(u => u.ENumber.ToLower() == normalizedENumber);
+
+            return isUser;
+        }
+
         public async Task<IActionResult> Index(string searchRouteIDB, string sortOrder, int? page)
         {
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
             ViewData["CurrentSort"] = sortOrder;
             ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["CurrentFilter"] = searchRouteIDB;
@@ -93,14 +130,29 @@ namespace OM_79_HUB.Data
 
         public async Task<IActionResult> ArchivedIndex(string searchRouteIDB, string sortOrder, int? page)
         {
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
             ViewData["CurrentSort"] = sortOrder;
             ViewData["SubmissionDateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["CurrentFilter"] = searchRouteIDB;
 
-            // Filter the records where IsArchive is true
+            // First, get all the HubIds from CENTRAL79HUB where WorkflowStep is not "CancelledRequestArchive"
+            var validHubIds = await _context2.CENTRAL79HUB
+                                              .Where(h => h.WorkflowStep != "CancelledRequestArchive")
+                                              .Select(h => h.OMId)  // Assuming OMId is the HubId in OMTable
+                                              .ToListAsync();
+
+            // Now fetch the OMTable entries using _context where IsArchive is not true and HubId is in the validHubIds list
             var omTables = from m in _context.OMTable
-                           where m.IsArchive == true
+                           where m.IsArchive == true && m.HubId.HasValue && validHubIds.Contains(m.HubId.Value)
                            select m;
+
 
             if (!String.IsNullOrEmpty(searchRouteIDB))
             {
@@ -140,6 +192,25 @@ namespace OM_79_HUB.Data
             {
                 return NotFound();
             }
+
+            var hub = _context2.CENTRAL79HUB.FirstOrDefault(e => e.OMId == oMTable.HubId);
+            if (hub == null)
+            {
+                return NotFound();
+            }
+            //Need to only allow for signees to access this
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+
+            Console.WriteLine($"Current User: '{currentUser}'");
+            Console.WriteLine($"Hub UserId: '{hub.UserId}'");
+            
+            if (!(validUser) && (currentUser != hub.UserId))
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+
 
             return View(oMTable);
         }
@@ -190,7 +261,19 @@ namespace OM_79_HUB.Data
             Console.WriteLine("Starting OMTables/Create Action...");
             Console.WriteLine($"Received Datsubmit: {Datsubmit}");
             Console.WriteLine("------------------------------------------------------------------------------------------");
-
+            var districtToCounties = new Dictionary<string, List<string>>()
+                {
+                    {"1", new List<string>{"Boone", "Clay", "Kanawha", "Mason", "Putnam"}},
+                    {"2", new List<string>{"Cabell", "Lincoln", "Logan", "Mingo", "Wayne"}},
+                    {"3", new List<string>{"Calhoun", "Jackson", "Pleasants", "Ritchie", "Roane", "Wirt", "Wood"}},
+                    {"4", new List<string>{"Doddridge", "Harrison", "Marion", "Monongalia", "Preston", "Taylor"}},
+                    {"5", new List<string>{"Berkeley", "Grant", "Hampshire", "Hardy", "Jefferson", "Mineral", "Morgan"}},
+                    {"6", new List<string>{"Brooke", "Hancock", "Marshall", "Ohio", "Tyler", "Wetzel"}},
+                    {"7", new List<string>{"Barbour", "Braxton", "Gilmer", "Lewis", "Upshur", "Webster"}},
+                    {"8", new List<string>{"Pendleton", "Pocahontas", "Randolph", "Tucker"}},
+                    {"9", new List<string>{"Fayette", "Greenbrier", "Monroe", "Nicholas", "Summers"}},
+                    {"10", new List<string>{"McDowell", "Mercer", "Raleigh", "Wyoming"}}
+                };
             try
             {
                 if (ModelState.IsValid)
@@ -202,6 +285,15 @@ namespace OM_79_HUB.Data
                         if (oMTable.County == null)
                         {
                             oMTable.County = CountyMappings.FirstOrDefault(x => x.Value == countyCode).Key;
+                        }
+                        // Map the county to the district number
+                        foreach (var district in districtToCounties)
+                        {
+                            if (district.Value.Contains(oMTable.County))
+                            {
+                                oMTable.DistrictNumber = int.Parse(district.Key);
+                                break; // District found, break the loop
+                            }
                         }
                         string paddedRoute = (oMTable.Route ?? 0).ToString("D4");
                         string paddedSubRoute = (oMTable.SubRoute ?? 0).ToString("D2");
@@ -271,6 +363,24 @@ namespace OM_79_HUB.Data
                         // Save changes to _context after processing attachments
                         await _context.SaveChangesAsync();
 
+
+
+                        //TODO: Need to pull the isSubmitted variable here
+                        //Need to skip the workflow stuff if someone is using the edit page to create a OM79:::
+                        // Skip workflow steps if isSubmitted is true
+
+                        // Retrieve the omhub object associated with the current oMTable.HubId
+                        var omhub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(o => o.OMId == oMTable.HubId);
+
+                        // Check if omhub is not null and if IsSubmitted is true
+                        if (omhub?.IsSubmitted == true)
+                        {
+                            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = oMTable.HubId });
+                        }
+
+
+
+
                         var OM79workflowForNextStep = await _context2.OM79Workflow.FirstOrDefaultAsync(c => c.HubID == oMTable.HubId);
 
 
@@ -286,7 +396,6 @@ namespace OM_79_HUB.Data
                         Console.WriteLine("-----------------------------------------------------");
                         Console.WriteLine("-----------------------------------------------------");
                         Console.WriteLine("-----------------------------------------------------");
-
 
 
                         if (oMTable.RoadChangeType == "Addition" || oMTable.RoadChangeType == "Redesignation")
@@ -404,59 +513,195 @@ namespace OM_79_HUB.Data
             }
             return View(oMTable);
         }
-
+        */
         // GET: OMTables/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            Console.WriteLine("Edit GET called with id: " + id);
+
+            DropDowns(); // Ensure dropdowns are populated
+            Console.WriteLine("Dropdowns populated");
+
             if (id == null || _context.OMTable == null)
             {
+                Console.WriteLine("ID is null or OMTable is null");
                 return NotFound();
             }
+
 
             var oMTable = await _context.OMTable.FindAsync(id);
             if (oMTable == null)
             {
+                Console.WriteLine("OMTable with id " + id + " not found in the database.");
                 return NotFound();
             }
+
+            //Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+            var user = User.Identity.Name;
+
+            var validUser = await checkComplexPermission(user, hub);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+            ViewBag.OMId = oMTable.HubId;
+
+            // Retain the DateComplete field but exclude it from the form
+            ViewBag.DateComplete = oMTable.DateComplete;
+            Console.WriteLine("DateComplete retained: " + oMTable.DateComplete);
+
             return View(oMTable);
         }
-        */
 
 
         // POST: OMTables/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,DistrictNumber,County,SubmissionDate,Routing,RoadChangeType,Otherbox,RouteAssignment,RightOfWayWidth,Railroad,DOTAARNumber,RequestedBy,Comments,AdjacentProperty,APHouses,APBusinesses,APSchools,APOther,APOtherIdentify,Attachments,DESignature,Preparer")] OMTable oMTable)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,DistrictNumber,County,SubmissionDate,Routing,RoadChangeType,Otherbox,RouteAssignment,RightOfWayWidth,RightOther,Railroad,DOTAARNumber,RequestedBy,RequestedByName,Comments,AdjacentProperty,APHouses,APBusinesses,APSchools,APOther,APOtherIdentify,Attachments,DESignature,Preparer,Route,SubRoute,CoDate,CoDateTwo,HubId,SignSystem,ProjectNumber,RouteNumber,SubRouteNumber,StartingMilePoint,EndingMilePoint,MaintOrg,YearOfSurvey,BridgeInv,RailroadInv,RailroadAmount,BridgeAmount,BridgeNumbers,Supplemental,RAddition,RRedesignation,RMapCorrection,RAbandonment,RInventoryRemoval,RAmend,RRescind,ROther,IsArchive,RouteIDB")] OMTable oMTable)
         {
-            if (id != oMTable.Id)
+            Console.WriteLine("Edit POST called with id: " + id);
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                Console.WriteLine("ModelState is not valid");
+                foreach (var state in ModelState)
+                {
+                    if (state.Value.Errors.Count > 0)
+                    {
+                        Console.WriteLine($"Error in {state.Key}: {state.Value.Errors.First().ErrorMessage}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("ModelState is valid");
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Retain the DateComplete field from the database
+                var existingOMTable = await _context.OMTable.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+                if (existingOMTable != null)
                 {
-                    _context.Update(oMTable);
-                    await _context.SaveChangesAsync();
+                    oMTable.DateComplete = existingOMTable.DateComplete;
+                    Console.WriteLine("Retained DateComplete from DB: " + oMTable.DateComplete);
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!OMTableExists(oMTable.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    Console.WriteLine("Existing OMTable entry not found in DB.");
                 }
-                return RedirectToAction(nameof(Index));
+
+                // Update the entry
+                _context.Update(oMTable);
+                await _context.SaveChangesAsync();
+                Console.WriteLine("Successfully updated OMTable with id: " + id);
+
+                // Redirect to EditPackage with HubId after successful edit
+                return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = oMTable.HubId });
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                Console.WriteLine("DbUpdateConcurrencyException occurred.");
+                // Perform the existence check directly here
+                if (!_context.OMTable.Any(e => e.Id == oMTable.Id))
+                {
+                    Console.WriteLine("OMTable not found in DB during concurrency check.");
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            // If ModelState is invalid, re-populate dropdowns
+            Console.WriteLine("ModelState is invalid, re-populating dropdowns.");
+            DropDowns();
             return View(oMTable);
         }
+
+        private async Task<bool> checkComplexPermission(string currentUser, CENTRAL79HUB passedHub)
+        {
+            if (string.IsNullOrEmpty(currentUser) || passedHub.OMId == null)
+            {
+                return false;
+            }
+
+            var currentStep = passedHub.WorkflowStep;
+            var isUserAuthorized = false;
+
+            // Normalize the current user's E-number
+            string normalizedUser = currentUser.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            var normalizedHubUser = passedHub.UserId.Replace("EXECUTIVE\\", "").Trim().ToLower();
+            
+            var district = passedHub.District;
+
+            switch (currentStep)
+            {
+                case "RestartFromDistrict":
+                case "RestartFromDistrictManager":
+                    // Only the user associated with the hub entry can access this
+                    isUserAuthorized = normalizedUser == normalizedHubUser;
+                    break;
+
+                case "SubmittedToDistrict":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDistrictManager":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralHDS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _context2.UserData
+                        .AnyAsync(u => u.HDS && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToCentralGIS":
+                    // Allow access if the current user's ENumber matches a UserData entry where HDS is true
+                    isUserAuthorized = await _context2.UserData
+                        .AnyAsync(u => u.GISManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedBackToDistrictManager":
+                case "SubmittedBackToDistrictManagerFromOperations":
+                    // Allow access if the current user's ENumber matches a UserData entry where District matches and they are a DistrictManager
+                    isUserAuthorized = await _context2.UserData
+                        .AnyAsync(u => u.District == district && u.DistrictManager && u.ENumber.ToLower() == normalizedUser);
+                    break;
+
+                case "SubmittedToRegionalEngineer":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToDirectorOfOperations":
+                    isUserAuthorized = false;
+                    break;
+
+                case "SubmittedToCentralChief":
+                    isUserAuthorized = false;
+                    break;
+
+                case "CancelledRequestArchive":
+                case "Finalized":
+                    // Typically, no edits or deletes allowed once archived or finalized.
+                    isUserAuthorized = false;
+                    break;
+
+                default:
+                    // Any other cases not explicitly handled above
+                    isUserAuthorized = false;
+                    break;
+            }
+
+            return isUserAuthorized;
+        }
+
+
+
 
         // GET: OMTables/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -465,7 +710,7 @@ namespace OM_79_HUB.Data
             {
                 return NotFound();
             }
-
+            // Find the OMTable entry by id
             var oMTable = await _context.OMTable
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (oMTable == null)
@@ -473,9 +718,91 @@ namespace OM_79_HUB.Data
                 return NotFound();
             }
 
-            return View(oMTable);
+            
+            //Need to only allow someone to access this when the workflow step is currently with this 
+            var hub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+            var user = User.Identity.Name;
+
+
+            var validUser = await checkComplexPermission(user, hub);
+           
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+
+
+            // Find and delete all related PJ103Workflow entries
+            var workflows = await _context.PJ103Workflow
+                .Where(w => w.OMID == id)
+                .ToListAsync();
+
+            if (workflows.Any())
+            {
+                _context.PJ103Workflow.RemoveRange(workflows);
+                await _context.SaveChangesAsync(); // Save changes after deleting the workflows
+            }
+
+          
+
+            // Capture the HubId for redirection after deletion
+            var hubId = oMTable.HubId;
+
+            // Find all Submissions related to this OM79Id
+            var submissions = await _pjContext.Submissions
+                .Where(s => s.OM79Id == id)
+                .ToListAsync();
+
+            if (submissions.Any())
+            {
+                foreach (var submission in submissions)
+                {
+                    // Find and delete the associated Attachments for the submission
+                    var attachments = await _context.Attachments
+                        .Where(a => a.SubmissionID == submission.SubmissionID)
+                        .ToListAsync();
+                    if (attachments.Any())
+                    {
+                        _context.Attachments.RemoveRange(attachments);
+                    }
+
+                    // Find and delete the associated RouteInfo entry
+                    var routeInfo = await _pjContext.RouteInfo
+                        .FirstOrDefaultAsync(r => r.SubmissionID == submission.SubmissionID);
+                    if (routeInfo != null)
+                    {
+                        _pjContext.RouteInfo.Remove(routeInfo);
+                    }
+
+                    // Find and delete the associated BridgeRR entry
+                    var bridgeRR = await _pjContext.BridgeRR
+                        .FirstOrDefaultAsync(b => b.RailKey == id);
+                    if (bridgeRR != null)
+                    {
+                        _pjContext.BridgeRR.Remove(bridgeRR);
+                    }
+
+                    // Remove the Submission entry
+                    _pjContext.Submissions.Remove(submission);
+                }
+
+                // Save changes after deleting RouteInfo, BridgeRR, Attachments, and Submission entries
+                await _pjContext.SaveChangesAsync();
+            }
+
+            // Remove the OMTable entry
+            _context.OMTable.Remove(oMTable);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "OM79 item and related records deleted successfully.";
+
+            // Redirect to the specified EditPackage page
+            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubId });
         }
 
+
+        /*
         // POST: OMTables/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -494,7 +821,7 @@ namespace OM_79_HUB.Data
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
+        */
         private bool OMTableExists(int id)
         {
             return (_context.OMTable?.Any(e => e.Id == id)).GetValueOrDefault();

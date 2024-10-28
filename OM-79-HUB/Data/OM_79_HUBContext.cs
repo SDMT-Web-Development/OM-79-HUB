@@ -27,5 +27,6 @@ namespace OM_79_HUB.Data
         public virtual DbSet<SignatureData> SignatureData { get; set; }
         public virtual DbSet<UserData> UserData { get; set; }
         public virtual DbSet<OM79Workflow> OM79Workflow { get; set; }
+        public virtual DbSet<AdminData> AdminData { get; set; }
     }
 }

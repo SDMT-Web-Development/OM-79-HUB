@@ -19,5 +19,10 @@ namespace OM_79_HUB.Models
         public bool? IsArchive { get; set; }
         public DateTime? DateSubmitted { get; set; }
         public bool? IsSubmitted { get; set; }      
+        public string? WorkflowStep { get; set; }
+        [DisplayName("Email Address")]
+        public string? EmailSubmit { get; set; }
+        public bool? Edited { get; set; }
+        public bool? HasGISReviewed { get; set; }
     }
 }

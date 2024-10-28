@@ -1,0 +1,420 @@
+﻿@model OM_79_HUB.Models.DB.OM79Hub.AdminData
+
+@{
+    ViewData["Title"] = "Add Admin Data";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<br />
+<h1><b>System Admin Account Manager</b></h1>
+<br /> 
+
+<!-- Custom Alert -->
+<div class="alert alert-info" role="alert">
+    <span style="font-weight: bold;">Please read the responsibilities below before adding administrators.</span>
+</div>
+
+<!-- Description Section -->
+<div class="mb-4">
+    <h5>Administrator Responsibilities:</h5>
+    <ul>
+        <li style="margin-bottom: 10px;">
+            <strong>System Administrator:</strong> Responsible for administrator-level account management (System Administrator, Central Office Administrator, and District ONLY Administrator).
+        </li>
+        <li style="margin-bottom: 10px;">
+            <strong>Central Office Administrator:</strong> Responsible for central-office-level account management (HDS, GIS Manager, and Chief Operations Engineer).
+        </li>
+        <li style="margin-bottom: 10px;">
+            <strong>District ONLY Account Admin:</strong> Responsible for specific district-level account management (District Right Of Way, District Manager, Bridge Engineer, Traffic Engineer, Maintenance Engineer, and Construction Engineer).
+        </li>
+    </ul>
+</div>
+
+
+
+
+<div id="add-admin-alert" class="alert alert-success" style="display: none;">
+    <strong>Submitting...</strong>
+</div>
+<div id="error-admin-alert" class="alert alert-dismissible alert-danger" style="display: none;">
+    <strong>Error!</strong> Please fill out all required fields.
+</div>
+
+<br />
+<br />
+<h6>To Add A New Administrator, Please Input the Details Below, Then Click 'Add Admin'</h6>
+
+
+
+<form id="adminForm" method="post" asp-action="AdminCreate">
+    <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="FirstName" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="LastName" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="eNumber">E Number:</label>
+        <input type="text" id="eNumber" name="ENumber" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="stateEmail">State Email:</label>
+        <input type="email" id="stateEmail" name="StateEmail" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="adminType">Account Admin Type:</label>
+        <select id="adminType" name="AdminType" class="form-control input-width">
+            <option value="">Select Admin Type</option>
+            <option value="district">District ONLY Account Admin</option>
+            <option value="statewide">Central Office Account Admin</option>
+            <option value="system">System Account Admin</option>
+        </select>
+    </div>
+    <br />
+
+    <div id="districtNumberContainer" class="form-group" style="display:none;">
+        <label for="districtNumber">District:</label>
+        <select id="districtNumber" name="DistrictNumber" class="form-control input-width">
+            <option value="">Select District Number</option>
+            @for (int i = 1; i <= 10; i++)
+            {
+                <option value="@i">@i</option>
+            }
+        </select>
+    </div>
+    <br />
+
+    <!-- Hidden inputs for admin type properties -->
+    <input type="hidden" id="DistrictAdmin" name="DistrictAdmin" value="false" />
+    <input type="hidden" id="StatewideAdmin" name="StatewideAdmin" value="false" />
+    <input type="hidden" id="SystemAdmin" name="SystemAdmin" value="false" />
+
+
+    <div class="form-group">
+        <button id="add-admin-button" type="submit" class="btn btn-success">Add Admin</button>
+    </div>
+</form>
+
+
+
+
+
+<h6>Use This Section To View / Remove Current Administrators</h6>
+
+<div>
+    <button id="viewSystemAdmins" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#systemAdminsModal">View System Admins</button>
+    <button id="viewStatewideAdmins" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#statewideAdminsModal">View Central Office Admins</button>
+    <button id="viewDistrictAdmins" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#districtAdminsModal">View District Admins</button>
+</div>
+
+<!-- System Admins Modal -->
+<div class="modal fade" id="systemAdminsModal" tabindex="-1" role="dialog" aria-labelledby="systemAdminsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="systemAdminsModalLabel">System Admins</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body overflow-auto" id="systemAdminsModalBody">
+                <!-- User data will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statewide Admins Modal -->
+<div class="modal fade" id="statewideAdminsModal" tabindex="-1" role="dialog" aria-labelledby="statewideAdminsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statewideAdminsModalLabel">Central Office Admins</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body overflow-auto" id="statewideAdminsModalBody">
+                <!-- User data will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- District Admins Modal -->
+<div class="modal fade" id="districtAdminsModal" tabindex="-1" role="dialog" aria-labelledby="districtAdminsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="districtAdminsModalLabel">District Admins</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body overflow-auto" id="districtAdminsModalBody">
+                <!-- User data will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*This is the confirm user removal pop up*@
+<div class="modal fade" id="confirmDeleteUserModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteUserModalLabel">Confirm User Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this user?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="confirmDeleteUser" type="button" class="btn btn-danger">Remove User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Show/hide district number dropdown based on selected admin type
+            $('#adminType').change(function () {
+                var adminType = $(this).val();
+                if (adminType === 'district') {
+                    $('#districtNumberContainer').show();
+                    $('#districtNumber').prop('required', true);
+                    $('#DistrictAdmin').val('true');
+                    $('#StatewideAdmin').val('false');
+                    $('#SystemAdmin').val('false');
+                } else if (adminType === 'statewide') {
+                    $('#districtNumberContainer').hide();
+                    $('#districtNumber').prop('required', false);
+                    $('#DistrictAdmin').val('false');
+                    $('#StatewideAdmin').val('true');
+                    $('#SystemAdmin').val('false');
+                } else if (adminType === 'system') {
+                    $('#districtNumberContainer').hide();
+                    $('#districtNumber').prop('required', false);
+                    $('#DistrictAdmin').val('false');
+                    $('#StatewideAdmin').val('false');
+                    $('#SystemAdmin').val('true');
+                } else {
+                    $('#districtNumberContainer').hide();
+                    $('#districtNumber').prop('required', false);
+                    $('#DistrictAdmin').val('false');
+                    $('#StatewideAdmin').val('false');
+                    $('#SystemAdmin').val('false');
+                }
+            });
+
+            // Initially hide district number dropdown if not 'district' is selected
+            if ($('#adminType').val() !== 'district') {
+                $('#districtNumberContainer').hide();
+                $('#districtNumber').prop('required', false);
+            }
+
+            // Load and display users in modals
+            $('#viewSystemAdmins').click(function () {
+                loadUsers('system', '#systemAdminsModalBody');
+            });
+
+            $('#viewStatewideAdmins').click(function () {
+                loadUsers('statewide', '#statewideAdminsModalBody');
+            });
+
+            $('#viewDistrictAdmins').click(function () {
+                loadUsers('district', '#districtAdminsModalBody');
+            });
+
+            function loadUsers(adminType, modalBodySelector) {
+                $.ajax({
+                    url: '@Url.Action("GetUsers", "AccountSystemAndWorkflow")',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log('Fetched users:', data); // Debug log
+                        var content = '';
+                        var filteredUsers = [];
+                        if (adminType === 'system') {
+                            filteredUsers = data.filter(function (user) {
+                                return user.systemAdmin === true;
+                            });
+                        } else if (adminType === 'statewide') {
+                            filteredUsers = data.filter(function (user) {
+                                return user.statewideAdmin === true;
+                            });
+                        } else if (adminType === 'district') {
+                            filteredUsers = data.filter(function (user) {
+                                return user.districtAdmin === true;
+                            });
+                        }
+                        console.log('Filtered users for type', adminType, ':', filteredUsers); // Debug log
+                        if (filteredUsers && filteredUsers.length > 0) {
+                            filteredUsers.forEach(function (user) {
+                                content += "<div class='entry' data-id='" + user.adminDataID + "'>";
+                                content += "<div class='entry-content'>";
+                                content += "<div>Name: " + user.firstName + " " + user.lastName + "</div>";
+                                content += "<div>E Number: " + user.eNumber + "</div>";
+                                if (adminType === 'district') {
+                                    content += "<div>District: " + user.districtNumber + "</div>";
+                                }
+                                content += "<button class='btn btn-danger btn-sm delete-user-btn'>Remove User</button>";
+                                content += "</div>";
+                                content += "</div>";
+                            });
+                        } else {
+                            content = "No users found.";
+                        }
+                        $(modalBodySelector).html(content);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching users:', error); // Debug log
+                    }
+                });
+            }
+
+            $(document).on('click', '.delete-user-btn', function () {
+                var entry = $(this).closest('.entry');
+                var userId = entry.data('id');
+                $('#confirmDeleteUser').data('entry', entry);
+                $('#confirmDeleteUser').data('user-id', userId);
+                $('#confirmDeleteUserModal').modal('show');
+            });
+
+            $('#confirmDeleteUser').click(function () {
+                var entry = $(this).data('entry');
+                var userId = $(this).data('user-id');
+                $.ajax({
+                    url: '@Url.Action("RemoveUser", "AccountSystemAndWorkflow")',
+                    type: 'POST',
+                    data: {
+                        id: userId
+                    },
+                    success: function (response) {
+                        console.log("User deleted successfully.");
+                        entry.remove();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error deleting user:", error);
+                    }
+                });
+                $('#confirmDeleteUserModal').modal('hide');
+            });
+
+            $('#add-admin-button').click(function (e) {
+                var firstNameInput = $('#firstName');
+                var lastNameInput = $('#lastName');
+                var eNumberInput = $('#eNumber');
+                var stateEmailInput = $('#stateEmail');
+
+                if (firstNameInput.val().trim() === '' || lastNameInput.val().trim() === '' || eNumberInput.val().trim() === '' || stateEmailInput.val().trim() === '') {
+                    e.preventDefault(); // Prevent form submission
+                    $('#error-admin-alert').show(); // Display the error alert
+                } else {
+                    $('#add-admin-alert').show();
+                }
+            });
+        });
+    </script>
+}
+
+
+
+<style>
+    .input-width {
+        width: 500px; /* Adjust this value as needed */
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem; /* Adjust spacing between form groups */
+    }
+
+        .form-group label {
+            width: 150px; /* Fixed width for all labels */
+            margin-right: 1rem; /* Spacing between label and input */
+            text-align: right; /* Align the text to the right of the label */
+        }
+
+        .form-group input, .form-group select {
+            flex: none; /* Prevent input fields from taking the remaining space */
+        }
+
+    .button-container {
+        flex: 1;
+        display: flex;
+        justify-content: flex-start; /* Aligns buttons to the start of the flex container */
+    }
+
+    .entry {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Add this line to distribute the content evenly */
+        border-bottom: 1px solid #ccc; /* Adjust the color and size as needed */
+        padding-bottom: 10px; /* Add some space between the content and the border */
+        margin-bottom: 10px; /* Add some space between entries */
+    }
+
+    .entry-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Display ellipsis for long text */
+        margin-right: 10px; /* Add some space between the content and the button */
+    }
+
+        .entry-content div {
+            margin-right: 20px; /* Space between elements */
+        }
+
+    .delete-user-btn {
+        white-space: nowrap; /* Prevent line breaks */
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 110%; /* Change the width to 100% */
+    }
+
+    .modal-body {
+        max-height: 400px; /* Set the maximum height as needed */
+        overflow-y: auto; /* Enable vertical scrolling */
+    }
+
+    .custom-btn-logout {
+        border: 1px solid #ffffff;
+        background-color: red;
+        color: #ffffff;
+        transition: background-color 0.3s ease;
+    }
+
+        .custom-btn-logout:hover {
+            background-color: darkred;
+            text-decoration: none;
+        }
+
+</style>

@@ -1,0 +1,355 @@
+﻿@{
+    ViewData["Title"] = "District Accounts";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var districtNumber = (int)ViewData["DistrictNumber"];
+}
+
+
+<br />
+<h1><b>District @districtNumber Account Manager</b></h1>
+<br />
+
+<div id="add-user-alert" class="alert alert-success" style="display: none;">
+    <strong>Submitting...</strong>
+</div>
+<div id="error-user-alert" class="alert alert-dismissible alert-danger" style="display: none;">
+    <strong>Error!</strong> Please fill out all required fields.
+</div>
+
+<div class="alert alert-info" role="alert">
+    <span style="font-weight: bold;">One person can have multiple roles, but each role can only be assigned to one person.</span>
+</div>
+<br />
+
+
+
+<!-- Description Section -->
+<div class="mb-4">
+    <h5>District-Level User Responsibilities:</h5>
+    <ul>
+        <li style="margin-bottom: 10px;">
+            <strong>District Manager:</strong> Responsible for reviewing/signing OM79 entries from their district before they are sent to the Central Office for review.
+        </li> 
+        <li style="margin-bottom: 10px;">
+            <strong>All Roles (excluding District Manager):</strong> Responsible for reviewing/signing OM79 entries from their district before they are sent to the District Manager for review.
+        </li>
+    </ul>
+</div>
+
+<h6>To Add A New User, Please Input the Details Below, Then Click 'Add User'</h6>
+
+<form id="userForm" method="post" asp-action="AddDistrictUser">
+    <input type="hidden" id="District" name="District" value="@districtNumber" />
+
+    <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="FirstName" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="LastName" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="eNumber">E Number:</label>
+        <input type="text" id="eNumber" name="ENumber" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="Email" class="form-control input-width" required />
+    </div>
+    <br />
+
+    <div class="form-group">
+        <label for="role">Role:</label>
+        <select id="role" name="Role" class="form-control input-width" required>
+            <option value="">Select Role</option>
+            <option value="BridgeEngineer">Bridge Engineer</option>
+            <option value="TrafficEngineer">Traffic Engineer</option>
+            <option value="MaintenanceEngineer">Maintenance Engineer</option>
+            <option value="ConstructionEngineer">Construction Engineer</option>
+            <option value="RightOfWayManager">Right Of Way Manager</option>
+            <option value="DistrictManager">District Manager</option>
+        </select>
+    </div>
+    <br />
+
+    <div class="form-group">
+        <button id="add-user-button" type="submit" class="btn btn-success">Add User</button>
+    </div>
+</form>
+
+<br />
+<h6>Use This Section To View / Remove Current Users</h6>
+<div>
+    <button id="viewUsers" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#UsersModal">View Users</button>
+</div>
+
+<!-- Users Modal -->
+<div class="modal fade" id="UsersModal" tabindex="-1" role="dialog" aria-labelledby="UsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="UsersModalLabel">Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body overflow-auto" id="UsersModalBody">
+                <!-- User data will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Delete User Modal -->
+<div class="modal fade" id="confirmDeleteUserModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteUserModalLabel">Confirm User Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this user?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="confirmDeleteUser" type="button" class="btn btn-danger">Remove User</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Load current users on page load
+            loadUsers('all', '#UsersModalBody');
+
+            // Disable roles in use and add notes
+            disableRolesInUse();
+
+            $('#add-user-button').click(function (e) {
+                e.preventDefault(); // Prevent form submission
+                var firstNameInput = $('#firstName');
+                var lastNameInput = $('#lastName');
+                var eNumberInput = $('#eNumber');
+                var emailInput = $('#email');
+                var roleSelect = $('#role');
+
+                if (firstNameInput.val().trim() === '' || lastNameInput.val().trim() === '' || eNumberInput.val().trim() === '' || emailInput.val().trim() === '' || roleSelect.val() === '') {
+                    $('#error-user-alert').show(); // Display the error alert
+                } else {
+                    $('#error-user-alert').hide();
+
+                    var formData = $('#userForm').serialize();
+
+                    $.ajax({
+                        url: '@Url.Action("AddDistrictUser", "AccountSystemAndWorkflow")',
+                        type: 'POST',
+                        data: formData,
+                        success: function (response) {
+                            $('#add-user-alert').show();
+                            // Clear form inputs
+                            $('#userForm')[0].reset();
+                            location.reload(); // Refresh the page
+                        },
+                        error: function (xhr, status, error) {
+                            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                                var errors = xhr.responseJSON.errors;
+                                alert("An error occurred. Please try again.");
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Load and display users in modals
+            $('#viewUsers').click(function () {
+                loadUsers('all', '#UsersModalBody');
+            });
+
+            function loadUsers(role, modalBodySelector) {
+                $.ajax({
+                    url: '@Url.Action("GetDistrictUsers", "AccountSystemAndWorkflow")',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { district: @districtNumber },
+                    success: function (data) {
+                        console.log('Fetched users:', data); // Debug log
+                        var content = '';
+                        var filteredUsers = data.filter(function (user) {
+                            return role === 'all' || user[role] === true;
+                        });
+                        console.log('Filtered users for role', role, ':', filteredUsers); // Debug log
+                        if (filteredUsers && filteredUsers.length > 0) {
+                            filteredUsers.forEach(function (user) {
+                                var roles = getUserRole(user);
+                                roles.forEach(function (role) {
+                                    content += "<div class='entry' data-id='" + user.userKey + "'>";
+                                    content += "<div class='entry-content'>";
+                                    content += "<div>Name: " + user.firstName + " " + user.lastName + "</div>";
+                                    content += "<div>E Number: " + user.eNumber + "</div>";
+                                    content += "<div>Role: " + role + "</div>";
+                                    content += "<button class='btn btn-danger btn-sm delete-user-btn'>Remove User</button>";
+                                    content += "</div>";
+                                    content += "</div>";
+                                });
+                            });
+                        } else {
+                            content = "No users found.";
+                        }
+                        $(modalBodySelector).html(content);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching users:', error); // Debug log
+                    }
+                });
+            }
+
+            function getUserRole(user) {
+                var roles = [];
+                if (user.bridgeEngineer) roles.push("Bridge Engineer");
+                if (user.trafficEngineer) roles.push("Traffic Engineer");
+                if (user.maintenanceEngineer) roles.push("Maintenance Engineer");
+                if (user.constructionEngineer) roles.push("Construction Engineer");
+                if (user.rightOfWayManager) roles.push("Right Of Way Manager");
+                if (user.districtManager) roles.push("District Manager");
+                return roles;
+            }
+
+            function disableRolesInUse() {
+                $.ajax({
+                    url: '@Url.Action("GetCurrentRoles", "AccountSystemAndWorkflow")',
+                    type: 'GET',
+                    data: { district: @districtNumber },
+                    success: function (rolesInUse) {
+                        rolesInUse.forEach(function (role) {
+                            var option = $('#role option[value="' + role + '"]');
+                            option.prop('disabled', true);
+                            option.text(option.text() + " (In Use)");
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching current roles:', error); // Debug log
+                    }
+                });
+            }
+
+            $(document).on('click', '.delete-user-btn', function () {
+                var entry = $(this).closest('.entry');
+                var userId = entry.data('id');
+                $('#confirmDeleteUser').data('entry', entry);
+                $('#confirmDeleteUser').data('user-id', userId);
+                $('#confirmDeleteUserModal').modal('show');
+            });
+
+            $('#confirmDeleteUser').click(function () {
+                var entry = $(this).data('entry');
+                var userId = $(this).data('user-id');
+                $.ajax({
+                    url: '@Url.Action("RemoveDistrictUser", "AccountSystemAndWorkflow")',
+                    type: 'POST',
+                    data: {
+                        id: userId
+                    },
+                    success: function (response) {
+                        console.log("User deleted successfully.");
+                        entry.remove();
+                        location.reload(); // Refresh the page after deletion
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error deleting user:", error);
+                    }
+                });
+                $('#confirmDeleteUserModal').modal('hide');
+            });
+        });
+    </script>
+}
+
+<style>
+    .input-width {
+        width: 500px; /* Adjust this value as needed */
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem; /* Adjust spacing between form groups */
+    }
+
+        .form-group label {
+            width: 150px; /* Fixed width for all labels */
+            margin-right: 1rem; /* Spacing between label and input */
+            text-align: right; /* Align the text to the right of the label */
+        }
+
+        .form-group input, .form-group select {
+            flex: none; /* Prevent input fields from taking the remaining space */
+        }
+
+    .entry {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Add this line to distribute the content evenly */
+        border-bottom: 1px solid #ccc; /* Adjust the color and size as needed */
+        padding-bottom: 10px; /* Add some space between the content and the border */
+        margin-bottom: 10px; /* Add some space between entries */
+    }
+
+    .entry-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Display ellipsis for long text */
+        margin-right: 10px; /* Add some space between the content and the button */
+    }
+
+        .entry-content div {
+            margin-right: 20px; /* Space between elements */
+        }
+
+    .delete-user-btn {
+        white-space: nowrap; /* Prevent line breaks */
+    }
+
+    .modal-dialog {
+        max-width: 40%; /* Adjust this value to make the modal wider */
+        width: 40%; /* Adjust this value to make the modal wider */
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 100%; /* Change the width to 100% */
+    }
+
+    .modal-body {
+        max-height: 400px; /* Set the maximum height as needed */ 
+        overflow-y: auto; /* Enable vertical scrolling */
+    }
+
+    .custom-btn-logout {
+        border: 1px solid #ffffff;
+        background-color: red;
+        color: #ffffff;
+        transition: background-color 0.3s ease;
+    }
+
+        .custom-btn-logout:hover {
+            background-color: darkred;
+            text-decoration: none;
+        }
+</style>
