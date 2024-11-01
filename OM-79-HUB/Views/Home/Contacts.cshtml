@@ -1,0 +1,238 @@
+﻿@{
+    ViewData["Title"] = "OM79 System - Contact Directory";
+    @using System.Text.RegularExpressions
+}
+
+@functions {
+    public string GetReadableRoleName(string roleKey)
+    {
+        var roleDisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "DistrictAdmin", "District System Administrator" },
+            { "DistrictManager", "District Manager" },
+            { "BridgeEngineer", "Bridge Engineer" },
+            { "ConstructionEngineer", "Construction Engineer" },
+            { "MaintenanceEngineer", "Maintenance Engineer" },
+            { "TrafficEngineer", "Traffic Engineer" },
+            { "RightOfWayManager", "Right of Way Manager" },
+            { "RegionalEngineer", "Regional Engineer" },
+            { "HDS", "Help Desk Support Manager" },
+            { "GISManager", "LRS Manager" },
+            { "Chief", "Chief Engineer of Operations" },
+            { "DirectorOfOperations", "Director of Operations" },
+            // Add more roles as needed
+        };
+
+        if (roleDisplayNames.TryGetValue(roleKey, out string roleName))
+        {
+            return roleName;
+        }
+        else
+        {
+            // Insert spaces before capital letters for unspecified roles
+            return Regex.Replace(roleKey, "(\\B[A-Z])", " $1");
+        }
+    }
+}
+
+<!-- Hero Section -->
+<div class="hero-section text-white d-flex align-items-center mb-5" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">OM79 System Contact Directory</h1>
+        <p class="lead">Find contact information for administrators across the OM79 system.</p>
+    </div>
+</div>
+
+<!-- Contact Directory Section -->
+<div class="container">
+    <!-- District Contacts Section -->
+    <h2 class="mt-5 mb-4">
+        <div class="p-3 mb-2 bg-primary text-white rounded">
+            <i class="bi bi-building me-2"></i>District Contacts
+        </div>
+    </h2>
+    <div class="accordion" id="districtAccordion">
+        @{
+            var allDistrictRoles = ViewData["DistrictRoles"] as Dictionary<int, Dictionary<string, List<string>>>;
+        }
+
+        @for (int i = 1; i <= 10; i++)
+        {
+            var districtKey = i;
+            if (allDistrictRoles != null && allDistrictRoles.TryGetValue(districtKey, out var rolesForDistrict))
+            {
+                var collapseId = $"collapse{districtKey}";
+                var headingId = $"heading{districtKey}";
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="@headingId">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                            District @districtKey
+                        </button>
+                    </h2>
+                    <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#districtAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                @foreach (var role in rolesForDistrict.OrderBy(r => GetReadableRoleName(r.Key)))
+                                {
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-primary text-white">
+                                                <strong>@GetReadableRoleName(role.Key)</strong>
+                                            </div>
+                                            <div class="card-body">
+                                                @foreach (var contact in role.Value)
+                                                {
+                                                    if (contact == "Vacant")
+                                                    {
+                                                        <p><span class="badge bg-warning text-dark">Vacant</span></p>
+                                                    }
+                                                    else
+                                                    {
+                                                        var parts = contact.Split('|');
+                                                        var name = parts[0];
+                                                        var email = parts[1];
+
+                                                        <p class="mb-2">
+                                                            <strong>@name</strong><br />
+                                                            <i class="bi bi-envelope me-1"></i><a href="mailto:@email">@email</a>
+                                                        </p>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                // Handle districts with no data
+                var collapseId = $"collapse{districtKey}";
+                var headingId = $"heading{districtKey}";
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="@headingId">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                            District @districtKey
+                        </button>
+                    </h2>
+                    <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#districtAccordion">
+                        <div class="accordion-body">
+                            <p>No contacts available for this district.</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Central Office Contacts Section -->
+    <h2 class="mt-5 mb-4">
+        <div class="p-3 mb-2 bg-primary text-white rounded">
+            <i class="bi bi-building me-2"></i>Central Office Contacts
+        </div>
+    </h2>
+    @{
+        var centralOfficeRoles = ViewData["CentralOfficeRoles"] as Dictionary<string, List<string>>;
+    }
+    @if (centralOfficeRoles != null)
+    {
+        <div class="row">
+            @foreach (var role in centralOfficeRoles.OrderBy(r => GetReadableRoleName(r.Key)))
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <strong>@GetReadableRoleName(role.Key)</strong>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var contact in role.Value)
+                            {
+                                if (contact == "Vacant")
+                                {
+                                    <p><span class="badge bg-warning text-dark">Vacant</span></p>
+                                }
+                                else
+                                {
+                                    var parts = contact.Split('|');
+                                    var name = parts[0];
+                                    var email = parts[1];
+
+                                    if (role.Key == "RegionalEngineer" && parts.Length >= 3)
+                                    {
+                                        var districts = parts[2];
+                                        <p class="mb-2">
+                                            <strong>@name</strong><br />
+                                            <i class="bi bi-map me-1"></i>Districts: @districts<br />
+                                            <i class="bi bi-envelope me-1"></i>Email: <a href="mailto:@email">@email</a>
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="mb-2">
+                                            <strong>@name</strong><br />
+                                            <i class="bi bi-envelope me-1"></i>Email: <a href="mailto:@email">@email</a>
+                                        </p>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- System Administrators Section -->
+    <h2 class="mt-5 mb-4">
+        <div class="p-3 mb-2 bg-primary text-white rounded">
+            <i class="bi bi-gear-fill me-2"></i>System Administrators
+        </div>
+    </h2>
+    @{
+        var systemAdmins = ViewData["SystemAdmins"] as List<OM_79_HUB.Models.DB.OM79Hub.AdminData>;
+    }
+    @if (systemAdmins != null)
+    {
+        <div class="row">
+            @foreach (var admin in systemAdmins)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>@admin.FirstName @admin.LastName</strong><br />
+                                <i class="bi bi-envelope me-1"></i>Email: <a href="mailto:@admin.StateEmail">@admin.StateEmail</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Styles for Hero Section -->
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        height: 300px;
+        position: relative;
+        background-blend-mode: darken;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+        .hero-section h1,
+        .hero-section p {
+            color: #fff;
+        }
+
+    /* Card Hover Effect */
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
