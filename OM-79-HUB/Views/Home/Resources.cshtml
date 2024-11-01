@@ -13,44 +13,47 @@
 <div class="container mt-5">
     <!-- Resource Cards -->
     <div class="row mt-5">
-        <!-- Support Ticket Card -->
+        <!-- Support Ticket Card (Disabled) -->
         <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card h-100 text-center shadow">
+            <div class="card h-100 text-center shadow disabled-card">
                 <div class="card-body">
                     <div class="icon-container bg-dark text-white rounded-circle mb-3 mx-auto">
                         <i class="fas fa-ticket-alt fa-2x"></i>
                     </div>
                     <h5 class="card-title">Support Ticket</h5>
                     <p class="card-text">Submit a support ticket.</p>
-                    <a href="https://dotapps.transportation.wv.gov/ITicket/Default" class="btn btn-outline-dark stretched-link" target="_blank" rel="noopener noreferrer">Submit Ticket</a>
+                    <span class="badge bg-secondary">Disabled for Testing Phase</span>
+                    @*<a href="https://dotapps.transportation.wv.gov/ITicket/Default" class="btn btn-outline-dark stretched-link" target="_blank" rel="noopener noreferrer">Submit Ticket</a>*@
                 </div>
             </div>
         </div>
 
-        <!-- Email Support Card -->
+        <!-- Email Support Card (Disabled) -->
         <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card h-100 text-center shadow">
+            <div class="card h-100 text-center shadow disabled-card">
                 <div class="card-body">
                     <div class="icon-container bg-primary text-white rounded-circle mb-3 mx-auto">
                         <i class="fas fa-envelope fa-2x"></i>
                     </div>
                     <h5 class="card-title">Email Support</h5>
                     <p class="card-text">Get in touch via email.</p>
-                    <a href="mailto:DOTHDS@wv.gov" class="btn btn-outline-primary stretched-link" target="_blank" rel="noopener noreferrer">Email Us</a>
+                    <span class="badge bg-secondary">Disabled for Testing Phase</span>
+                    @*<a href="mailto:DOTHDS@wv.gov" class="btn btn-outline-primary stretched-link" target="_blank" rel="noopener noreferrer">Email Us</a>*@
                 </div>
             </div>
         </div>
 
-        <!-- Documentation Card -->
+        <!-- Documentation Card (Disabled) -->
         <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card h-100 text-center shadow">
+            <div class="card h-100 text-center shadow disabled-card">
                 <div class="card-body">
                     <div class="icon-container bg-info text-white rounded-circle mb-3 mx-auto">
                         <i class="fas fa-book fa-2x"></i>
                     </div>
                     <h5 class="card-title">Documentation</h5>
                     <p class="card-text">Access user guides.</p>
-                    <a href="https://docs.google.com/document/d/1VtljPy334rI9Q4rP3gIJGbCpedCO9pa9IvC5bn2k-7M/edit?usp=sharing" class="btn btn-outline-info stretched-link" target="_blank" rel="noopener noreferrer">View Docs</a>
+                    <span class="badge bg-secondary">Under Construction</span>
+                    @*<a href="https://docs.google.com/document/d/1VtljPy334rI9Q4rP3gIJGbCpedCO9pa9IvC5bn2k-7M/edit?usp=sharing" class="btn btn-outline-info stretched-link" target="_blank" rel="noopener noreferrer">View Docs</a>*@
                 </div>
             </div>
         </div>
@@ -69,7 +72,7 @@
             </div>
         </div>
 
-        <!-- Contact Page Card (Newly Added) -->
+        <!-- Contact Page Card -->
         <div class="col-md-6 col-lg-3 mb-4">
             <div class="card h-100 text-center shadow">
                 <div class="card-body">
@@ -86,7 +89,7 @@
 
     <!-- Frequently Asked Questions Section -->
     <div class="mt-5">
-        <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+        <h2 class="text-center mb-4">Frequently Asked Questions (Under Construction)</h2>
         <div class="accordion" id="faqAccordion">
             <!-- FAQ Item 1 -->
             <div class="accordion-item">
@@ -143,7 +146,7 @@
                 <div id="faqCollapseFour" class="accordion-collapse collapse" aria-labelledby="faqHeadingFour" data-bs-parent="#faqAccordion">
                     <div class="accordion-body">
                         To sign off on an OM79, navigate to the
-                        <a href="@Url.Action("SignIndex", "Central79Hub")" class="text-primary fw-bold">Pending Signatures</a> page, which you can find in the navbar. Here, you'll see a list of OM79 requests awaiting your signature. Click on the appropriate request to review and sign off.
+                        <a href="@Url.Action("SignIndex", "Home")" class="text-primary fw-bold">Pending Signatures</a> page, which you can find in the navbar. Here, you'll see a list of OM79 requests awaiting your signature. Click on the appropriate request to review and sign off.
                     </div>
                 </div>
             </div>
