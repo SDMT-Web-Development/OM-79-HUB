@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
 using OM_79_HUB.Models.DB.OM79Hub;
+using OM_79_HUB.Models.DB.PJ103.ViewModels;
 using OM79.Models.DB;
 using X.PagedList;
 
@@ -551,6 +552,284 @@ namespace OM_79_HUB.Controllers
 
 
 
+        //// GET: CENTRAL79HUB/SignIndex
+        //public async Task<IActionResult> SignIndex(int? page)
+        //{
+        //    // Check if the user has permission to access this page
+        //    var currentUser = User.Identity.Name;
+        //    var validUser = await CheckForAccessPermission(currentUser);
+        //    if (!validUser)
+        //    {
+        //        return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+        //    }
+
+        //    // Normalize user ID and retrieve all roles
+        //    var normalizedUser = currentUser.Replace("EXECUTIVE\\", "").Trim();
+        //    var roles = await _context.UserData.Where(e => e.ENumber == normalizedUser).ToListAsync();
+        //    List<string> userRoles = new List<string>();
+        //    List<int?> userDistricts = new List<int?>();
+
+
+        //    foreach (var role in roles)
+        //    {
+        //        if (role.BridgeEngineer)
+        //        {
+        //            userRoles.Add("BridgeEngineer");
+        //            userDistricts.Add(role.District);
+        //            Console.WriteLine("Role: BridgeEngineer, District: " + role.District);
+        //        }
+        //        if (role.TrafficEngineer)
+        //        {
+        //            userRoles.Add("TrafficEngineer");
+        //            userDistricts.Add(role.District);
+        //            Console.WriteLine("Role: TrafficEngineer, District: " + role.District);
+        //        }
+        //        if (role.MaintenanceEngineer)
+        //        {
+        //            userRoles.Add("MaintenanceEngineer");
+        //            userDistricts.Add(role.District);
+        //            Console.WriteLine("Role: MaintenanceEngineer, District: " + role.District);
+        //        }
+        //        if (role.ConstructionEngineer)
+        //        {
+        //            userRoles.Add("ConstructionEngineer");
+        //            userDistricts.Add(role.District);
+        //            Console.WriteLine("Role: ConstructionEngineer, District: " + role.District);
+        //        }
+        //        if (role.RightOfWayManager)
+        //        {
+        //            userRoles.Add("RightOfWayManager");
+        //            userDistricts.Add(role.District);
+        //            Console.WriteLine("Role: RightOfWayManager, District: " + role.District);
+        //        }
+        //        if (role.DistrictManager)
+        //        {
+        //            userRoles.Add("DistrictManager");
+        //            userDistricts.Add(role.District);
+        //            Console.WriteLine("Role: DistrictManager, District: " + role.District);
+        //        }
+
+        //        if (role.HDS)
+        //        {
+        //            userRoles.Add("HDS");
+        //            Console.WriteLine("Role: HDS");
+        //        }
+        //        if (role.GISManager)
+        //        {
+        //            userRoles.Add("GISManager");
+        //            Console.WriteLine("Role: GISManager");
+        //        }
+        //        if (role.Chief)
+        //        {
+        //            userRoles.Add("Chief");
+        //            Console.WriteLine("Role: Chief");
+        //        }
+        //        if (role.RegionalEngineer)
+        //        {
+        //            userRoles.Add("RegionalEngineer");
+        //            Console.WriteLine("Role: RegionalEngineer, Districts: " + role.DistrictsForRegionalEngineer);
+
+        //            // Parse the comma-separated list of districts for RegionalEngineer
+        //            if (!string.IsNullOrEmpty(role.DistrictsForRegionalEngineer))
+        //            {
+        //                var districts = role.DistrictsForRegionalEngineer.Split(',')
+        //                                    .Select(d => int.TryParse(d.Trim(), out int district) ? (int?)district : null)
+        //                                    .Where(d => d.HasValue)
+        //                                    .ToList();
+        //                userDistricts.AddRange(districts);
+        //            }
+        //        }
+
+        //        if (role.DirectorOfOperations)
+        //        {
+        //            userRoles.Add("DirectorOfOperations");
+        //            Console.WriteLine("Role: DirectorOfOperations");
+        //        }
+        //        if (role.DeputySecretary)
+        //        {
+        //            userRoles.Add("DeputySecretary");
+        //            Console.WriteLine("Role: DeputySecretary");
+        //        }
+        //    }
+
+
+        //    // Build a query for entries the user should see
+        //    var entriesQuery = _context.CENTRAL79HUB.AsQueryable();
+
+        //    // Filter entries based on roles and districts
+        //    entriesQuery = entriesQuery.Where(e =>
+        //        (e.WorkflowStep == "SubmittedToDistrict" && userDistricts.Contains(e.District)) ||
+        //        (e.WorkflowStep == "SubmittedToDistrictManager" && userRoles.Contains("DistrictManager")) ||
+        //        (e.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations" && userRoles.Contains("DistrictManager")) ||
+        //        (e.WorkflowStep == "SubmittedBackToDistrictManager" && userRoles.Contains("DistrictManager")) ||
+        //        (e.WorkflowStep == "SubmittedToCentralHDS" && userRoles.Contains("HDS")) ||
+        //        (e.WorkflowStep == "SubmittedToCentralGIS" && userRoles.Contains("GISManager")) ||
+        //        (e.WorkflowStep == "SubmittedToRegionalEngineer" && userRoles.Contains("RegionalEngineer")) ||
+        //        (e.WorkflowStep == "SubmittedToDirectorOfOperations" && userRoles.Contains("DirectorOfOperations")) ||
+        //        (e.WorkflowStep == "SubmittedToCentralChief" && userRoles.Contains("Chief"))
+        //    );
+
+        //    // Order entries to group them appropriately
+
+        //    // Paginate the results with 50 records per page
+        //    int pageNumber = page ?? 1;
+        //    var pagedEntries = await entriesQuery.ToPagedListAsync(pageNumber, 50);
+
+        //    // Return the view with the paginated results
+        //    return View(pagedEntries);
+        //}
+
+        public async Task<IActionResult> SignIndex(int? page)
+        {
+            var currentUser = User.Identity.Name;
+            var validUser = await CheckForAccessPermission(currentUser);
+            if (!validUser)
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+            var normalizedUser = currentUser.Replace("EXECUTIVE\\", "").Trim();
+            var roles = await _context.UserData.Where(e => e.ENumber == normalizedUser).ToListAsync();
+            List<UserRole> userRoles = new List<UserRole>();
+
+            foreach (var role in roles)
+            {
+                if (role.BridgeEngineer)
+                    userRoles.Add(new UserRole("BridgeEngineer", new List<int?> { role.District }));
+                if (role.TrafficEngineer)
+                    userRoles.Add(new UserRole("TrafficEngineer", new List<int?> { role.District }));
+                if (role.MaintenanceEngineer)
+                    userRoles.Add(new UserRole("MaintenanceEngineer", new List<int?> { role.District }));
+                if (role.ConstructionEngineer)
+                    userRoles.Add(new UserRole("ConstructionEngineer", new List<int?> { role.District }));
+                if (role.RightOfWayManager)
+                    userRoles.Add(new UserRole("RightOfWayManager", new List<int?> { role.District }));
+                if (role.DistrictManager)
+                    userRoles.Add(new UserRole("DistrictManager", new List<int?> { role.District }));
+
+                if (role.RegionalEngineer)
+                {
+                    var districts = role.DistrictsForRegionalEngineer?.Split(',')
+                                       .Select(d => int.TryParse(d.Trim(), out int district) ? (int?)district : null)
+                                       .Where(d => d.HasValue)
+                                       .ToList() ?? new List<int?>();
+
+                    userRoles.Add(new UserRole("RegionalEngineer", districts));
+                }
+
+                if (role.HDS) userRoles.Add(new UserRole("HDS"));
+                if (role.GISManager) userRoles.Add(new UserRole("GISManager"));
+                if (role.Chief) userRoles.Add(new UserRole("Chief"));
+                if (role.DirectorOfOperations) userRoles.Add(new UserRole("DirectorOfOperations"));
+                if (role.DeputySecretary) userRoles.Add(new UserRole("DeputySecretary"));
+            }
+
+            if (!userRoles.Any())
+            {
+                return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+            }
+
+            // Collect all entries
+            var allEntries = new List<CENTRAL79HUB>();
+
+            int pageNumber = page ?? 1;
+            int pageSize = 50;
+
+            // For roles with district-based permissions
+            var districtRoles = new[] { "BridgeEngineer", "TrafficEngineer", "MaintenanceEngineer", "ConstructionEngineer", "RightOfWayManager", "DistrictManager", "RegionalEngineer" };
+
+            var userDistricts = userRoles
+                .Where(r => districtRoles.Contains(r.RoleName))
+                .SelectMany(r => r.Districts)
+                .ToList();
+
+            // Build a queryable to collect entries based on roles
+            IQueryable<CENTRAL79HUB> query = _context.CENTRAL79HUB.Where(entry => false); // Start with an empty query
+
+            foreach (var role in userRoles)
+            {
+                switch (role.RoleName)
+                {
+                    case "BridgeEngineer":
+                    case "TrafficEngineer":
+                    case "MaintenanceEngineer":
+                    case "ConstructionEngineer":
+                    case "RightOfWayManager":
+                        query = query.Union(
+                            _context.CENTRAL79HUB.Where(entry => entry.WorkflowStep == "SubmittedToDistrict" && role.Districts.Contains(entry.District))
+                        );
+                        break;
+
+                    case "DistrictManager":
+                        query = query.Union(
+                            _context.CENTRAL79HUB.Where(entry =>
+                                (entry.WorkflowStep == "SubmittedToDistrictManager" || entry.WorkflowStep == "SubmittedBackToDistrictManager" || entry.WorkflowStep == "SubmittedBackToDistrictManagerFromOperations")
+                                && role.Districts.Contains(entry.District))
+                        );
+                        break;
+
+                    case "HDS":
+                        query = query.Union(
+                            _context.CENTRAL79HUB.Where(entry => entry.WorkflowStep == "SubmittedToCentralHDS")
+                        );
+                        break;
+
+                    case "GISManager":
+                        query = query.Union(
+                            _context.CENTRAL79HUB.Where(entry => entry.WorkflowStep == "SubmittedToCentralGIS")
+                        );
+                        break;
+
+                    case "RegionalEngineer":
+                        query = query.Union(
+                            _context.CENTRAL79HUB.Where(entry => entry.WorkflowStep == "SubmittedToRegionalEngineer" && role.Districts.Contains(entry.District))
+                        );
+                        break;
+
+                    case "DirectorOfOperations":
+                        query = query.Union(
+                            _context.CENTRAL79HUB.Where(entry => entry.WorkflowStep == "SubmittedToDirectorOfOperations")
+                        );
+                        break;
+
+                    case "Chief":
+                        query = query.Union(
+                            _context.CENTRAL79HUB.Where(entry => entry.WorkflowStep == "SubmittedToCentralChief")
+                        );
+                        break;
+
+                        // Add additional roles as needed
+                }
+            }
+
+            // Execute the query and get distinct entries
+            var distinctEntries = await query.Distinct().ToListAsync();
+
+            // Paginate the combined entries
+            var pagedEntries = distinctEntries.OrderBy(e => e.OMId).ToPagedList(pageNumber, pageSize);
+
+            // Return the paged list to the view
+            return View(pagedEntries);
+        }
+
+
+
+
+
+
+
+        public class UserRole
+        {
+            public string RoleName { get; set; }
+            public List<int?> Districts { get; set; }
+
+            public UserRole(string roleName, List<int?> districts = null)
+            {
+                RoleName = roleName;
+                Districts = districts ?? new List<int?>();
+            }
+        }
+
 
 
         // GET: CENTRAL79HUB
@@ -606,6 +885,7 @@ namespace OM_79_HUB.Controllers
                 entry.WorkflowStep == "Finalized" ? 6 :
                 7 // Default value for any other WorkflowStep
             );
+
 
             // Set the page number, defaulting to 1 if no page is provided
             int pageNumber = page ?? 1;

@@ -1,0 +1,309 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<CENTRAL79HUB>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "OM79 Submissions Needing Signatures";
+}
+
+<div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">OM79 Submissions Needing Signatures</h1>
+        <p class="lead">Review and sign OM79 submissions in the queue.</p>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center mt-4">
+        There are no entries that need to be reviewed currently.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Comments</th>
+                <th>County</th>
+                <th>District</th>
+                <th>Workflow Step</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                string currentGroupKey = null;
+                int rowIndex = 0;
+            }
+            @foreach (var item in Model)
+            {
+                // Map WorkflowStep to display text for table row
+                var displayText = item.WorkflowStep switch
+                {
+                    "SubmittedToDistrict" => "Ready for District Review",
+                    "SubmittedToDistrictManager" => "Ready for District Manager Review",
+                    "SubmittedToCentralHDS" => "Ready for Central HDS Review",
+                    "SubmittedToCentralGIS" => "Ready for Central LRS Review",
+                    "SubmittedBackToDistrictManager" => "Central Edits - Review Required",
+                    "SubmittedBackToDistrictManagerFromOperations" => "Operations Denied - Revise or Rescind",
+                    "SubmittedToRegionalEngineer" => "Ready for Regional Engineer Review",
+                    "SubmittedToDirectorOfOperations" => "Ready for Director of Operations Review",
+                    "SubmittedToCentralChief" => "Ready for Central Chief Review",
+                    _ => "Unknown"
+                };
+
+                // Map WorkflowStep to detailed group header text
+                var groupHeaderText = item.WorkflowStep switch
+                {
+                    "SubmittedToDistrict" => "Ready for District Review",
+                    "SubmittedToDistrictManager" => "Ready for District Manager Review",
+                    "SubmittedToCentralHDS" => "Ready for Central HDS Review",
+                    "SubmittedToCentralGIS" => "Ready for Central LRS Review",
+                    "SubmittedBackToDistrictManager" => "The central office has made edits to these OM79(s); please review their changes and either approve them or make additional edits",
+                    "SubmittedBackToDistrictManagerFromOperations" => "The regional office has denied these OM79(s); please either make the requested changes or rescind the request",
+                    "SubmittedToRegionalEngineer" => "Ready for Regional Engineer Review",
+                    "SubmittedToDirectorOfOperations" => "Ready for Director of Operations Review",
+                    "SubmittedToCentralChief" => "Ready for Central Chief Review",
+                    _ => "Unknown"
+                };
+
+                string headerClass = item.WorkflowStep switch
+                {
+                    "SubmittedToDistrict" => "my-bg-district-review text-white",
+                    "SubmittedToDistrictManager" => "my-bg-district-manager-review text-white",
+                    "SubmittedToCentralHDS" => "my-bg-central-hds-review text-white",
+                    "SubmittedToCentralGIS" => "my-bg-central-gis-review text-white",
+                    "SubmittedBackToDistrictManager" => "my-bg-central-edits text-dark",
+                    "SubmittedBackToDistrictManagerFromOperations" => "my-bg-operations-denied text-white",
+                    "SubmittedToRegionalEngineer" => "my-bg-regional-engineer-review text-white",
+                    "SubmittedToDirectorOfOperations" => "my-bg-director-operations-review text-white",
+                    "SubmittedToCentralChief" => "my-bg-central-chief-review text-white",
+                    _ => "bg-light text-dark"
+                };
+
+                // Use item.WorkflowStep as the grouping key
+                string groupKey = item.WorkflowStep;
+
+                // If this item's group is different from the current group, output a header
+                if (currentGroupKey != groupKey)
+                {
+                    currentGroupKey = groupKey;
+                    <tr>
+                        <td colspan="6" class="fw-bold @headerClass text-center">@groupHeaderText</td>
+                    </tr>
+                    // Reset rowIndex for each new group to alternate colors within each group
+                    rowIndex = 0;
+                }
+
+                // Increment rowIndex and determine rowClass
+                rowIndex++;
+                string rowClass = (rowIndex % 2 == 0) ? "table-row-even" : "table-row-odd";
+
+                <tr class="@rowClass">
+                    <td>@item.UserId</td>
+                    <td>@item.Otherbox</td>
+                    <td>@item.County</td>
+                    <td>@item.District</td>
+                    <td>@displayText</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.OMId" class="btn btn-info">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between custom-pagination">
+        @Html.PagedListPager(Model, page => Url.Action("SignIndex", new { page }),
+    new PagedListRenderOptions
+    {
+    UlElementClasses = new[] { "pagination" },
+    LiElementClasses = new[] { "page-item" },
+    PageClasses = new[] { "page-link" },
+    LinkToPreviousPageFormat = "<span>&lsaquo;</span>",
+    LinkToNextPageFormat = "<span>&rsaquo;</span>",
+    LinkToFirstPageFormat = "<span>&laquo;</span>",
+    LinkToLastPageFormat = "<span>&raquo;</span>",
+    DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+    DisplayLinkToLastPage = PagedListDisplayMode.Always,
+    DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+    DisplayLinkToNextPage = PagedListDisplayMode.Always,
+    MaximumPageNumbersToDisplay = 3
+    })
+    </div>
+}
+
+<!-- Legend for the WorkflowStep colors -->
+<div class="container mt-4">
+    <h4 class="text-center mb-3">Legend</h4>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 justify-content-center">
+        <div class="col">
+            <div class="legend-item my-bg-district-review text-white p-2 rounded">
+                Ready for District Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-district-manager-review text-white p-2 rounded">
+                Ready for District Manager Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-central-hds-review text-white p-2 rounded">
+                Ready for Central HDS Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-central-gis-review text-white p-2 rounded">
+                Ready for Central LRS Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-central-edits text-dark p-2 rounded">
+                Central Edits - Review Required
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-operations-denied text-white p-2 rounded">
+                Operations Denied - Revise or Rescind
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-regional-engineer-review text-white p-2 rounded">
+                Ready for Regional Engineer Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-director-operations-review text-white p-2 rounded">
+                Ready for Director of Operations Review
+            </div>
+        </div>
+        <div class="col">
+            <div class="legend-item my-bg-central-chief-review text-white p-2 rounded">
+                Ready for Central Chief Review
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styling for Table Rows, Pagination, and Colors -->
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        height: 300px;
+        position: relative;
+        background-blend-mode: darken;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+        .hero-section h1,
+        .hero-section p {
+            color: #fff;
+        }
+
+    /* Workflow Step Colors */
+    .my-bg-district-review {
+        background-color: #007bff !important; /* Blue */
+    }
+
+    .my-bg-district-manager-review {
+        background-color: #6c757d !important; /* Gray */
+    }
+
+    .my-bg-central-hds-review {
+        background-color: #17a2b8 !important; /* Teal */
+    }
+
+    .my-bg-central-gis-review {
+        background-color: #20c997 !important; /* Green */
+    }
+
+    .my-bg-central-edits {
+        background-color: #ffc107 !important; /* Yellow */
+    }
+
+    .my-bg-operations-denied {
+        background-color: #dc3545 !important; /* Red */
+    }
+
+    .my-bg-regional-engineer-review {
+        background-color: #6610f2 !important; /* Indigo */
+    }
+
+    .my-bg-director-operations-review {
+        background-color: #e83e8c !important; /* Pink */
+    }
+
+    .my-bg-central-chief-review {
+        background-color: #fd7e14 !important; /* Orange */
+    }
+
+    /* Adjust text color for specific classes */
+    .text-dark {
+        color: #343a40 !important;
+    }
+
+    .text-white {
+        color: #fff !important;
+    }
+
+    /* Alternating Row Colors */
+    .table-row-even {
+        background-color: #f8f9fa !important;
+    }
+
+    .table-row-odd {
+        background-color: white !important;
+    }
+
+    /* Legend Styles */
+    .legend-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    /* Pagination styles */
+    .custom-pagination .pagination {
+        display: flex;
+        padding-left: 0;
+        list-style: none;
+        border-radius: 0.25rem;
+    }
+
+    .custom-pagination .page-item {
+        margin: 0 0.25rem;
+    }
+
+    .custom-pagination .page-link {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        color: #007bff;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        text-decoration: none;
+    }
+
+        .custom-pagination .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+    .custom-pagination .page-item.active .page-link {
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .custom-pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
+</style>
