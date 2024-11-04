@@ -165,14 +165,7 @@ namespace OM_79_HUB.Controllers
             return RedirectToAction("AdminAccountSystem", "AccountSystemAndWorkflow");
         }
 
-        /// <summary>
-        /// Sends a welcome email to the user based on their role and admin type.
-        /// </summary>
-        /// <param name="firstName">First name of the user.</param>
-        /// <param name="email">Email address of the user.</param>
-        /// <param name="roles">List of roles assigned to the user.</param>
-        /// <param name="isAdmin">Indicates if the user is an admin.</param>
-        /// <param name="adminType">Type of admin (District, Central Office, System Administrator).</param>
+      
         private async Task SendWelcomeEmailAsync(string firstName, string email, List<string> roles, bool isAdmin = false, string adminType = null)
         {
             try
@@ -183,16 +176,13 @@ namespace OM_79_HUB.Controllers
                 if (!isAdmin)
                 {
                     // Compose email for non-admin users
-                    body = $"<p>Hello, <strong>{firstName}</strong>,</p>" +
+                    body = $"<p>Hello <strong>{firstName}</strong>,</p>" +
                            $"<p>You have been added to the OM79 system as a <strong>{string.Join(", ", roles)}</strong>.</p>";
 
                     // Check if user has any reviewer roles
-                    bool hasReviewerRole = roles.Any(role => IsReviewerRole(role));
-                    if (hasReviewerRole)
-                    {
-                        body += $"<p>If this is a role that reviews OM79(s), please check the " +
-                                $"<a href='https://dotappstest.transportation.wv.gov/om79/Central79Hub/SignIndex'>My OM79(s) Pending Signatures</a> page.</p>";
-                    }
+                   
+                    body += $"<p>Your role includes reviewing OM79 submissions already in the system. Please visit the <a href='https://dotappstest.transportation.wv.gov/om79/Central79Hub/SignIndex'>My OM79(s) Pending Signatures</a> page to review and sign any submissions that are ready for your attention.</p>";
+                    
 
                     body += $"<p>Thank you for your work and welcome to the OM79 system!</p>" +
                             $"<p>Best regards,<br/>OM79 Automated System</p>";

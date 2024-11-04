@@ -44,6 +44,16 @@ namespace OM_79_HUB.Controllers
                 return NotFound();
             }
 
+            // Initial check on the OM79Workflow's NextStep and current user's access
+            var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == id);
+            var currentUser = User.Identity.Name;
+            if (om79Workflow?.NextStep == "FinishEdits" && om.UserId == currentUser)
+            {
+                // Bypass further permission checks if this condition is met
+                ViewBag.TestUniqueID = id;
+                return View(om);
+            }
+
             //Need to only allow someone to access this when the workflow step is currently with this 
             var hub = await _context.CENTRAL79HUB.FirstOrDefaultAsync(h => h.OMId == id);
             var user = User.Identity.Name;
@@ -138,7 +148,9 @@ namespace OM_79_HUB.Controllers
                     if (currentOmCount >= requiredOmCount)
                     {
                         // Update the next step to "FinishSubmit" if all items and segments are complete
-                        currentOmWorkflow.NextStep = "FinishSubmit";
+                        //currentOmWorkflow.NextStep = "FinishSubmit";
+                        currentOmWorkflow.NextStep = "FinishEdits";
+
                     }
                     else
                     {
@@ -220,7 +232,9 @@ namespace OM_79_HUB.Controllers
                 if (currentCount >= requiredCount)
                 {
                     // Update the next step to "FinishSubmit" if all items are complete
-                    om79Workflow.NextStep = "FinishSubmit";
+                    //om79Workflow.NextStep = "FinishSubmit";
+                    om79Workflow.NextStep = "FinishEdits";
+
                 }
                 else
                 {
@@ -287,6 +301,36 @@ namespace OM_79_HUB.Controllers
 
             // Redirect to an appropriate action, such as the index page
             return RedirectToAction("Details", new { id = om79.OMId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmAllChanges(int id)
+        {
+            try
+            {
+                // Retrieve the OM79Workflow entry by OMId
+                var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == id);
+                if (om79Workflow == null)
+                {
+                    return NotFound("OM79Workflow entry not found.");
+                }
+
+                // Update the NextStep to "FinishSubmit"
+                om79Workflow.NextStep = "FinishSubmit";
+
+                // Save changes to the database
+                await _context.SaveChangesAsync();
+
+                // Redirect or return a success response
+                return RedirectToAction("Details", new { id = om79Workflow.HubID });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"Error confirming all changes: {ex.Message}");
+                return StatusCode(500, "An internal server error occurred.");
+            }
         }
 
         public void sendInitialWorkflowEmailToDistrictUsers(int id)
@@ -1068,6 +1112,23 @@ namespace OM_79_HUB.Controllers
             if (id == null || _context.CENTRAL79HUB == null)
             {
                 return NotFound();
+            }
+
+
+            // Initial check on the OM79Workflow's NextStep and current user's access
+            var om = await _context.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == id);
+            // If the package data with the given ID is not found, return a 404 Not Found response
+            if (om == null)
+            {
+                return NotFound();
+            }
+            var om79Workflow = await _context.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == id);
+            var currentUser = User.Identity.Name;
+            if (om79Workflow?.NextStep == "FinishEdits" && om.UserId == currentUser)
+            {
+                // Bypass further permission checks if this condition is met
+                ViewBag.TestUniqueID = id;
+                return View(om);
             }
 
             // Need to only allow someone to access this when the workflow step is currently with this 

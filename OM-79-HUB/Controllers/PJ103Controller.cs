@@ -424,8 +424,8 @@ namespace OM_79_HUB.Data
                     }
                     else
                     {
-                        omWorkflow.NextStep = "FinishSubmit";
-                        await _hubContext.SaveChangesAsync();
+                        omWorkflow.NextStep = "FinishEdits";
+                        await _hubContext.SaveChangesAsync();   
                         return RedirectToAction("Details", "CENTRAL79HUB", new { id = hub.OMId });
                     }
                 }

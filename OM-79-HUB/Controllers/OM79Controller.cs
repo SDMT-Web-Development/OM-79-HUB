@@ -422,7 +422,7 @@ namespace OM_79_HUB.Data
 
                         if (items.Count >= OM79workflowForNextStep.NumberOfItems)
                         {
-                            OM79workflowForNextStep.NextStep = "FinishSubmit";
+                            OM79workflowForNextStep.NextStep = "FinishEdits";
                             await _context2.SaveChangesAsync();
                             return RedirectToAction("Details", "CENTRAL79HUB", new { id = oMTable.HubId });
                         }
@@ -535,6 +535,32 @@ namespace OM_79_HUB.Data
                 Console.WriteLine("OMTable with id " + id + " not found in the database.");
                 return NotFound();
             }
+
+
+
+
+            // Initial check on the OM79Workflow's NextStep and current user's access
+            var om = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+            // If the package data with the given ID is not found, return a 404 Not Found response
+            if (om == null)
+            {
+                return NotFound();
+            }
+            var om79Workflow = await _context2.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == om.OMId);
+            var currentUser = User.Identity.Name;
+            if (om79Workflow?.NextStep == "FinishEdits" && om.UserId == currentUser)
+            {
+                ViewBag.OMId = oMTable.HubId;
+
+                // Retain the DateComplete field but exclude it from the form
+                ViewBag.DateComplete = oMTable.DateComplete;
+                Console.WriteLine("DateComplete retained: " + oMTable.DateComplete);
+
+                return View(oMTable);
+            }
+
+
+
 
             //Need to only allow someone to access this when the workflow step is currently with this 
             var hub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
@@ -703,81 +729,91 @@ namespace OM_79_HUB.Data
 
 
 
-        // GET: OMTables/Delete/5
+        [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.OMTable == null)
             {
                 return NotFound();
             }
+
             // Find the OMTable entry by id
-            var oMTable = await _context.OMTable
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var oMTable = await _context.OMTable.FirstOrDefaultAsync(m => m.Id == id);
             if (oMTable == null)
             {
                 return NotFound();
             }
 
-            
-            //Need to only allow someone to access this when the workflow step is currently with this 
+            // Fetch the CENTRAL79HUB entry and validate workflow step and permissions
             var hub = await _context2.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
-            var user = User.Identity.Name;
+            if (hub == null)
+            {
+                return NotFound();
+            }
 
+            var om79Workflow = await _context2.OM79Workflow.FirstOrDefaultAsync(w => w.HubID == hub.OMId);
+            var currentUser = User.Identity.Name;
 
-            var validUser = await checkComplexPermission(user, hub);
-           
+            // Check if user can override permissions
+            if (om79Workflow?.NextStep == "FinishEdits" && hub.UserId == currentUser)
+            {
+                await DeleteRelatedEntities(id.Value);
+                _context.OMTable.Remove(oMTable);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "OM79 item and related records deleted successfully.";
+                return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = oMTable.HubId });
+            }
+
+            // Run the complex permission check if override is not applicable
+            var validUser = await checkComplexPermission(currentUser, hub);
             if (!validUser)
             {
                 return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
             }
 
+            // Delete related entities and OMTable
+            await DeleteRelatedEntities(id.Value);
+            _context.OMTable.Remove(oMTable);
+            await _context.SaveChangesAsync();
 
+            TempData["SuccessMessage"] = "OM79 item and related records deleted successfully.";
+            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = oMTable.HubId });
+        }
 
-            // Find and delete all related PJ103Workflow entries
-            var workflows = await _context.PJ103Workflow
-                .Where(w => w.OMID == id)
-                .ToListAsync();
-
+        // Helper method to delete related entities
+        private async Task DeleteRelatedEntities(int omId)
+        {
+            // Delete PJ103Workflow entries
+            var workflows = await _context.PJ103Workflow.Where(w => w.OMID == omId).ToListAsync();
             if (workflows.Any())
             {
                 _context.PJ103Workflow.RemoveRange(workflows);
-                await _context.SaveChangesAsync(); // Save changes after deleting the workflows
+                await _context.SaveChangesAsync();
             }
 
-          
-
-            // Capture the HubId for redirection after deletion
-            var hubId = oMTable.HubId;
-
-            // Find all Submissions related to this OM79Id
-            var submissions = await _pjContext.Submissions
-                .Where(s => s.OM79Id == id)
-                .ToListAsync();
-
+            // Delete Submissions and related data
+            var submissions = await _pjContext.Submissions.Where(s => s.OM79Id == omId).ToListAsync();
             if (submissions.Any())
             {
                 foreach (var submission in submissions)
                 {
-                    // Find and delete the associated Attachments for the submission
-                    var attachments = await _context.Attachments
-                        .Where(a => a.SubmissionID == submission.SubmissionID)
-                        .ToListAsync();
+                    // Delete Attachments
+                    var attachments = await _context.Attachments.Where(a => a.SubmissionID == submission.SubmissionID).ToListAsync();
                     if (attachments.Any())
                     {
                         _context.Attachments.RemoveRange(attachments);
                     }
 
-                    // Find and delete the associated RouteInfo entry
-                    var routeInfo = await _pjContext.RouteInfo
-                        .FirstOrDefaultAsync(r => r.SubmissionID == submission.SubmissionID);
+                    // Delete RouteInfo
+                    var routeInfo = await _pjContext.RouteInfo.FirstOrDefaultAsync(r => r.SubmissionID == submission.SubmissionID);
                     if (routeInfo != null)
                     {
                         _pjContext.RouteInfo.Remove(routeInfo);
                     }
 
-                    // Find and delete the associated BridgeRR entry
-                    var bridgeRR = await _pjContext.BridgeRR
-                        .FirstOrDefaultAsync(b => b.RailKey == id);
+                    // Delete BridgeRR
+                    var bridgeRR = await _pjContext.BridgeRR.FirstOrDefaultAsync(b => b.RailKey == omId);
                     if (bridgeRR != null)
                     {
                         _pjContext.BridgeRR.Remove(bridgeRR);
@@ -787,19 +823,10 @@ namespace OM_79_HUB.Data
                     _pjContext.Submissions.Remove(submission);
                 }
 
-                // Save changes after deleting RouteInfo, BridgeRR, Attachments, and Submission entries
                 await _pjContext.SaveChangesAsync();
             }
-
-            // Remove the OMTable entry
-            _context.OMTable.Remove(oMTable);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "OM79 item and related records deleted successfully.";
-
-            // Redirect to the specified EditPackage page
-            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubId });
         }
+
 
 
         /*
