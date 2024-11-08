@@ -248,7 +248,7 @@ namespace PJ103V3.Models.ViewModels
         public bool? HistoricalBridge { get; set; }
         [DisplayName("Bridge Name")]
         public string? UserID { get; set; }
-        [DisplayName("Additional Comments")]
+        [DisplayName("Additional Comments (list additional route numbers if applicable)")]
         public string? OtherBox { get; set; }
         //End of Submissions Table
 
