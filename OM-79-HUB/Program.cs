@@ -5,6 +5,7 @@ using OM79.Models.DB;
 using QuestPDF.Infrastructure;
 using Microsoft.IO;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http.Features;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -15,7 +16,7 @@ builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+    options.IdleTimeout = TimeSpan.FromMinutes(15); // Set session timeout
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -34,6 +35,20 @@ builder.Services.AddDbContext<Pj103Context>(options =>
 
 // Register the RecyclableMemoryStreamManager service
 builder.Services.AddSingleton<RecyclableMemoryStreamManager>();
+
+
+
+// Configure Kestrel server limits
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 104857600; // Set to 100 MB
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; // Set to 100 MB
+});
+
 
 
 // Enumber authentication

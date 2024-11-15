@@ -259,21 +259,28 @@
 
             <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
 
-            
-            <h4><br />Attachments<br /></h4>
-            <p>Examples: Checklists, Location Maps, and Research</p>
+
+                <h4><br />Attachments<br /></h4>
+                <p>Examples: Checklists, Location Maps, and Research</p>
 
                 <div class="form-group">
                     <label for="attachments">Attach Files:</label>
                     <input type="file" id="fileInput" name="attachments" multiple style="display: none;">
                     <button type="button" class="btn btn-info" onclick="document.getElementById('fileInput').click();">Add Files</button>
+                    <div id="bannerContainer"></div> <!-- For displaying error or success banners -->
                     <ul id="fileList" class="list-unstyled"></ul>
+
+                    <small class="text-muted">
+                        Note: The total size of all files combined must not exceed 100MB. Multiple files are allowed.
+                        You can upload additional files individually if necessary from the details page for each unique item.
+                    </small>
                 </div>
 
                 <br />
                 <br />
                 <div id="fileInfo"></div> <!-- Add this div to display file information -->
                 <br />
+
 
                 @*
 @*                <div class="form-group">
@@ -469,37 +476,64 @@
     </script>
     *@
     <script>
-        // Function to display file information
-        function displayFileInfo(files) {
-            var fileInfo = document.getElementById('fileInfo');
-            fileInfo.innerHTML = ''; // Clear previous content
+    // Function to display file information
+    function displayFileInfo(files) {
+        var fileInfo = document.getElementById('fileInfo');
+        fileInfo.innerHTML = ''; // Clear previous content
 
-            files.forEach(function (file) {
-                var fileInfoItem = document.createElement('p');
+        files.forEach(function (file) {
+            var fileInfoItem = document.createElement('p');
 
-                // Create and add checkmark
-                var checkmark = document.createElement('span');
-                checkmark.className = 'checkmark';
-                checkmark.innerHTML = '&#10004; '; // Unicode checkmark with a space for separation
-                fileInfoItem.appendChild(checkmark);
+            // Create and add checkmark
+            var checkmark = document.createElement('span');
+            checkmark.className = 'checkmark';
+            checkmark.innerHTML = '&#10004; '; // Unicode checkmark with a space for separation
+            fileInfoItem.appendChild(checkmark);
 
-                // Create and add file details
-                var fileDetails = 'File Name: ' + file.name + ', Content Type: ' + file.type + ', File Size: ' + file.size + ' bytes ';
-                fileInfoItem.appendChild(document.createTextNode(fileDetails));
+            // Create and add file details
+            var fileDetails = 'File Name: ' + file.name + ', Content Type: ' + file.type + ', File Size: ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            fileInfoItem.appendChild(document.createTextNode(fileDetails));
 
-                //
+            // Append the composed fileInfoItem to fileInfo container
+            fileInfo.appendChild(fileInfoItem);
+        });
+    }
 
-                // Append the composed fileInfoItem to fileInfo container
-                fileInfo.appendChild(fileInfoItem);
-            });
+    // Event listener for file input change
+    document.getElementById('fileInput').addEventListener('change', function () {
+        var fileList = document.getElementById('fileList');
+        var fileInfo = document.getElementById('fileInfo');
+        var bannerContainer = document.getElementById('bannerContainer');
+        
+        fileList.innerHTML = ''; // Clear previous content
+        fileInfo.innerHTML = ''; // Clear previous content
+        bannerContainer.innerHTML = ''; // Clear previous banners
+
+        var files = this.files;
+        var totalSize = 0;
+        var maxSize = 99.99 * 1024 * 1024; // 99.99 MB in bytes
+        var isValid = true;
+
+        // Calculate total size
+        Array.from(files).forEach(function (file) {
+            totalSize += file.size;
+        });
+
+        if (totalSize > maxSize) {
+            // Display error banner if total size exceeds limit
+            var errorBanner = document.createElement('div');
+            errorBanner.className = 'alert alert-danger';
+            errorBanner.textContent = 'Error: The total size of all selected files exceeds the 99.99 MB limit. Please reduce the number or size of files.';
+            bannerContainer.appendChild(errorBanner);
+            isValid = false; // Mark invalid
         }
 
-        // Event listener for file input change
-        document.getElementById('fileInput').addEventListener('change', function () {
-            var fileList = document.getElementById('fileList');
-            fileList.innerHTML = ''; // Clear previous content
-
-            var files = this.files;
+        if (isValid) {
+            // Display success banner
+            var successBanner = document.createElement('div');
+            successBanner.className = 'alert alert-success';
+            successBanner.textContent = 'Files validated successfully. Ready for upload!';
+            bannerContainer.appendChild(successBanner);
 
             // Display file names in the list
             Array.from(files).forEach(function (file) {
@@ -520,8 +554,39 @@
 
             // Call function to display file information
             displayFileInfo(files);
-        });
-    </script>
+        }
+    });
+</script>
+    <style>
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-danger {
+            color: #a94442;
+            background-color: #f2dede;
+            border-color: #ebccd1;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .alert-success {
+            color: #3c763d;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .checkmark {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+
     @*<script>
         // Function to display file information
         function displayFileInfo(files) {

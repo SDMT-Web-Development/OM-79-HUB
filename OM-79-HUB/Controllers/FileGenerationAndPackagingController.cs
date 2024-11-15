@@ -56,39 +56,103 @@ namespace OM_79_HUB.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadFiles(IFormFile[] attachments, int om79Id)
         {
+            Console.WriteLine("------------------------------------------------------------------------------------------");
+            Console.WriteLine("Starting UploadFiles action...");
+            Console.WriteLine($"Received OM79 ID: {om79Id}");
+            Console.WriteLine($"Number of files uploaded: {attachments?.Length ?? 0}");
+            Console.WriteLine("------------------------------------------------------------------------------------------");
+
+            // Check if files are null or empty
             if (attachments == null || attachments.Length == 0)
             {
+                Console.WriteLine("No files received in the HTTP request.");
+
+                // Inspecting request for diagnostics
+                Console.WriteLine("Inspecting request for issues...");
+                Console.WriteLine($"Request ContentType: {Request.ContentType}");
+                Console.WriteLine($"Request Method: {Request.Method}");
+
+                if (Request.HasFormContentType)
+                {
+                    var form = await Request.ReadFormAsync();
+                    Console.WriteLine($"Form File Count: {form.Files.Count}");
+                    foreach (var formFile in form.Files)
+                    {
+                        Console.WriteLine($"File Name: {formFile.FileName}, Size: {formFile.Length}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Request does not contain form content.");
+                }
+
                 return BadRequest("No files uploaded.");
             }
 
+            // Directory and file saving logic
             var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+            Console.WriteLine($"Base Directory: {baseDir}");
+
             var omDir = Path.Combine(baseDir, "OM79-" + om79Id + "-Attachments");
+            Console.WriteLine($"OM79 Directory: {omDir}");
 
             if (!Directory.Exists(omDir))
             {
+                Console.WriteLine("Creating OM79 directory...");
                 Directory.CreateDirectory(omDir);
+            }
+            else
+            {
+                Console.WriteLine("OM79 directory already exists.");
             }
 
             foreach (var file in attachments)
             {
+                Console.WriteLine("-----------------------------------------------------");
+                Console.WriteLine($"Processing file: {file.FileName}");
+                Console.WriteLine($"File size: {file.Length} bytes");
+
                 if (file.Length > 0)
                 {
-                    var filePath = Path.Combine(omDir, file.FileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    try
                     {
-                        await file.CopyToAsync(stream);
+                        var filePath = Path.Combine(omDir, file.FileName);
+                        Console.WriteLine($"Saving file to: {filePath}");
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        Console.WriteLine($"File saved successfully: {filePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error saving file {file.FileName}: {ex.Message}");
+                        return StatusCode(500, $"Error saving file {file.FileName}: {ex.Message}");
                     }
                 }
+                else
+                {
+                    Console.WriteLine($"File {file.FileName} has no content.");
+                }
             }
+
+            // Fetching OM79 item to confirm
+            Console.WriteLine("Fetching OM79 item from database...");
             var omItem = await _om79Context.OMTable.FindAsync(om79Id);
+
             if (omItem == null)
             {
+                Console.WriteLine($"OM79 item with ID {om79Id} not found.");
                 return NotFound();
             }
 
+            Console.WriteLine("OM79 item found. Redirecting to Details...");
             return RedirectToAction("Details", "Central79Hub", new { id = omItem.HubId });
         }
+
+
 
 
         public async Task<IActionResult> DeleteFile(string fileName, int om79Id)
