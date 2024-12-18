@@ -209,6 +209,7 @@ namespace OM_79_HUB.Controllers
                 };
 
                 message.To.Add(new MailAddress(email));
+                message.CC.Add("ethan.m.johnson@wv.gov");
 
                 using (var client = new SmtpClient
                 {

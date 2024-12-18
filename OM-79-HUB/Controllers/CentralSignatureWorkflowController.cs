@@ -253,6 +253,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var gisManager in gisManagers)
                 {
                     message.To.Add(gisManager.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 using (var client = new SmtpClient
@@ -272,7 +274,10 @@ namespace OM_79_HUB.Controllers
             }
         }
 
-        private async Task SendWorkflowEmailToDistrictManagerWithApprovedFromHDS(int id, string comments)
+        private async Task SendWorkflow
+            
+            
+            ToDistrictManagerWithApprovedFromHDS(int id, string comments)
         {
             try
             {
@@ -329,6 +334,7 @@ namespace OM_79_HUB.Controllers
                 foreach (var districtManager in districtManagers)
                 {
                     message.To.Add(districtManager.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
                 }
 
                 using (var client = new SmtpClient
@@ -390,6 +396,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var gisManager in gisManagers)
                 {
                     message.To.Add(gisManager.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 using (var client = new SmtpClient
@@ -690,6 +698,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var districtManager in districtManagers)
                 {
                     message.To.Add(districtManager.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 using (var client = new SmtpClient
@@ -759,6 +769,8 @@ namespace OM_79_HUB.Controllers
                         if (districts.Contains(omEntryDistrict))
                         {
                             message.To.Add(regionalEngineer.Email);
+                            message.CC.Add("ethan.m.johnson@wv.gov");
+
                         }
                     }
                 }
@@ -822,6 +834,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var hdsUser in hdsUsers)
                 {
                     message.To.Add(hdsUser.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 using (var client = new SmtpClient
@@ -1067,6 +1081,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var hdsUser in hdsUsers)
                 {
                     message.To.Add(hdsUser.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 using (var client = new SmtpClient
@@ -1290,6 +1306,8 @@ namespace OM_79_HUB.Controllers
                 };
 
                 message.To.Add(directorOfOperations.Email);
+                message.CC.Add("ethan.m.johnson@wv.gov");
+
 
                 using (var client = new SmtpClient
                 {
@@ -1361,6 +1379,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var hdsUser in hdsUsers)
                 {
                     message.To.Add(hdsUser.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 using (var client = new SmtpClient
@@ -1419,6 +1439,8 @@ namespace OM_79_HUB.Controllers
                 };
 
                 message.To.Add(districtManager.Email);
+                message.CC.Add("ethan.m.johnson@wv.gov");
+
 
                 using (var client = new SmtpClient
                 {
@@ -1643,6 +1665,7 @@ namespace OM_79_HUB.Controllers
                 };
 
                 message.To.Add(chiefEngineerOfOperations.Email);
+                message.CC.Add("ethan.m.johnson@wv.gov");
 
                 using (var client = new SmtpClient
                 {
@@ -1697,6 +1720,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var hdsUser in hdsUsers)
                 {
                     message.To.Add(hdsUser.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 using (var client = new SmtpClient
@@ -1916,6 +1941,8 @@ namespace OM_79_HUB.Controllers
                 };
 
                 message.To.Add(deputySecretary.Email);
+                message.CC.Add("ethan.m.johnson@wv.gov");
+
 
                 using (var client = new SmtpClient
                 {

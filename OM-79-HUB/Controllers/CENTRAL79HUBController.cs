@@ -365,6 +365,8 @@ namespace OM_79_HUB.Controllers
                         From = new MailAddress("DOTPJ103Srv@wv.gov")
                     };
                     message.To.Add(user.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                     message.Subject = $"OM79 Submitted For District [{user.District}] Review";
                     message.Body = $"Hello {user.FirstName},<br><br>" +
                                    $"An OM79 entry has been submitted from your district. You are currently listed for the following role(s) in the system and are responsible for reviewing and signing the OM79 in district {user.District}:<br><br>" +
@@ -2011,6 +2013,8 @@ namespace OM_79_HUB.Controllers
                 foreach (var hdsUser in hdsUsers)
                 {
                     message.To.Add(hdsUser.Email);
+                    message.CC.Add("ethan.m.johnson@wv.gov");
+
                 }
 
                 // Send the email
@@ -2072,7 +2076,7 @@ namespace OM_79_HUB.Controllers
                     Body = bodyBuilder.ToString(),
                     IsBodyHtml = true
                 };
-
+                message.CC.Add("ethan.m.johnson@wv.gov");
                 message.To.Add(initialUser);
 
                 var client = new SmtpClient
@@ -2132,6 +2136,7 @@ namespace OM_79_HUB.Controllers
                 };
 
                 message.To.Add(initialUser);
+                message.CC.Add("ethan.m.johnson@wv.gov");
 
                 var client = new SmtpClient
                 {
@@ -2185,6 +2190,7 @@ namespace OM_79_HUB.Controllers
                 };
 
                 message.To.Add(districtManager.Email);
+                message.CC.Add("ethan.m.johnson@wv.gov");
 
                 // Send the email
                 var client = new SmtpClient
