@@ -253,7 +253,7 @@ namespace OM_79_HUB.Controllers
                 foreach (var gisManager in gisManagers)
                 {
                     message.To.Add(gisManager.Email);
-                    message.CC.Add("ethan.m.johnson@wv.gov");
+                                        message.CC.Add("ethan.m.johnson@wv.gov");
 
                 }
 
@@ -274,10 +274,7 @@ namespace OM_79_HUB.Controllers
             }
         }
 
-        private async Task SendWorkflow
-            
-            
-            ToDistrictManagerWithApprovedFromHDS(int id, string comments)
+        private async Task SendWorkflowEmailToDistrictManagerWithApprovedFromHDS(int id, string comments)
         {
             try
             {
