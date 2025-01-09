@@ -24,5 +24,6 @@ namespace OM_79_HUB.Models
         public string? EmailSubmit { get; set; }
         public bool? Edited { get; set; }
         public bool? HasGISReviewed { get; set; }
+        public string? SmartID { get; set; }        
     }
 }

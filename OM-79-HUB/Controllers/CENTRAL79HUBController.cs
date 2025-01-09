@@ -1053,6 +1053,24 @@ namespace OM_79_HUB.Controllers
                 cENTRAL79HUB.WorkflowStep = "NotStarted";
                 cENTRAL79HUB.Edited = false;
                 cENTRAL79HUB.HasGISReviewed = false;
+
+
+                // Generate the SmartID
+                string currentYear = DateTime.Now.Year.ToString();
+                int district = cENTRAL79HUB.District ?? 0; // Use 0 if District is null (handle accordingly)
+
+                // Count how many OM79 entries exist for this district and year
+                int countForDistrictAndYear = await _context.CENTRAL79HUB
+                    .Where(h => h.District == district && h.DateSubmitted.HasValue && h.DateSubmitted.Value.Year == DateTime.Now.Year)
+                    .CountAsync();
+
+                // Generate the new SmartID
+                string uniqueCounter = (countForDistrictAndYear + 1).ToString("D4"); // Ensures four digits with leading zeros
+                cENTRAL79HUB.SmartID = $"OM79-{currentYear}-{district}-{uniqueCounter}";
+
+
+
+
                 _context.Add(cENTRAL79HUB);
                 await _context.SaveChangesAsync();
 
