@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IO;
@@ -1668,42 +1667,38 @@ namespace OM_79_HUB.Controllers
 
             void ComposeHeader(IContainer container, int itemNumber)
             {
-                container.Column(column =>
+                container.Row(row =>
                 {
-                        container.Row(row =>
+                    var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
+                    var titleStyle = TextStyle.Default.FontSize(12).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Title style
+                    var dateStyle = TextStyle.Default.FontSize(10).FontColor(Colors.Grey.Medium).Fallback(fallbackStyle);
+
+                    // Logo on the left
+                    row.ConstantItem(50).Height(50).Image("wwwroot/Assets/OMdot.png", ImageScaling.FitArea);
+
+                    // Title and date in a vertically stacked column
+                    row.RelativeItem().Column(column =>
                     {
-                        var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
-                        var titleStyle = TextStyle.Default.FontSize(12).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Title style
-                        var dateStyle = TextStyle.Default.FontSize(10).FontColor(Colors.Grey.Medium).Fallback(fallbackStyle);
-
-                        // Logo on the left
-                        row.ConstantItem(50).Height(50).Image("wwwroot/Assets/OMdot.png", ImageScaling.FitArea);
-
-                        // Title and date in a vertically stacked column
-                        row.RelativeItem().Column(column =>
+                        // Title centered
+                        column.Item().AlignCenter().Text(text =>
                         {
-                            // Title centered
-                            column.Item().AlignCenter().Text(text =>
-                            {
-                                text.Span($"OM-79: Item {itemNumber}").Style(titleStyle);
-                            });
-
-                            // Date below the title, smaller and aligned center
-                            column.Item().AlignCenter().Text(text =>
-                            {
-                                string formattedDate = OMTable.SubmissionDate.HasValue
-                                                       ? OMTable.SubmissionDate.Value.ToString("MM/dd/yyyy")
-                                                       : "N/A";
-                                text.Span(formattedDate).Style(dateStyle);
-                            });
+                            text.Span($"OM-79: Item {itemNumber}").Style(titleStyle);
                         });
 
-                        // Add some padding or spacing on the right side for balance
-                        row.ConstantItem(50).Height(50); // Placeholder for spacing
+                        // Date below the title, smaller and aligned center
+                        column.Item().AlignCenter().Text(text =>
+                        {
+                            string formattedDate = OMTable.SubmissionDate.HasValue
+                                                   ? OMTable.SubmissionDate.Value.ToString("MM/dd/yyyy")
+                                                   : "N/A";
+                            text.Span(formattedDate).Style(dateStyle);
+                        });
                     });
 
-                    column.Item().Height(10); // Add a 10-point spacer
+                    // Add some padding or spacing on the right side for balance
+                    row.ConstantItem(50).Height(50); // Placeholder for spacing
                 });
+
             }
 
 
