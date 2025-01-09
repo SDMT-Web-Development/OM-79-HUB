@@ -53,7 +53,7 @@
 
                 <div class="items-counter d-flex align-items-center justify-content-center mt-2">
                     <!-- If the next step is AddItem or AddFirstItem, show the minus button -->
-                    @if (Model.OM79Workflow?.NextStep == "AddItem" || Model.OM79Workflow?.NextStep == "AddFirstItem" || Model.OM79Workflow?.NextStep == "FinishSubmit")
+                    @if (Model.OM79Workflow?.NextStep == "AddItem" || Model.OM79Workflow?.NextStep == "AddFirstItem") @* || Model.OM79Workflow?.NextStep == "FinishSubmit")*@
                     {
                         bool isDisabled = Model.OMRequiredCount == 1 || completedItems == requiredItems;
                         <button style="
@@ -75,7 +75,7 @@
                     <p style="font-weight: bold; margin: 0 10px;">@completedItems / @requiredItems Items Completed.</p>
 
                     <!-- If the next step is AddItem or AddFirstItem, show the plus button -->
-                    @if (Model.OM79Workflow?.NextStep == "AddItem" || Model.OM79Workflow?.NextStep == "AddFirstItem" || Model.OM79Workflow?.NextStep == "FinishSubmit")
+                    @if (Model.OM79Workflow?.NextStep == "AddItem" || Model.OM79Workflow?.NextStep == "AddFirstItem") @* || Model.OM79Workflow?.NextStep == "FinishSubmit")*@
                     {
                         <button style="
                                         background-color: #4CAF50;
@@ -236,12 +236,23 @@
                                         <p>Proceed by adding a PJ103-Segment to your recently submitted item.</p>
                                         <a href="@Url.Action("Create", "PJ103", new { uniqueID = newestItem.Id })" class="btn btn-primary">Add PJ103-Segment</a>
                                     }
+                                    else if (Model.OM79Workflow?.NextStep == "FinishEdits")
+                                    {
+                                        <p>If you need to make final adjustments to any items or segments, please use the Package Editor link below:</p>
+                                        <a href="@Url.Action("EditPackage", "CENTRAL79HUB", new { id = Model.Central79Hub.OMId })" class="btn btn-primary">Edit Package</a>
+
+                                        <p>Once you have completed all necessary changes, confirm by clicking the button below:</p>
+                                        <form asp-action="ConfirmAllChanges" asp-controller="CENTRAL79HUB" method="post">
+                                            <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
+                                            <button type="submit" class="btn btn-primary">I Have Finished All Changes</button>
+                                        </form>
+                                    }
                                     else if (Model.OM79Workflow?.NextStep == "FinishSubmit")
                                     {
-                                        <p>All items and segments are complete. Click 'Finish & Submit For Review' to proceed.</p>
+                                        <p>All items and segments are now finalized. To submit for review, click the 'Finish & Submit for Review' button below:</p>
                                         <form asp-action="FinishSubmit" asp-controller="CENTRAL79HUB" method="post">
                                             <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
-                                            <button type="submit" class="btn btn-primary">Finish & Submit For Review</button>
+                                            <button type="submit" class="btn btn-primary">Finish & Submit for Review</button>
                                         </form>
                                     }
                                 }

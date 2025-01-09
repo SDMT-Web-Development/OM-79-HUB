@@ -31,12 +31,12 @@
                 <span asp-validation-for="IDNumber" class="text-danger"></span>
             </div>*@
             <div class="col-md-4">
-                <label asp-for="RouteID" class="control-label">@Html.DisplayNameFor(model => model.RouteID) </label>
+                <label asp-for="RouteID" class="control-label">@Html.DisplayNameFor(model => model.RouteID)<span class="required-asterisk">*</span></label>
                 <input asp-for="RouteID" class="form-control" />
                 <span asp-validation-for="RouteID" class="text-danger"></span>
             </div>
             <div class="col-md-4">
-                <label asp-for="EmailSubmit" class="control-label">@Html.DisplayNameFor(model => model.EmailSubmit) </label>
+                <label asp-for="EmailSubmit" class="control-label">@Html.DisplayNameFor(model => model.EmailSubmit)<span class="required-asterisk">*</span></label>
                 <input asp-for="EmailSubmit" class="form-control" type="email" />
                 <span asp-validation-for="RouteID" class="text-danger"></span>
             </div>
@@ -47,7 +47,7 @@
             </div>
             <input type="hidden" id="NumberOfItems" name="NumberOfItems" />
             
-
+            
             <div class="form-group mt-3">
                 <input type="button" value="Create" class="btn btn-primary" onclick="showItemModal()" />
             </div>

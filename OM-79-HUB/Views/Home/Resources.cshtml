@@ -9,6 +9,13 @@
     </div>
 </div>
 
+<!-- Testing Information Link -->
+<div class="container text-center my-4">
+    <a href="https://docs.google.com/document/d/1GYCBOGUDxiCxjk80Sh2T8flsTiWk7Fnqyfh-xXLvLww/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+        11/4/2024 Testing Information
+    </a>
+</div>
+
 <!-- Main Content -->
 <div class="container mt-5">
     <!-- Resource Cards -->
@@ -37,7 +44,8 @@
                     </div>
                     <h5 class="card-title">Email Support</h5>
                     <p class="card-text">Get in touch via email.</p>
-                    <span class="badge bg-secondary">Disabled for Testing Phase</span>
+                    @*<span class="badge bg-secondary">Disabled for Testing Phase</span>*@
+                    <p class="text-muted">Ethan.M.Johnson@wv.gov</p>
                     @*<a href="mailto:DOTHDS@wv.gov" class="btn btn-outline-primary stretched-link" target="_blank" rel="noopener noreferrer">Email Us</a>*@
                 </div>
             </div>
@@ -85,7 +93,23 @@
                 </div>
             </div>
         </div>
+
+        <!-- Video Guides Card -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 text-center shadow">
+                <div class="card-body">
+                    <div class="icon-container bg-warning text-white rounded-circle mb-3 mx-auto">
+                        <i class="fas fa-video fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Video Guides</h5>
+                    <p class="card-text">Watch video guides to help you get started.</p>
+                    <a href="https://drive.google.com/drive/folders/1PVA5cXgyHnQuqWKcsIOtcL-JzPNobl1-?usp=sharing" class="btn btn-outline-warning stretched-link" target="_blank" rel="noopener noreferrer">Watch Videos</a>
+                </div>
+            </div>
+        </div>
+
     </div>
+
 
     <!-- Frequently Asked Questions Section -->
     <div class="mt-5">
@@ -146,7 +170,7 @@
                 <div id="faqCollapseFour" class="accordion-collapse collapse" aria-labelledby="faqHeadingFour" data-bs-parent="#faqAccordion">
                     <div class="accordion-body">
                         To sign off on an OM79, navigate to the
-                        <a href="@Url.Action("SignIndex", "Home")" class="text-primary fw-bold">Pending Signatures</a> page, which you can find in the navbar. Here, you'll see a list of OM79 requests awaiting your signature. Click on the appropriate request to review and sign off.
+                        <a href="@Url.Action("SignIndex", "Central79Hub")" class="text-primary fw-bold">Pending Signatures</a> page, which you can find in the navbar. Here, you'll see a list of OM79 requests awaiting your signature. Click on the appropriate request to review and sign off.
                     </div>
                 </div>
             </div>

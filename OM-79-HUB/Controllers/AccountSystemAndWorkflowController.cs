@@ -4,6 +4,8 @@ using OM_79_HUB.Data;
 using OM_79_HUB.Models.DB.OM79Hub;
 using OM79.Models.DB;
 using SkiaSharp;
+using System.Net.Mail;
+using System.Net;
 
 namespace OM_79_HUB.Controllers
 {
@@ -99,12 +101,37 @@ namespace OM_79_HUB.Controllers
             {
                 _hubContext.Add(userData);
                 await _hubContext.SaveChangesAsync();
+                // Determine roles assigned to the user
+                var userRoles = GetUserRoles(userData);
+
+                // Send the welcome email
+                await SendWelcomeEmailAsync(userData.FirstName, userData.Email, userRoles, isAdmin: false);
+
                 return RedirectToAction("StatewideAccountSystem", "AccountSystemAndWorkflow");
             }
             return View("StatewideAccountSystem", userData);
         }
 
+        private List<string> GetUserRoles(UserData userData)
+        {
+            var roles = new List<string>();
 
+            if (userData.BridgeEngineer) roles.Add("Bridge Engineer");
+            if (userData.TrafficEngineer) roles.Add("Traffic Engineer");
+            if (userData.MaintenanceEngineer) roles.Add("Maintenance Engineer");
+            if (userData.ConstructionEngineer) roles.Add("Construction Engineer");
+            if (userData.RightOfWayManager) roles.Add("Right of Way Manager");
+            if (userData.DistrictManager) roles.Add("District Manager");
+            if (userData.HDS == true) roles.Add("Help Desk Support Manager");
+            if (userData.GISManager == true) roles.Add("GIS Manager");
+            if (userData.Chief == true) roles.Add("Chief Engineer of Operations");
+            if (userData.DirectorOfOperations == true) roles.Add("Director of Operations");
+            if (userData.RegionalEngineer == true) roles.Add("Regional Engineer");
+            if (userData.DeputySecretary == true) roles.Add("Deputy Secretary");
+            if (userData.DistrictReview == true) roles.Add("District Review");
+
+            return roles;
+        }
 
 
         // POST: AccountSystemAndWorkflow/Create
@@ -128,9 +155,137 @@ namespace OM_79_HUB.Controllers
                 adminData.DateEstablished = DateTime.Now;
                 _hubContext.Add(adminData);
                 await _hubContext.SaveChangesAsync();
+
+                // Determine admin type
+                string adminType = DetermineAdminType(adminData);
+
+                // Send the welcome email to admin
+                await SendWelcomeEmailAsync(adminData.FirstName, adminData.StateEmail, new List<string>(), isAdmin: true, adminType: adminType);
             }
             return RedirectToAction("AdminAccountSystem", "AccountSystemAndWorkflow");
         }
+
+      
+        private async Task SendWelcomeEmailAsync(string firstName, string email, List<string> roles, bool isAdmin = false, string adminType = null)
+        {
+            try
+            {
+                string subject = "Welcome to the OM79 System";
+                string body = string.Empty;
+
+                if (!isAdmin)
+                {
+                    // Compose email for non-admin users
+                    body = $"<p>Hello <strong>{firstName}</strong>,</p>" +
+                           $"<p>You have been added to the OM79 system as a <strong>{string.Join(", ", roles)}</strong>.</p>";
+
+                    // Check if user has any reviewer roles
+                   
+                    body += $"<p>Your role includes reviewing OM79 submissions already in the system. Please visit the <a href='https://dotappstest.transportation.wv.gov/om79/Central79Hub/SignIndex'>My OM79(s) Pending Signatures</a> page to review and sign any submissions that are ready for your attention.</p>";
+                    
+
+                    body += $"<p>Thank you for your work and welcome to the OM79 system!</p>" +
+                            $"<p>Best regards,<br/>OM79 Automated System</p>";
+                }
+                else
+                {
+                    // Compose email for admin users
+                    string managementLink = GetManagementLink(adminType);
+
+                    body = $"<p>Hello <strong>{firstName}</strong>,</p>" +
+                           $"<p>You have been added to the OM79 system as a <strong>{adminType}</strong>.</p>" +
+                           $"<p>You can manage users in the system by visiting the following link:</p>" +
+                           $"<p><a href='{managementLink}'>{managementLink}</a></p>" +
+                           $"<p>Thank you for your administrative role and contributions to the OM79 system!</p>" +
+                           $"<p>Best regards,<br/>OM79 Automated System</p>";
+                }
+
+                var message = new MailMessage
+                {
+                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+
+                message.To.Add(new MailAddress(email));
+                message.CC.Add("ethan.m.johnson@wv.gov");
+
+                using (var client = new SmtpClient
+                {
+                    Host = "10.204.145.32",
+                    Port = 25,
+                    EnableSsl = false,
+                    Credentials = new NetworkCredential("ethan.m.johnson@wv.gov", "trippononemails")
+                })
+                {
+                    await client.SendMailAsync(message);
+                }
+
+                Console.WriteLine($"Welcome email sent to {firstName} at {email}.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send email to {email}. Error: {ex.Message}");
+            }
+        }
+
+       
+        private string DetermineAdminType(AdminData adminData)
+        {
+            if (adminData.DistrictAdmin == true)
+            {
+                return "District Administrator";
+            }
+            else if (adminData.StatewideAdmin == true)
+            {
+                return "Central Office Administrator";
+            }
+            else if (adminData.SystemAdmin == true)
+            {
+                return "System Administrator";
+            }
+            else
+            {
+                return "Administrator";
+            }
+        }
+
+        
+        private string GetManagementLink(string adminType)
+        {
+            switch (adminType)
+            {
+                case "District Administrator":
+                    return "https://dotappstest.transportation.wv.gov/om79/AccountSystemAndWorkflow/DistrictAccountSystem";
+                case "Central Office Administrator":
+                    return "https://dotappstest.transportation.wv.gov/om79/AccountSystemAndWorkflow/StatewideAccountSystem";
+                case "System Administrator":
+                    return "https://dotappstest.transportation.wv.gov/om79/AccountSystemAndWorkflow/AdminAccountSystem";
+                default:
+                    return "https://dotappstest.transportation.wv.gov/om79/";
+            }
+        }
+
+      
+        private bool IsReviewerRole(string role)
+        {
+            var reviewerRoles = new List<string>
+    {
+        "Bridge Engineer",
+        "Traffic Engineer",
+        "Maintenance Engineer",
+        "Construction Engineer",
+        "Right of Way Manager",
+        "District Manager",
+        "District Administrator",
+        "Regional Engineer"
+        // Add other reviewer roles as needed
+    };
+
+            return reviewerRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
+        }
+
 
         [HttpGet]
         public IActionResult GetCentralUsers()
@@ -322,6 +477,13 @@ namespace OM_79_HUB.Controllers
 
             _hubContext.Add(userData);
             await _hubContext.SaveChangesAsync();
+
+            // Determine roles assigned to the user
+            var userRoles = GetUserRoles(userData);
+
+            // Send the welcome email
+            await SendWelcomeEmailAsync(userData.FirstName, userData.Email, userRoles, isAdmin: false);
+
             return RedirectToAction("DistrictAccountSystem", "AccountSystemAndWorkflow");
         }
 

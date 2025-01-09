@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -56,39 +57,103 @@ namespace OM_79_HUB.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadFiles(IFormFile[] attachments, int om79Id)
         {
+            Console.WriteLine("------------------------------------------------------------------------------------------");
+            Console.WriteLine("Starting UploadFiles action...");
+            Console.WriteLine($"Received OM79 ID: {om79Id}");
+            Console.WriteLine($"Number of files uploaded: {attachments?.Length ?? 0}");
+            Console.WriteLine("------------------------------------------------------------------------------------------");
+
+            // Check if files are null or empty
             if (attachments == null || attachments.Length == 0)
             {
+                Console.WriteLine("No files received in the HTTP request.");
+
+                // Inspecting request for diagnostics
+                Console.WriteLine("Inspecting request for issues...");
+                Console.WriteLine($"Request ContentType: {Request.ContentType}");
+                Console.WriteLine($"Request Method: {Request.Method}");
+
+                if (Request.HasFormContentType)
+                {
+                    var form = await Request.ReadFormAsync();
+                    Console.WriteLine($"Form File Count: {form.Files.Count}");
+                    foreach (var formFile in form.Files)
+                    {
+                        Console.WriteLine($"File Name: {formFile.FileName}, Size: {formFile.Length}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Request does not contain form content.");
+                }
+
                 return BadRequest("No files uploaded.");
             }
 
+            // Directory and file saving logic
             var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
+            Console.WriteLine($"Base Directory: {baseDir}");
+
             var omDir = Path.Combine(baseDir, "OM79-" + om79Id + "-Attachments");
+            Console.WriteLine($"OM79 Directory: {omDir}");
 
             if (!Directory.Exists(omDir))
             {
+                Console.WriteLine("Creating OM79 directory...");
                 Directory.CreateDirectory(omDir);
+            }
+            else
+            {
+                Console.WriteLine("OM79 directory already exists.");
             }
 
             foreach (var file in attachments)
             {
+                Console.WriteLine("-----------------------------------------------------");
+                Console.WriteLine($"Processing file: {file.FileName}");
+                Console.WriteLine($"File size: {file.Length} bytes");
+
                 if (file.Length > 0)
                 {
-                    var filePath = Path.Combine(omDir, file.FileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    try
                     {
-                        await file.CopyToAsync(stream);
+                        var filePath = Path.Combine(omDir, file.FileName);
+                        Console.WriteLine($"Saving file to: {filePath}");
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        Console.WriteLine($"File saved successfully: {filePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error saving file {file.FileName}: {ex.Message}");
+                        return StatusCode(500, $"Error saving file {file.FileName}: {ex.Message}");
                     }
                 }
+                else
+                {
+                    Console.WriteLine($"File {file.FileName} has no content.");
+                }
             }
+
+            // Fetching OM79 item to confirm
+            Console.WriteLine("Fetching OM79 item from database...");
             var omItem = await _om79Context.OMTable.FindAsync(om79Id);
+
             if (omItem == null)
             {
+                Console.WriteLine($"OM79 item with ID {om79Id} not found.");
                 return NotFound();
             }
 
+            Console.WriteLine("OM79 item found. Redirecting to Details...");
             return RedirectToAction("Details", "Central79Hub", new { id = omItem.HubId });
         }
+
+
 
 
         public async Task<IActionResult> DeleteFile(string fileName, int om79Id)
@@ -190,6 +255,41 @@ namespace OM_79_HUB.Controllers
         //|<a asp-controller="FileGenerationAndPackaging" asp-action="PrintPackagedHubFile" asp-route-id="@entry.Id" class="btn btn-secondary">Export OM79 with PJ103</a>
         //|<a asp-controller="FileGenerationAndPackaging" asp-action="PrintOM79CoverPage" asp-route-id="@entry.Id" class="btn btn-secondary">Export Cover Page</a>
 
+        //public class TableOfContentsDocument : IDocument
+        //{
+        //    private readonly PageContext _pageContext;
+
+        //    public TableOfContentsDocument(PageContext pageContext)
+        //    {
+        //        _pageContext = pageContext;
+        //    }
+
+        //    public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+
+        //    public void Compose(IDocumentContainer container)
+        //    {
+        //        container.Page(page =>
+        //        {
+        //            page.Margin(50);
+
+        //            page.Header().AlignCenter().Text("Table of Contents").FontSize(16).Bold();
+
+        //            page.Content().Column(column =>
+        //            {
+        //                foreach (var (title, anchor) in _pageContext.TableOfContents)
+        //                {
+        //                    column.Item().Row(row =>
+        //                    {
+        //                        row.RelativeItem().Text(title).FontSize(12).Hyperlink(anchor);
+        //                    });
+        //                }
+        //            });
+        //        });
+        //    }
+        //}
+
+
+
 
 
 
@@ -227,13 +327,16 @@ namespace OM_79_HUB.Controllers
             var pjSegmentsIds = pjSegments.Select(e => e.SubmissionID).ToList(); // Extract the IDs from omItems
 
             var reports = new List<IDocument>();
-            var fileName = $"Hub_{omHUB.OMId}_Report.pdf";
+            var fileName = string.IsNullOrEmpty(omHUB.SmartID)
+                ? $"Hub_{omHUB.OMId}_Report.pdf"
+                : $"{omHUB.SmartID}.pdf";
             var CoverPage = new CoverPageDocumentGeneration(omHUB, omSignatures, omItems);
             reports.Add((IDocument)CoverPage);
 
+            int om79Counter = 1; // Counter for OM79 items headers
             foreach (var om79 in OM79AttachedToHUB)
             {
-                var om79Report = new OM79DocumentGeneration(om79);
+                var om79Report = new OM79DocumentGeneration(om79, om79Counter);
                 reports.Add((IDocument)om79Report);
 
                 // Fetch the PJ103 submissions attached to the OM79 entry
@@ -245,11 +348,16 @@ namespace OM_79_HUB.Controllers
                 var pj103AttachedToOM = await _pj103Context.RouteInfo
                                             .Where(routeInfo => submissionIds.Contains(routeInfo.SubmissionID.Value))
                                             .ToListAsync();
+
+                int pj103Counter = 1; // Counter for PJ103 segments within the OM79 item
                 foreach (var pj103 in pj103AttachedToOM)
                 {
-                    var pj103Report = new PJ103DocumentGeneration(pj103);
+                    var pj103Report = new PJ103DocumentGeneration(pj103, om79Counter, pj103Counter);
                     reports.Add((IDocument)pj103Report);
+
+                    pj103Counter++; // Increment PJ103 counter
                 }
+                om79Counter++; // Increment OM79 counter
             }
 
             if (reports.Any())
@@ -259,10 +367,6 @@ namespace OM_79_HUB.Controllers
                 //    .Merge(reports.ToArray())
                 //    .GeneratePdf(fileName);
 
-                //-----------------------------------------------------------
-                // Local PDF Generation
-                //var startInfo = new ProcessStartInfo("explorer.exe", fileName);
-                //Process.Start(startInfo);
                 //-----------------------------------------------------------
 
                 //-----------------------------------------------------------
@@ -284,264 +388,264 @@ namespace OM_79_HUB.Controllers
 
 
 
-        // Export Packaged Single OM79 w/ zero or more PJ103s
-        public async Task<IActionResult> PrintOM79wPJ103(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var omTableEntry = await _om79Context.OMTable.FirstOrDefaultAsync(e => e.Id == id.Value);
-            if (omTableEntry == null)
-            {
-                return NotFound();
-            }
-
-
-            var OMID = omTableEntry.Id;
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++" + OMID + "++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-
-            // Fetch the PJ103 submissions attached to the OM79 entry
-            var pj103AttachedToOMSubmission = await _pj103Context.Submissions
-                                        .Where(submission => submission.OM79Id == OMID)
-                                        .ToListAsync();
-
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("+++++++++++++++++" + pj103AttachedToOMSubmission.Count + "++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            // Ensure there are related submissions
-            if (!pj103AttachedToOMSubmission.Any())
-            {
-                // If no PJ103 submissions are found, generate only the OM79 file
-                await PrintOM79File(id);
-                return RedirectToAction("Details", "OM79", new { id = id.Value });
-            }
-
-            // Extract SubmissionIDs
-            var submissionIds = pj103AttachedToOMSubmission.Select(s => s.SubmissionID).ToList();
-
-            // Fetch the related RouteInfo entries
-            var pj103AttachedToOM = await _pj103Context.RouteInfo
-                                        .Where(routeInfo => submissionIds.Contains(routeInfo.SubmissionID.Value))
-                                        .ToListAsync();
+        ////// Export Packaged Single OM79 w/ zero or more PJ103s
+        ////public async Task<IActionResult> PrintOM79wPJ103(int? id)
+        ////{
+        ////    if (id == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
+
+        ////    var omTableEntry = await _om79Context.OMTable.FirstOrDefaultAsync(e => e.Id == id.Value);
+        ////    if (omTableEntry == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
+
+
+        ////    var OMID = omTableEntry.Id;
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++" + OMID + "++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+
+        ////    // Fetch the PJ103 submissions attached to the OM79 entry
+        ////    var pj103AttachedToOMSubmission = await _pj103Context.Submissions
+        ////                                .Where(submission => submission.OM79Id == OMID)
+        ////                                .ToListAsync();
+
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("+++++++++++++++++" + pj103AttachedToOMSubmission.Count + "++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    // Ensure there are related submissions
+        ////    if (!pj103AttachedToOMSubmission.Any())
+        ////    {
+        ////        // If no PJ103 submissions are found, generate only the OM79 file
+        ////        await PrintOM79File(id);
+        ////        return RedirectToAction("Details", "OM79", new { id = id.Value });
+        ////    }
+
+        ////    // Extract SubmissionIDs
+        ////    var submissionIds = pj103AttachedToOMSubmission.Select(s => s.SubmissionID).ToList();
+
+        ////    // Fetch the related RouteInfo entries
+        ////    var pj103AttachedToOM = await _pj103Context.RouteInfo
+        ////                                .Where(routeInfo => submissionIds.Contains(routeInfo.SubmissionID.Value))
+        ////                                .ToListAsync();
 
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++" + submissionIds + "+++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-
-            // If no RouteInfo entries are found, generate only the OM79 file
-            if (!pj103AttachedToOM.Any())
-            {
-                await PrintOM79File(id);
-                return RedirectToAction("Details", "OM79", new { id = id.Value });
-            }
-
-            var fileName = "OM79[" + omTableEntry.Id + "] with PJ103s" + ".pdf";
-            var reports = new List<IDocument>();
-
-            var om79 = new OM79DocumentGeneration(omTableEntry);
-            reports.Add((IDocument)om79);
-
-            foreach (var pj103 in pj103AttachedToOM)
-            {
-                var pj103Report = new PJ103DocumentGeneration(pj103);
-                reports.Add((IDocument)pj103Report);
-            }
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++" + submissionIds + "+++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ////    Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+
+        ////    // If no RouteInfo entries are found, generate only the OM79 file
+        ////    if (!pj103AttachedToOM.Any())
+        ////    {
+        ////        await PrintOM79File(id);
+        ////        return RedirectToAction("Details", "OM79", new { id = id.Value });
+        ////    }
+
+        ////    var fileName = "OM79[" + omTableEntry.Id + "] with PJ103s" + ".pdf";
+        ////    var reports = new List<IDocument>();
+
+        ////    var om79 = new OM79DocumentGeneration(omTableEntry, 1);
+        ////    reports.Add((IDocument)om79);
+
+        ////    foreach (var pj103 in pj103AttachedToOM)
+        ////    {
+        ////        var pj103Report = new PJ103DocumentGeneration(pj103);
+        ////        reports.Add((IDocument)pj103Report);
+        ////    }
 
-            //-----------------------------------------------------------
-            //Local PDF Generation
-            Document
-                .Merge(reports.ToArray())
-                .GeneratePdf(fileName);
-
-            var startInfo = new ProcessStartInfo("explorer.exe", fileName);
-            Process.Start(startInfo);
-            //---------------------------------------------------------------
+        ////    //-----------------------------------------------------------
+        ////    //Local PDF Generation
+        ////    Document
+        ////        .Merge(reports.ToArray())
+        ////        .GeneratePdf(fileName);
+
+        ////    var startInfo = new ProcessStartInfo("explorer.exe", fileName);
+        ////    Process.Start(startInfo);
+        ////    //---------------------------------------------------------------
 
 
 
-            //---------------------------------------------------------------
-            //Live PDF Generation
-            //var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
-            //using var memoryStream = streamManager.GetStream();
-            //HttpContext.Response.ContentType = "application/pdf";
-            //HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
-            //await memoryStream.CopyToAsync(HttpContext.Response.Body);
-            //---------------------------------------------------------------
+        ////    //---------------------------------------------------------------
+        ////    //Live PDF Generation
+        ////    //var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
+        ////    //using var memoryStream = streamManager.GetStream();
+        ////    //HttpContext.Response.ContentType = "application/pdf";
+        ////    //HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
+        ////    //await memoryStream.CopyToAsync(HttpContext.Response.Body);
+        ////    //---------------------------------------------------------------
 
-            return RedirectToAction("Details", "OM79", new { id = id.Value });
-        }
+        ////    return RedirectToAction("Details", "OM79", new { id = id.Value });
+        ////}
 
 
 
 
-        // Export Single PJ103 to PDF
-        public async Task<IActionResult> PrintPJ103File(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        ////// Export Single PJ103 to PDF
+        ////public async Task<IActionResult> PrintPJ103File(int? id)
+        ////{
+        ////    if (id == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
 
-            var pjTableEntry = await _pj103Context.RouteInfo.FirstOrDefaultAsync(e => e.SubmissionID == id.Value);
-            if (pjTableEntry == null)
-            {
-                return NotFound();
-            }
-            var fileName = "PJ103[" + pjTableEntry.SubmissionID + "].pdf";
-            var report = new PJ103DocumentGeneration(pjTableEntry);
+        ////    var pjTableEntry = await _pj103Context.RouteInfo.FirstOrDefaultAsync(e => e.SubmissionID == id.Value);
+        ////    if (pjTableEntry == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
+        ////    var fileName = "PJ103[" + pjTableEntry.SubmissionID + "].pdf";
+        ////    var report = new PJ103DocumentGeneration(pjTableEntry);
 
 
 
-            //-----------------------------------------------------------
-            //Local PDF Generation
-            report.GeneratePdf(fileName);
-            var startInfo = new ProcessStartInfo("explorer.exe", fileName);
-            Process.Start(startInfo);
-            //---------------------------------------------------------------
+        ////    //-----------------------------------------------------------
+        ////    //Local PDF Generation
+        ////    report.GeneratePdf(fileName);
+        ////    var startInfo = new ProcessStartInfo("explorer.exe", fileName);
+        ////    Process.Start(startInfo);
+        ////    //---------------------------------------------------------------
 
 
 
-            //---------------------------------------------------------------
-            //Live PDF Generation
-            //var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
-            //using var memoryStream = streamManager.GetStream();
-            //HttpContext.Response.ContentType = "application/pdf";
-            //HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
-            //await memoryStream.CopyToAsync(HttpContext.Response.Body);
-            //---------------------------------------------------------------
+        ////    //---------------------------------------------------------------
+        ////    //Live PDF Generation
+        ////    //var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
+        ////    //using var memoryStream = streamManager.GetStream();
+        ////    //HttpContext.Response.ContentType = "application/pdf";
+        ////    //HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
+        ////    //await memoryStream.CopyToAsync(HttpContext.Response.Body);
+        ////    //---------------------------------------------------------------
 
 
 
-            return RedirectToAction("Details", "PJ103", new { id = id.Value });
-        }
+        ////    return RedirectToAction("Details", "PJ103", new { id = id.Value });
+        ////}
 
 
 
-        // Export Single OM79 to PDF
-        public async Task<IActionResult> PrintOM79File(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        ////// Export Single OM79 to PDF
+        ////public async Task<IActionResult> PrintOM79File(int? id)
+        ////{
+        ////    if (id == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
 
-            var omTableEntry = await _om79Context.OMTable.FirstOrDefaultAsync(e => e.Id == id.Value);
-            if (omTableEntry == null)
-            {
-                return NotFound();
-            }
-            var fileName = "OM79[" + omTableEntry.Id + "].pdf";
-            var report = new OM79DocumentGeneration(omTableEntry);
+        ////    var omTableEntry = await _om79Context.OMTable.FirstOrDefaultAsync(e => e.Id == id.Value);
+        ////    if (omTableEntry == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
+        ////    var fileName = "OM79[" + omTableEntry.Id + "].pdf";
+        ////    var report = new OM79DocumentGeneration(omTableEntry, 1);
 
 
 
-            //-----------------------------------------------------------
-            //Local PDF Generation
-            report.GeneratePdf(fileName);
-            var startInfo = new ProcessStartInfo("explorer.exe", fileName);
-            Process.Start(startInfo);
-            //---------------------------------------------------------------
+        ////    //-----------------------------------------------------------
+        ////    //Local PDF Generation
+        ////    report.GeneratePdf(fileName);
+        ////    var startInfo = new ProcessStartInfo("explorer.exe", fileName);
+        ////    Process.Start(startInfo);
+        ////    //---------------------------------------------------------------
 
 
 
-            //---------------------------------------------------------------
-            //Live PDF Generation
-            //var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
-            //using var memoryStream = streamManager.GetStream();
-            //HttpContext.Response.ContentType = "application/pdf";
-            //HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
-            //await memoryStream.CopyToAsync(HttpContext.Response.Body);
-            //---------------------------------------------------------------
+        ////    //---------------------------------------------------------------
+        ////    //Live PDF Generation
+        ////    //var streamManager = HttpContext.RequestServices.GetRequiredService<RecyclableMemoryStreamManager>();
+        ////    //using var memoryStream = streamManager.GetStream();
+        ////    //HttpContext.Response.ContentType = "application/pdf";
+        ////    //HttpContext.Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
+        ////    //await memoryStream.CopyToAsync(HttpContext.Response.Body);
+        ////    //---------------------------------------------------------------
 
 
 
-            return RedirectToAction("Details", "OM79", new { id = id.Value });
-        }
+        ////    return RedirectToAction("Details", "OM79", new { id = id.Value });
+        ////}
 
 
 
 
 
-        // Export cover page for OM79
-        public async Task<IActionResult> PrintOM79CoverPage(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        ////// Export cover page for OM79
+        ////public async Task<IActionResult> PrintOM79CoverPage(int? id)
+        ////{
+        ////    if (id == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
 
-            var omHUB = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == id.Value);
-            if (omHUB == null)
-            {
-                return NotFound();
-            }
+        ////    var omHUB = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == id.Value);
+        ////    if (omHUB == null)
+        ////    {
+        ////        return NotFound();
+        ////    }
 
-            var omSignatures = await _hubContext.SignatureData.Where(e => e.HubKey == id.Value).ToListAsync();
+        ////    var omSignatures = await _hubContext.SignatureData.Where(e => e.HubKey == id.Value).ToListAsync();
 
 
-            var omItems = await _om79Context.OMTable.Where(e => e.HubId == id.Value).ToListAsync();
-            var omItemIds = omItems.Select(e => e.Id).ToList(); // Extract the IDs from omItems
+        ////    var omItems = await _om79Context.OMTable.Where(e => e.HubId == id.Value).ToListAsync();
+        ////    var omItemIds = omItems.Select(e => e.Id).ToList(); // Extract the IDs from omItems
 
 
-            var pjSegments = await _pj103Context.Submissions.Where(e => e.OM79Id.HasValue && omItemIds.Contains(e.OM79Id.Value)).ToListAsync(); // Convert OM79Id to int
-            var pjSegmentsIds = pjSegments.Select(e => e.SubmissionID).ToList(); // Extract the IDs from omItems
+        ////    var pjSegments = await _pj103Context.Submissions.Where(e => e.OM79Id.HasValue && omItemIds.Contains(e.OM79Id.Value)).ToListAsync(); // Convert OM79Id to int
+        ////    var pjSegmentsIds = pjSegments.Select(e => e.SubmissionID).ToList(); // Extract the IDs from omItems
 
 
 
-            var fileName = "OMCover[" + omHUB.OMId + "].pdf";
-            var report = new CoverPageDocumentGeneration(omHUB, omSignatures, omItems);
+        ////    var fileName = "OMCover[" + omHUB.OMId + "].pdf";
+        ////    var report = new CoverPageDocumentGeneration(omHUB, omSignatures, omItems);
 
 
 
-            //-----------------------------------------------------------
-            //Local PDF Generation
-            report.GeneratePdf(fileName);
-            var startInfo = new ProcessStartInfo("explorer.exe", fileName);
-            Process.Start(startInfo);
-            //---------------------------------------------------------------
+        ////    //-----------------------------------------------------------
+        ////    //Local PDF Generation
+        ////    report.GeneratePdf(fileName);
+        ////    var startInfo = new ProcessStartInfo("explorer.exe", fileName);
+        ////    Process.Start(startInfo);
+        ////    //---------------------------------------------------------------
 
-            //What information needs to be retreived:
-            //
-            // From Hub
-            // ID Submission Number from omHUB
-            // District Number from omHUB
-            // County from omHub
-            // 
-            // From Om79Item(s)
-            // Need to retrieve all OM79-items and retrieve: (If at least one item is ie Addition then Yes)
-            //      1) Addition Y/N
-            //      2) Redesignation Y/N
-            //      3) Correction to the Map Y/N
-            //      4) Abandonment Y/N
-            //      5) Removal From Inventory
-            //      6) Amend  , This one will also have to retrieve the date
-            //      7) Rescind
-            //      8) Other
-            //
-            //
-            // From Hub
-            // Description (comment Box)
+        ////    //What information needs to be retreived:
+        ////    //
+        ////    // From Hub
+        ////    // ID Submission Number from omHUB
+        ////    // District Number from omHUB
+        ////    // County from omHub
+        ////    // 
+        ////    // From Om79Item(s)
+        ////    // Need to retrieve all OM79-items and retrieve: (If at least one item is ie Addition then Yes)
+        ////    //      1) Addition Y/N
+        ////    //      2) Redesignation Y/N
+        ////    //      3) Correction to the Map Y/N
+        ////    //      4) Abandonment Y/N
+        ////    //      5) Removal From Inventory
+        ////    //      6) Amend  , This one will also have to retrieve the date
+        ////    //      7) Rescind
+        ////    //      8) Other
+        ////    //
+        ////    //
+        ////    // From Hub
+        ////    // Description (comment Box)
 
-            //
-            //
-            //
-            //
-            //
+        ////    //
+        ////    //
+        ////    //
+        ////    //
+        ////    //
 
-            return RedirectToAction("Details", "Central79Hub", new { id = id.Value });
-        }
+        ////    return RedirectToAction("Details", "Central79Hub", new { id = id.Value });
+        ////}
         // Cover Page QUEST PDF Section
         //
         //
@@ -617,6 +721,7 @@ namespace OM_79_HUB.Controllers
                 var rightOfWayWidths = OMTableList
                     .Select(item => item.RightOfWayWidth == "Other" ? item.RightOther : item.RightOfWayWidth)
                     .Where(width => !string.IsNullOrEmpty(width))
+                    .Select(width => $"{width}'") // Append ' for feet
                     .ToList();
 
                 RightOfWayWidths = string.Join(", ", rightOfWayWidths);
@@ -701,12 +806,12 @@ namespace OM_79_HUB.Controllers
                         {
                             col.Item().Text("OM-79").FontSize(10);
                             //col.Item().Text("Page 1 of 2").FontSize(10);
-                            col.Item().Text("Rev. 10/18/23").FontSize(10);
+                            col.Item().Text("Rev. 1/31/25").FontSize(10);
                         });
 
                         row.RelativeColumn().AlignRight().Column(col =>
                         {
-                            col.Item().Text("ID: " + (CENTRAL79HUB.IDNumber ?? "Not Available")).FontSize(10);
+                            col.Item().Text("ID: " + (CENTRAL79HUB.SmartID ?? "Not Available")).FontSize(10); // SmartID
                         });
                     });
 
@@ -784,7 +889,7 @@ namespace OM_79_HUB.Controllers
                         //table.Cell().Row(3).ColumnSpan(7).Column(3).AlignLeft().Text(" HO (through CT, from TI, OM)").Style(underlineStyle); //Change?
                         table.Cell().Row(3).ColumnSpan(4).Column(3).BorderBottom(0.5f).BorderColor(Colors.Black).AlignCenter().Element(container =>
                         {
-                            container.AlignCenter().Text("HO (through CT, from TI, OM)").Style(tableStyle);
+                            container.AlignCenter().Text("HO (through CT,   from TI,   OM)").Style(tableStyle);
                         });
 
                         //Row 4: Add space here
@@ -979,10 +1084,46 @@ namespace OM_79_HUB.Controllers
 
                         foreach (var signatureData in SignatureDataList)
                         {
-                            if (signatureData.SigType == "Right of Way Manager")
+                            //if (signatureData.SigType == "Right of Way Manager")
+                            //{
+                            //    ROWMaFound = true;
+                            //    table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
+                            //    table.Cell().Row(34).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                            //    if (signatureData.IsApprove)
+                            //    {
+                            //        table.Cell().Row(34).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                            //        table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            //    }
+                            //    else if (signatureData.IsDenied)
+                            //    {
+                            //        table.Cell().Row(34).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            //        table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                            //    }
+                            //}
+
+                            //if (signatureData.SigType == "District Administrator")
+                            //{
+                            //    DisAdmFound = true;
+                            //    table.Cell().Row(35).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
+                            //    table.Cell().Row(35).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                            //    if (signatureData.IsApprove)
+                            //    {
+                            //        table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                            //        table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            //    }
+                            //    else if (signatureData.IsDenied)
+                            //    {
+                            //        table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            //        table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
+                            //    }
+                            //}
+
+                            table.Cell().Row(35).ColumnSpan(9).Border(0).Height(0);
+
+                            if (signatureData.SigType == "District Manager")
                             {
-                                ROWMaFound = true;
-                                table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
+                                DisEngFound = true;
+                                table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Manager").Style(tableStyle);
                                 table.Cell().Row(34).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
@@ -995,28 +1136,12 @@ namespace OM_79_HUB.Controllers
                                     table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
+                            table.Cell().Row(35).ColumnSpan(9).Border(0).Height(0);
 
-                            if (signatureData.SigType == "District Administrator")
+                            if (signatureData.SigType == "Right of Way Manager")
                             {
-                                DisAdmFound = true;
-                                table.Cell().Row(35).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
-                                table.Cell().Row(35).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
-                                if (signatureData.IsApprove)
-                                {
-                                    table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                    table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                }
-                                else if (signatureData.IsDenied)
-                                {
-                                    table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                                    table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
-                                }
-                            }
-
-                            if (signatureData.SigType == "District Engineer")
-                            {
-                                DisEngFound = true;
-                                table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Engineer").Style(tableStyle);
+                                ROWMaFound = true;
+                                table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
                                 table.Cell().Row(36).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
                                 if (signatureData.IsApprove)
                                 {
@@ -1099,25 +1224,33 @@ namespace OM_79_HUB.Controllers
                             }
                         }
 
-                        if (!ROWMaFound)
+                        //if (!ROWMaFound)
+                        //{
+                        //    table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
+                        //    table.Cell().Row(34).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        //    table.Cell().Row(34).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        //    table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        //}
+
+                        //if (!DisAdmFound)
+                        //{
+                        //    table.Cell().Row(35).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
+                        //    table.Cell().Row(35).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        //    table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        //    table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        //}
+
+                        if (!DisEngFound)
                         {
-                            table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
+                            table.Cell().Row(34).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Manager").Style(tableStyle);
                             table.Cell().Row(34).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                             table.Cell().Row(34).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                             table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
-                        if (!DisAdmFound)
+                        if (!ROWMaFound)
                         {
-                            table.Cell().Row(35).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Administrator").Style(tableStyle);
-                            table.Cell().Row(35).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(35).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                            table.Cell().Row(35).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        }
-
-                        if (!DisEngFound)
-                        {
-                            table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Engineer").Style(tableStyle);
+                            table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
                             table.Cell().Row(36).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                             table.Cell().Row(36).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                             table.Cell().Row(36).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
@@ -1189,17 +1322,17 @@ namespace OM_79_HUB.Controllers
                             string comments = string.IsNullOrWhiteSpace(rowData.Comments) ? "No Comments" : rowData.Comments;
                             string dateSubmitted = rowData.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
 
-                            table.Cell().Row(53).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(comments).Style(tableStyle);
-                            table.Cell().Row(54).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT RIGHT OF WAY").Style(tableStyle);
-                            table.Cell().Row(54).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
-                            table.Cell().Row(54).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmitted).Style(tableStyle);
+                            table.Cell().Row(56).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(comments).Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT RIGHT OF WAY").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmitted).Style(tableStyle);
                         }
                         else
                         {
-                            table.Cell().Row(53).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
-                            table.Cell().Row(54).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT RIGHT OF WAY").Style(tableStyle);
-                            table.Cell().Row(54).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
-                            table.Cell().Row(54).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(56).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT RIGHT OF WAY").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(57).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
                         }
 
                         table.Cell().Row(55).ColumnSpan(9).Height(20); // Adjust height as needed
@@ -1210,41 +1343,43 @@ namespace OM_79_HUB.Controllers
                             string commentsDistrictManager = string.IsNullOrWhiteSpace(rowDataDistrictManager.Comments) ? "No Comments" : rowDataDistrictManager.Comments;
                             string dateSubmittedDistrictManager = rowDataDistrictManager.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
 
-                            table.Cell().Row(56).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsDistrictManager).Style(tableStyle);
-                            table.Cell().Row(57).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ADMINISTRATOR").Style(tableStyle);
-                            table.Cell().Row(57).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
-                            table.Cell().Row(57).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedDistrictManager).Style(tableStyle);
+                            table.Cell().Row(53).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsDistrictManager).Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT MANAGER").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedDistrictManager).Style(tableStyle);
                         }
                         else
                         {
-                            table.Cell().Row(56).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
-                            table.Cell().Row(57).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ADMINISTRATOR").Style(tableStyle);
-                            table.Cell().Row(57).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
-                            table.Cell().Row(57).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(53).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT MANAGER").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                            table.Cell().Row(54).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
                         }
 
-                        table.Cell().Row(58).ColumnSpan(9).Height(20); // Adjust height as needed
+                        table.Cell().Row(58).ColumnSpan(9).Height(5); // Adjust height as needed
+                        table.Cell().Row(59).ColumnSpan(9).Height(5); // Adjust height as needed
+                        table.Cell().Row(60).ColumnSpan(9).Height(5); // Adjust height as needed
 
-                        var rowDataDistrictEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "District Engineer");
-                        if (rowDataDistrictEngineer != null)
-                        {
-                            string commentsDistrictEngineer = string.IsNullOrWhiteSpace(rowDataDistrictEngineer.Comments) ? "No Comments" : rowDataDistrictEngineer.Comments;
-                            string dateSubmittedDistrictEngineer = rowDataDistrictEngineer.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+                        //var rowDataDistrictEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "District Engineer");
+                        //if (rowDataDistrictEngineer != null)
+                        //{
+                        //    string commentsDistrictEngineer = string.IsNullOrWhiteSpace(rowDataDistrictEngineer.Comments) ? "No Comments" : rowDataDistrictEngineer.Comments;
+                        //    string dateSubmittedDistrictEngineer = rowDataDistrictEngineer.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
 
-                            table.Cell().Row(59).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsDistrictEngineer).Style(tableStyle);
-                            table.Cell().Row(60).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ENGINEER").Style(tableStyle);
-                            table.Cell().Row(60).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
-                            table.Cell().Row(60).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedDistrictEngineer).Style(tableStyle);
-                        }
-                        else
-                        {
-                            table.Cell().Row(59).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
-                            table.Cell().Row(60).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ENGINEER").Style(tableStyle);
-                            table.Cell().Row(60).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
-                            table.Cell().Row(60).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
-                        }
+                        //    table.Cell().Row(59).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text(commentsDistrictEngineer).Style(tableStyle);
+                        //    table.Cell().Row(60).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ENGINEER").Style(tableStyle);
+                        //    table.Cell().Row(60).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                        //    table.Cell().Row(60).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text(dateSubmittedDistrictEngineer).Style(tableStyle);
+                        //}
+                        //else
+                        //{
+                        //    table.Cell().Row(59).ColumnSpan(9).Column(1).Border(1).BorderColor(Colors.Black).PaddingBottom(30).PaddingLeft(5).AlignLeft().Text("No Comments").Style(tableStyle);
+                        //    table.Cell().Row(60).ColumnSpan(3).Column(1).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("DISTRICT ENGINEER").Style(tableStyle);
+                        //    table.Cell().Row(60).ColumnSpan(1).Column(7).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("Date: ").Style(tableStyle);
+                        //    table.Cell().Row(60).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(1).AlignCenter().Text("").Style(tableStyle);
+                        //}
 
-                        table.Cell().Row(61).ColumnSpan(9).Height(20); // Adjust height as needed
+                        table.Cell().Row(61).ColumnSpan(9).Height(5); // Adjust height as needed
 
                         var rowDataMaintenanceEngineer = SignatureDataList.FirstOrDefault(sd => sd.SigType == "Maintenance Engineer");
                         if (rowDataMaintenanceEngineer != null)
@@ -1344,10 +1479,14 @@ namespace OM_79_HUB.Controllers
         public class PJ103DocumentGeneration : IDocument
         {
             public RouteInfo RouteInfo { get; }
+            public int OM79Number { get; } // OM79 item number
+            public int SegmentNumber { get; } // PJ103 segment number
 
-            public PJ103DocumentGeneration(RouteInfo routeInfo)
+            public PJ103DocumentGeneration(RouteInfo routeInfo, int om79Number, int segmentNumber)
             {
                 RouteInfo = routeInfo;
+                OM79Number = om79Number;
+                SegmentNumber = segmentNumber;
             }
 
             public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -1358,35 +1497,30 @@ namespace OM_79_HUB.Controllers
                     .Page(page =>
                     {
                         page.Margin(50);
-                        page.Header().Element(ComposeHeader);
+                        page.Header().Element(c => ComposeHeader(c, OM79Number, SegmentNumber)); // Pass numbers to the header
                         page.Content().Element(ComposeContent);
                         page.Footer().Height(10).Background(Colors.Grey.Lighten1);
                     });
             }
 
-            void ComposeHeader(IContainer container)
+            private void ComposeHeader(IContainer container, int om79Number, int segmentNumber)
             {
                 container.Row(row =>
                 {
                     var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
-                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle);
-                    row.ConstantItem(50).Height(50).Image("wwwroot/Assets/dot.png");
+                    var titleStyle = TextStyle.Default.FontSize(12).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Updated font size for better visibility
 
-                    row.RelativeItem().Column(column =>
+                    // Logo on the left
+                    row.ConstantItem(50).Height(50).Image("wwwroot/Assets/OMdot.png", ImageScaling.FitArea);
+
+                    // Title in the center
+                    row.RelativeItem().AlignCenter().Text(text =>
                     {
-                        column.Item().AlignCenter().Text(text =>
-                        {
-                            text.Span("PJ103").Style(titleStyle);
-                        });
-
-                        column.Item().AlignRight().Text(text =>
-                        {
-                            string formattedDate = RouteInfo.SubmissionID.HasValue
-                                                   ? RouteInfo.SubmissionID.Value.ToString()
-                                                   : "N/A";
-                            text.Span("Submission ID: " + formattedDate).Style(titleStyle);
-                        });
+                        text.Span($"PJ-103: Segment {om79Number}-{segmentNumber}").Style(titleStyle);
                     });
+
+                    // Add some spacing or padding on the right for balance (if needed)
+                    row.ConstantItem(50).Height(50); // Placeholder for symmetry
                 });
             }
 
@@ -1492,60 +1626,6 @@ namespace OM_79_HUB.Controllers
         }
 
 
-
-
-        /*
-        public class PJ103DocumentGeneration : IDocument
-        {
-            public Submission Submission { get; }
-
-
-            public PJ103DocumentGeneration(Submission pj103Object)
-            {
-                Submission = pj103Object;
-            }
-
-            public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
-
-
-            public void Compose(IDocumentContainer container)
-            {
-                container
-                    .Page(page =>
-                    {
-                        page.Margin(50);
-
-                        page.Header().Element(ComposeHeader);
-                        //page.Content().Element(ComposeContent);
-                        page.Footer().Height(10).Background(Colors.Grey.Lighten1);
-                    });
-            }
-
-            void ComposeHeader(IContainer container)
-            {
-                container.Row(row =>
-                {
-                    var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
-                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Specify fallback font
-                    
-                    row.ConstantItem(50).Height(50).Image("wwwroot/Assets/dot.png");
-                    row.RelativeItem().Column(column =>
-                    {
-                        column.Item().AlignCenter().Text(text =>
-                        {
-                            text.Span("Pj103").Style(titleStyle);
-                        });
-                        column.Item().AlignRight().Text(text =>
-                        {
-                            text.Span("Submission Date: " + Submission.DateComplete).Style(titleStyle);
-                        });
-                    });
-                });
-            }
-        }
-        */
-
-
         // OM79 QUEST PDF Section
         //
         //
@@ -1556,11 +1636,14 @@ namespace OM_79_HUB.Controllers
         public class OM79DocumentGeneration : IDocument
         {
             public OMTable OMTable { get; }
+            public int ItemNumber { get; } // Property for item number
 
 
-            public OM79DocumentGeneration(OMTable OM_Table)
+
+            public OM79DocumentGeneration(OMTable OM_Table, int itemNumber)
             {
                 OMTable = OM_Table;
+                ItemNumber = itemNumber; // Set the item number
             }
 
             public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -1573,40 +1656,49 @@ namespace OM_79_HUB.Controllers
                     {
                         page.Margin(50);
 
-                        page.Header().Element(ComposeHeader);
+                        page.Header().Element(c => ComposeHeader(c, ItemNumber)); 
                         page.Content().Element(ComposeContent);
                         page.Footer().Height(10).Background(Colors.Grey.Lighten1);
                     });
             }
 
-            void ComposeHeader(IContainer container)
+
+
+
+            void ComposeHeader(IContainer container, int itemNumber)
             {
                 container.Row(row =>
                 {
                     var fallbackStyle = TextStyle.Default.FontFamily("Microsoft PhagsPa");
-                    var titleStyle = TextStyle.Default.FontSize(10).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Apply fallback style
-                    row.ConstantItem(50).Height(50).Image("wwwroot/Assets/dot.png");
+                    var titleStyle = TextStyle.Default.FontSize(12).SemiBold().Italic().FontColor(Colors.Black).Fallback(fallbackStyle); // Title style
+                    var dateStyle = TextStyle.Default.FontSize(10).FontColor(Colors.Grey.Medium).Fallback(fallbackStyle);
 
+                    // Logo on the left
+                    row.ConstantItem(50).Height(50).Image("wwwroot/Assets/OMdot.png", ImageScaling.FitArea);
 
+                    // Title and date in a vertically stacked column
                     row.RelativeItem().Column(column =>
                     {
+                        // Title centered
                         column.Item().AlignCenter().Text(text =>
                         {
-                            text.Span("OM79").Style(titleStyle);
+                            text.Span($"OM-79: Item {itemNumber}").Style(titleStyle);
                         });
 
-                        column.Item().AlignRight().Text(text =>
+                        // Date below the title, smaller and aligned center
+                        column.Item().AlignCenter().Text(text =>
                         {
                             string formattedDate = OMTable.SubmissionDate.HasValue
-                                                   ? OMTable.SubmissionDate.Value.ToString("MM/dd/yyyy") 
-                                                   : "N/A"; 
-                            text.Span(formattedDate).Style(titleStyle);
+                                                   ? OMTable.SubmissionDate.Value.ToString("MM/dd/yyyy")
+                                                   : "N/A";
+                            text.Span(formattedDate).Style(dateStyle);
                         });
-
                     });
+
+                    // Add some padding or spacing on the right side for balance
+                    row.ConstantItem(50).Height(50); // Placeholder for spacing
                 });
             }
-
 
 
             void ComposeContent(IContainer container)
@@ -1665,7 +1757,7 @@ namespace OM_79_HUB.Controllers
                                 .Text("Supplemental Code:\n" + (OMTable?.Supplemental ?? "N/A")).Style(tableStyle);
 
                             table.Cell().Row(10).Column(2).Element(CellStyle)
-                                .Text("Right Of Way Width:\n" + (OMTable?.RightOfWayWidth ?? "N/A")).Style(tableStyle);
+                                .Text("Right Of Way Width:\n" + (OMTable?.RightOfWayWidth != null ? OMTable.RightOfWayWidth + "'" : "N/A")).Style(tableStyle);
 
                             table.Cell().Row(11).ColumnSpan(3).Column(1).Element(CellStyle)
                                 .PaddingVertical(10).Text("Explanation:\n" + (OMTable?.Comments ?? "N/A")).Style(tableStyle);
