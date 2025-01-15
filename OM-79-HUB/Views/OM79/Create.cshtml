@@ -17,7 +17,7 @@
 
     <main>
         <!-- Begin Form -->
-        <form id="roadChangeForm" asp-action="Create" method="post" novalidate>
+        <form id="roadChangeForm" asp-action="Create" method="post" enctype="multipart/form-data">
             <!-- Validation Summary -->
             <div asp-validation-summary="ModelOnly" class="text-danger" style="display: @(ViewData.ModelState.IsValid ? "none" : "block");"></div>
 
@@ -391,6 +391,7 @@
              <!--Hidden Inputs-->
             <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
             <input type="hidden" name="DateComplete" value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")" />
+            <input type="hidden" name="Datsubmit" value="Save" /> 
             <!-- Save Button -->
             <div class="form-group mt-4">
                 <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
