@@ -1,7 +1,894 @@
 ﻿@model OMTable
 
 @{
-    @*Layout = "~/Views/Shared/_OM79Layout.cshtml";*@
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Create Item";
+}
+
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">OM79-Item Create</h1>
+            <p class="lead">Changes to the State Road System</p>
+            <p>The District requests a Commissioner's Order be entered to implement the following road change(s):</p>
+        </div>
+    </div>
+
+    <main>
+        <!-- Begin Form -->
+        <form id="roadChangeForm" asp-action="Create" method="post" novalidate>
+            <!-- Validation Summary -->
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="display: @(ViewData.ModelState.IsValid ? "none" : "block");"></div>
+
+
+            <!-- Road Change Type Section -->
+            <section>
+                <fieldset>
+                    <legend>Road Change Type</legend>
+                    <div class="row">
+                        <!-- Road Change Type Dropdown -->
+                        <div class="col-md-4">
+                            <label asp-for="RoadChangeType" class="control-label">
+                                @Html.DisplayNameFor(model => model.RoadChangeType) <span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="RoadChangeType" name="RoadChangeType" class="form-control" asp-items="@ViewBag.RCTDropdown"></select>
+                            <span asp-validation-for="RoadChangeType" class="text-danger"></span>
+                        </div>
+
+                        <!-- CoDate -->
+                        <div class="col-md-4" id="RoadContainer" style="display:none;">
+                            <label asp-for="CoDate" class="control-label">
+                                @Html.DisplayNameFor(model => model.CoDate) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="CoDate" type="date" class="form-control" />
+                            <span asp-validation-for="CoDate" class="text-danger"></span>
+                        </div>
+
+                        <!-- CoDateTwo -->
+                        <div class="col-md-4" id="CoDateTwoContainer" style="display:none;">
+                            <label asp-for="CoDateTwo" class="control-label">
+                                @Html.DisplayNameFor(model => model.CoDateTwo)
+                            </label>
+                            <input asp-for="CoDateTwo" type="date" class="form-control" />
+                            <span asp-validation-for="CoDateTwo" class="text-danger"></span>
+                        </div>
+
+                        <!-- Otherbox -->
+                        <div class="col-md-4" id="OtherboxContainer" style="display:none;">
+                            <label asp-for="Otherbox" class="control-label">
+                                @Html.DisplayNameFor(model => model.Otherbox) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="Otherbox" class="form-control" />
+                            <span asp-validation-for="Otherbox" class="text-danger"></span>
+                        </div>
+
+                        <!-- Requested By -->
+                        <div class="col-md-4">
+                            <label asp-for="RequestedBy" class="control-label">
+                                @Html.DisplayNameFor(model => model.RequestedBy) <span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="RequestedBy" name="RequestedBy" class="form-control" asp-items="@ViewBag.RequestDropdown"></select>
+                            <span asp-validation-for="RequestedBy" class="text-danger"></span>
+                        </div>
+
+                        <!-- Requested By Name -->
+                        <div class="col-md-4" id="RequestedByNameContainer">
+                            <label asp-for="RequestedByName" class="control-label">
+                                @Html.DisplayNameFor(model => model.RequestedByName) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="RequestedByName" class="form-control" />
+                            <span asp-validation-for="RequestedByName" class="text-danger"></span>
+                        </div>
+
+                        <!-- Segment Count -->
+                        <div class="col-md-12" id="segmentCountContainer" style="display:none;">
+                            <label for="segmentCount">
+                                How many DIFFERENT segments will be with this Item? <span class="required-asterisk">*</span>
+                            </label>
+                            <input type="number" id="segmentCount" name="segmentCount" class="form-control" min="1" step="1" required />
+                            <span class="text-danger" id="segmentCountError"></span>
+                        </div>
+
+                        <!-- Attachments -->
+                        <div class="col-md-12">
+                            <label asp-for="Attachments" class="control-label">
+                                @Html.DisplayNameFor(model => model.Attachments) <span class="required-asterisk">*</span>
+                            </label>
+                            <textarea asp-for="Attachments" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Attachments" class="text-danger"></span>
+                        </div>
+
+                        <!-- Route Assignment -->
+                        <div class="col-md-4">
+                            <label asp-for="RouteAssignment" class="control-label">
+                                @Html.DisplayNameFor(model => model.RouteAssignment) <span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="RouteAssignment" name="RouteAssignment" class="form-control" asp-items="@ViewBag.RADropdown"></select>
+                            <span asp-validation-for="RouteAssignment" class="text-danger"></span>
+                        </div>
+
+                        <!-- Route -->
+                        <div class="col-md-4">
+                            <label asp-for="Route" class="control-label">
+                                @Html.DisplayNameFor(model => model.Route) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="Route" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+                            <span asp-validation-for="Route" class="text-danger"></span>
+                        </div>
+
+                        <!-- SubRoute -->
+                        <div class="col-md-4">
+                            <label asp-for="SubRoute" class="control-label">
+                                @Html.DisplayNameFor(model => model.SubRoute) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="SubRoute" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+                            <span asp-validation-for="SubRoute" class="text-danger"></span>
+                        </div>
+
+                        <!-- Supplemental -->
+                        <div class="col-md-4">
+                            <label asp-for="Supplemental" class="control-label">
+                                @Html.DisplayNameFor(model => model.Supplemental) <span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="Supplemental" name="Supplemental" class="form-control" asp-items="@ViewBag.SuppDropdown"></select>
+                            <span asp-validation-for="Supplemental" class="text-danger"></span>
+                        </div>
+
+                        <!-- Right of Way Width -->
+                        <div class="col-md-4">
+                            <label asp-for="RightOfWayWidth" class="control-label">
+                                @Html.DisplayNameFor(model => model.RightOfWayWidth)
+                            </label>
+                            <select asp-for="RightOfWayWidth" name="RightOfWayWidth" class="form-control" asp-items="@ViewBag.ROWDropdown"></select>
+                            <span asp-validation-for="RightOfWayWidth" class="text-danger"></span>
+                        </div>
+
+                        <!-- Right Other -->
+                        <div class="col-md-4" id="RightOtherContainer" style="display:none;">
+                            <label asp-for="RightOther" class="control-label">
+                                @Html.DisplayNameFor(model => model.RightOther) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="RightOther" class="form-control" />
+                            <span asp-validation-for="RightOther" class="text-danger"></span>
+                        </div>
+
+                        <!-- Comments -->
+                        <div class="col-md-12">
+                            <label asp-for="Comments" class="control-label">
+                                @Html.DisplayNameFor(model => model.Comments) (IE Project Numbers, Plan Numbers, etc.)
+                            </label>
+                            <input asp-for="Comments" class="form-control" />
+                            <span asp-validation-for="Comments" class="text-danger"></span>
+                        </div>
+                    </div>
+                </fieldset>
+            </section>
+
+            <section>
+                <fieldset>
+                    <legend>Adjacent Property</legend>
+                    <div class="row">
+                        <!-- Houses -->
+                        <div class="col-md-4">
+                            <label asp-for="APHouses" class="control-label">Houses<span class="required-asterisk">*</span></label>
+                            <input asp-for="APHouses" id="APHouses" class="form-control calculate-sum" type="number" min="0" />
+                            <span asp-validation-for="APHouses" class="text-danger"></span>
+                        </div>
+
+                        <!-- Businesses -->
+                        <div class="col-md-4">
+                            <label asp-for="APBusinesses" class="control-label">Businesses<span class="required-asterisk">*</span></label>
+                            <input asp-for="APBusinesses" id="APBusinesses" class="form-control calculate-sum" type="number" min="0" />
+                            <span asp-validation-for="APBusinesses" class="text-danger"></span>
+                        </div>
+
+                        <!-- Schools -->
+                        <div class="col-md-4">
+                            <label asp-for="APSchools" class="control-label">Schools<span class="required-asterisk">*</span></label>
+                            <input asp-for="APSchools" id="APSchools" class="form-control calculate-sum" type="number" min="0" />
+                            <span asp-validation-for="APSchools" class="text-danger"></span>
+                        </div>
+
+                        <!-- Other -->
+                        <div class="col-md-4">
+                            <label asp-for="APOther" class="control-label">Other<span class="required-asterisk">*</span></label>
+                            <input asp-for="APOther" id="APOther" class="form-control calculate-sum" type="number" min="0" />
+                            <span asp-validation-for="APOther" class="text-danger"></span>
+                        </div>
+
+                        <!-- Other Identify -->
+                        <div class="col-md-4" id="APOtherIdentifyContainer" style="display:none;">
+                            <label asp-for="APOtherIdentify" class="control-label">Identify Other<span class="required-asterisk">*</span></label>
+                            <input asp-for="APOtherIdentify" id="APOtherIdentify" class="form-control" />
+                            <span asp-validation-for="APOtherIdentify" class="text-danger"></span>
+                        </div>
+
+                        <!-- Total Adjacent Property -->
+                        <div class="col-md-4">
+                            <label asp-for="AdjacentProperty" class="control-label">Total Adjacent Property</label>
+                            <input asp-for="AdjacentProperty" id="AdjacentProperty" class="form-control" type="number" readonly />
+                            <span asp-validation-for="AdjacentProperty" class="text-danger"></span>
+                        </div>
+                    </div>
+                </fieldset>
+            </section>
+
+            <!-- Bridge/Railroad Information Section -->
+            <section>
+                <fieldset>
+                    <legend>Bridge/Railroad Information</legend>
+                    <div class="row">
+                        <!-- Bridge Inventory -->
+                        <div class="col-md-4">
+                            <label asp-for="BridgeInv" class="control-label">
+                                @Html.DisplayNameFor(model => model.BridgeInv)<span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="BridgeInv" name="BridgeInv" class="form-control" asp-items="@ViewBag.TFDropdown"></select>
+                            <span asp-validation-for="BridgeInv" class="text-danger"></span>
+                            <div id="bridgeInvError" class="text-danger"></div>
+                        </div>
+
+                        <!-- Bridge Amount -->
+                        <div class="col-md-4" id="BridgeAmountContainer" style="display:none;">
+                            <label asp-for="BridgeAmount" class="control-label">
+                                @Html.DisplayNameFor(model => model.BridgeAmount)<span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="BridgeAmount" class="form-control" min="0" onkeydown="validatePositiveNumber(event)" />
+                            <span asp-validation-for="BridgeAmount" class="text-danger"></span>
+                        </div>
+
+                        <!-- Bridge Numbers -->
+                        <div class="col-md-4" id="BridgeNumbersContainer" style="display:none;">
+                            <label asp-for="BridgeNumbers" class="control-label">
+                                @Html.DisplayNameFor(model => model.BridgeNumbers)<span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="BridgeNumbers" class="form-control" />
+                            <span asp-validation-for="BridgeNumbers" class="text-danger"></span>
+                        </div>
+
+                        <!-- Railroad Inventory -->
+                        <div class="col-md-4">
+                            <label asp-for="RailroadInv" class="control-label">
+                                @Html.DisplayNameFor(model => model.RailroadInv)<span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="RailroadInv" name="RailroadInv" class="form-control" asp-items="@ViewBag.TFDropdown"></select>
+                            <span asp-validation-for="RailroadInv" class="text-danger"></span>
+                            <div id="railroadInvError" class="text-danger"></div>
+                        </div>
+
+                        <!-- Railroad Amount -->
+                        <div class="col-md-4" id="RailroadAmountContainer" style="display:none;">
+                            <label asp-for="RailroadAmount" class="control-label">
+                                @Html.DisplayNameFor(model => model.RailroadAmount)<span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="RailroadAmount" class="form-control" />
+                            <span asp-validation-for="RailroadAmount" class="text-danger"></span>
+                        </div>
+
+                        <!-- DOT/AAR Number -->
+                        <div class="col-md-4" id="DOTAARNumberContainer" style="display:none;">
+                            <label asp-for="DOTAARNumber" class="control-label">
+                                @Html.DisplayNameFor(model => model.DOTAARNumber)<span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="DOTAARNumber" class="form-control" />
+                            <span asp-validation-for="DOTAARNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </fieldset>
+            </section>             
+            
+            <section>
+                <fieldset>
+                    <legend>General Information</legend>
+                    <div class="row">
+                        <!-- Sign System Field -->
+                        <div class="col-md-4">
+                            <label asp-for="SignSystem" class="control-label">@Html.DisplayNameFor(model => model.SignSystem) <span class="required-asterisk">*</span></label>
+                            <select asp-for="SignSystem" name="SignSystem" class="form-control" asp-items="@ViewBag.SignDropdown"></select>
+                            <span asp-validation-for="SignSystem" class="text-danger"></span>
+                        </div>
+
+                        <!-- Project Number -->
+                        <div class="col-md-4">
+                            <label asp-for="ProjectNumber" class="control-label"></label>
+                            <input asp-for="ProjectNumber" class="form-control" />
+                            <span asp-validation-for="ProjectNumber" class="text-danger"></span>
+                        </div>
+                        
+                        <!-- Year of Survey -->
+                        <div class="col-md-4">
+                            <label asp-for="YearOfSurvey" class="control-label">@Html.DisplayNameFor(model => model.YearOfSurvey)</label>
+                            <select asp-for="YearOfSurvey" class="form-control" style="color: #000;">
+                                <option value="">Select Year</option>
+                                @for (int year = DateTime.Now.Year - 10; year <= DateTime.Now.Year + 5; year++)
+                                {
+                                    <option value="@year">@year</option>
+                                }
+                            </select>
+                            <span asp-validation-for="YearOfSurvey" class="text-danger"></span>
+                        </div>
+                        
+                        <!-- Route Number -->
+                        <div class="col-md-4">
+                            <label asp-for="RouteNumber" class="control-label">@Html.DisplayNameFor(model => model.RouteNumber) <span class="required-asterisk">*</span></label>
+                            <input asp-for="RouteNumber" class="form-control" type="number" step="1" min="0" max="9999" onkeydown="validatePositiveNumber(event)" />
+                            <span asp-validation-for="RouteNumber" class="text-danger"></span>
+                        </div>
+
+                        <!-- SubRoute Number -->
+                        <div class="col-md-4">
+                            <label asp-for="SubRouteNumber" class="control-label">@Html.DisplayNameFor(model => model.SubRouteNumber) <span class="required-asterisk">*</span></label>
+                            <input asp-for="SubRouteNumber" class="form-control" type="number" step="1" min="0" max="99" onkeydown="validatePositiveNumber(event)" />
+                            <span asp-validation-for="SubRouteNumber" class="text-danger"></span>
+                        </div>
+                        
+                        <!-- Maintenance Organization -->
+                        <div class="col-md-4">
+                            <label asp-for="MaintOrg" class="control-label">@Html.DisplayNameFor(model => model.MaintOrg)</label>
+                            <select asp-for="MaintOrg" name="MaintOrg" class="form-control" asp-items="@ViewBag.DOHDropdown"></select>
+                            <span asp-validation-for="MaintOrg" class="text-danger"></span>
+                        </div>
+                       
+
+                        
+                        <!-- Starting Mile Point -->
+                        <div class="col-md-4">
+                            <label for="StartingMilePoint" class="control-label">Starting MP <span class="required-asterisk">*</span></label>
+                            <input id="StartingMilePoint" name="StartingMilePoint" class="form-control" type="number" step="0.0001" min="0" />
+                            <span class="text-danger" id="StartingMilePointError"></span>
+                        </div>
+
+                        <!-- Ending Mile Point -->
+                        <div class="col-md-4">
+                            <label for="EndingMilePoint" class="control-label">Ending MP <span class="required-asterisk">*</span></label>
+                            <input id="EndingMilePoint" name="EndingMilePoint" class="form-control" type="number" step="0.0001" min="0" />
+                            <span class="text-danger" id="EndingMilePointError"></span>
+                        </div>
+
+
+                        @*  <!-- Starting Mile Point -->
+                        <div class="col-md-4">
+                            <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint) <span class="required-asterisk">*</span></label>
+                            <input asp-for="StartingMilePoint" class="form-control" type="hidden" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
+                            <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
+                        </div> *@
+
+
+                        @*
+                        <!-- Ending Mile Point -->
+                        <div class="col-md-4">
+                            <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint) <span class="required-asterisk">*</span></label>
+                            <input asp-for="EndingMilePoint" class="form-control" type="text" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
+                            <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
+                        </div> 
+                        *@
+
+                        
+                    </div>
+                </fieldset>
+            </section>
+
+            <section>
+                <fieldset>
+                    <legend>Attach Files</legend>
+                    <div class="form-group">
+                        <label for="attachments">Attach Files:</label>
+                        <input type="file" id="fileInput" name="attachments" multiple style="display: none;">
+                        <button type="button" class="btn btn-info" onclick="document.getElementById('fileInput').click();">Add Files</button>
+                        <div id="bannerContainer"></div> <!-- For displaying error or success banners -->
+                        <ul id="fileList" class="list-unstyled"></ul>
+                        <small class="text-muted">
+                            Note: The total size of all files combined must not exceed 100MB. Multiple files are allowed.
+                            You can upload additional files individually if necessary from the details page for each unique item.
+                        </small>
+                    </div>
+                    <br />
+                    <div id="fileInfo"></div>
+                </fieldset>
+            </section>
+
+             <!--Hidden Inputs-->
+            <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
+            <input type="hidden" name="DateComplete" value="@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")" />
+            <!-- Save Button -->
+            <div class="form-group mt-4">
+                <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
+            </div>
+
+           
+        </form>
+        <!-- End Form -->
+
+
+        <br />
+        <br />
+
+        <!-- Legend Section -->
+        <section>
+            <fieldset style="border: 1px solid #000; padding: 10px;">
+                <legend style="text-align: center;">Legend</legend>
+                <div class="legend-container">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>MP</strong> - Mile Point</p>
+                            <p><strong>CO</strong> - County Route</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>BARS</strong> - Bridge Number</p>
+                            <p><strong>FANS</strong> - Federal Aid Non-State</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>HARP</strong> - Home Access Roads Program</p>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </section>
+    </main>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        let allFiles = []; // Store all files globally
+
+        // Function to update the file list
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = ''; // Clear previous content
+
+            allFiles.forEach((file, index) => {
+                const listItem = document.createElement('li');
+
+                // Checkmark for success message
+                const checkmark = document.createElement('span');
+                checkmark.innerHTML = '&#10004; ';
+                checkmark.style.color = 'green';
+
+                // File name and size
+                const fileDetails = document.createTextNode(`${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`);
+
+                // Remove button
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.className = 'btn btn-danger btn-sm';
+                removeButton.style.marginLeft = '10px';
+                removeButton.onclick = () => removeFile(index);
+
+                listItem.appendChild(checkmark);
+                listItem.appendChild(fileDetails);
+                listItem.appendChild(removeButton);
+
+                fileList.appendChild(listItem);
+            });
+        }
+
+        // Function to handle file removal
+        function removeFile(index) {
+            allFiles.splice(index, 1); // Remove file from the array
+            updateFileList();
+        }
+
+        // Function to validate file size and update the UI
+        function validateAndAddFiles(files) {
+            const bannerContainer = document.getElementById('bannerContainer');
+            const maxTotalSize = 100 * 1024 * 1024; // 100 MB in bytes
+            let totalSize = allFiles.reduce((sum, file) => sum + file.size, 0);
+
+            bannerContainer.innerHTML = ''; // Clear banners
+
+            Array.from(files).forEach(file => {
+                if (totalSize + file.size > maxTotalSize) {
+                    const errorBanner = document.createElement('div');
+                    errorBanner.className = 'alert alert-danger';
+                    errorBanner.textContent = `Cannot add ${file.name}. Total size exceeds the limit of 100MB.`;
+                    bannerContainer.appendChild(errorBanner);
+                } else {
+                    allFiles.push(file);
+                    totalSize += file.size;
+                }
+            });
+
+            updateFileList(); // Update file list
+        }
+
+        // Event listener for file input
+        document.getElementById('fileInput').addEventListener('change', function () {
+            validateAndAddFiles(this.files);
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            const form = $("#roadChangeForm");
+
+            // Initialize jQuery Validation
+            form.validate({
+                errorClass: "text-danger",
+                errorElement: "span",
+                highlight: function (element) {
+                    console.log("Highlighting: ", element.id);
+                    $(element).addClass("is-invalid").removeClass("is-valid");
+                },
+                unhighlight: function (element) {
+                    const value = $(element).val().trim();
+                    if (value === "") {
+                        console.log("UNHighlighting: ", element.id);
+                        $(element).addClass("is-invalid").removeClass("is-valid");
+                    } else {
+                        console.log("Esle UN Highlighting: ", element.id);
+                        $(element).addClass("is-valid").removeClass("is-invalid");
+                    }
+                },
+                invalidHandler: function () {
+                    console.log("Form contains errors. Please correct them.");
+                },
+                submitHandler: function (form) {
+                    // Disable the submit button
+                    const submitButton = $(form).find(':submit');
+                    submitButton.prop('disabled', true).text('Submitting...');
+
+                    
+                    // Display a loading screen with spinner and text
+                    const loadingOverlay = $(`
+                        <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: Arial, sans-serif;">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #333;">Submitting...</div>
+                        </div>
+                    `);           
+                    $('body').append(loadingOverlay);
+
+                                   // Add delay before form submission (e.g., 2 seconds)
+                    setTimeout(() => {
+                        form.submit();
+                    }, 2000); // Delay of 2000ms (2 seconds)
+                }
+            });
+
+            // Section-specific validation setup calls
+            setupRoadChangeTypeValidation();
+            setupAdjacentPropertyValidation();
+            setupBridgeRailroadValidation();
+            setupGeneralInformationValidation();
+        });
+    </script>
+
+    <script>
+        // 1. Add the custom rule before defining setupGeneralInformationValidation
+        $.validator.addMethod("milepointRange", function(value, element) {
+            const startVal = parseFloat($("#StartingMilePoint").val());
+            const endVal = parseFloat(value);
+            return (isNaN(startVal) || isNaN(endVal)) || endVal >= startVal; // true if ending >= starting
+        }, "Ending Mile Point must be greater than or equal to Starting Mile Point.");
+
+        function setupGeneralInformationValidation() {
+            const form = $("#roadChangeForm");
+
+            form.find("#SignSystem").rules("add", { required: true, messages: { required: "Please select a valid Sign System." } });
+            form.find("#ProjectNumber").rules("add", { required: false, messages: { required: "Project Number is required." } });
+            form.find("#YearOfSurvey").rules("add", { required: false, messages: { required: "Please select a Year of Survey." } });
+            form.find("#RouteNumber").rules("add", { required: true, min: 0, messages: { required: "Route Number is required.", min: "Route Number cannot be negative." } });
+            form.find("#SubRouteNumber").rules("add", { required: true, min: 0, messages: { required: "SubRoute Number is required.", min: "SubRoute Number cannot be negative." } });
+            form.find("#MaintOrg").rules("add", { required: false, messages: { required: "Please select a Maintenance Organization." } });
+            form.find("#StartingMilePoint").rules("add", { required: true, min: 0, messages: { required: "Starting Mile Point is required.", min: "Starting Mile Point cannot be negative." } });
+            form.find("#EndingMilePoint").rules("add", { required: true, min: 0, milepointRange: true, messages: { required: "Ending Mile Point is required.", min: "Ending Mile Point cannot be negative.", milepointRange: "Ending Mile Point must be greater than or equal to Starting Mile Point." } });
+
+            $("#RoadChangeType").trigger("change");
+        }
+
+        $(document).ready(function () {
+            setupGeneralInformationValidation();
+        });
+    </script>
+
+    
+    <script>
+        function setupBridgeRailroadValidation() {
+            const form = $("#roadChangeForm");
+
+            // Add validation rules for Bridge/Railroad fields
+            form.find("#BridgeInv").rules("add", { required: true, messages: { required: "Please select a Bridge Inventory option." } });
+            form.find("#BridgeAmount").rules("add", { required: false, min: 0, messages: { required: "Please provide a valid Bridge Amount.", min: "Value cannot be negative." } });
+            form.find("#BridgeNumbers").rules("add", { required: false, messages: { required: "Please provide valid BARS (Bridge Numbers)." } });
+            form.find("#RailroadInv").rules("add", { required: true, messages: { required: "Please select a Railroad Inventory option." } });
+            form.find("#RailroadAmount").rules("add", { required: false, messages: { required: "Please provide a valid Railroad Amount." } });
+            form.find("#DOTAARNumber").rules("add", { required: false, messages: { required: "Please provide a valid DOT/AAR Number." } });
+
+            // Toggle visibility and validation based on BridgeInv selection
+            $("#BridgeInv").change(function () {
+                const bridgeInvValue = $(this).val();
+                if (bridgeInvValue === "True" || bridgeInvValue === "true") { // Handle case-sensitive values
+                    $("#BridgeAmountContainer, #BridgeNumbersContainer").show();
+                    $("#BridgeAmount").rules("add", { required: true });
+                    $("#BridgeNumbers").rules("add", { required: true });
+                } else {
+                    $("#BridgeAmountContainer, #BridgeNumbersContainer").hide();
+                    $("#BridgeAmount").rules("remove", "required");
+                    $("#BridgeNumbers").rules("remove", "required");
+                }
+            });
+
+            // Toggle visibility and validation based on RailroadInv selection
+            $("#RailroadInv").change(function () {
+                const railroadInvValue = $(this).val();
+                if (railroadInvValue === "True" || railroadInvValue === "true") { // Handle case-sensitive values
+                    $("#RailroadAmountContainer, #DOTAARNumberContainer").show();
+                    $("#RailroadAmount").rules("add", { required: true });
+                    $("#DOTAARNumber").rules("add", { required: true });
+
+                } else {
+                    $("#RailroadAmountContainer, #DOTAARNumberContainer").hide();
+                    $("#RailroadAmount").rules("remove", "required");
+                    $("#DOTAARNumber").rules("remove", "required");
+                }
+            });
+
+            // Initialize visibility on page load
+            $("#BridgeInv, #RailroadInv").trigger("change");
+        }
+
+        // Ensure the setup function is called on document ready
+        $(document).ready(function () {
+            setupBridgeRailroadValidation();
+        });
+    </script>
+
+
+
+
+    <script>
+        function setupRoadChangeTypeValidation() {
+            const form = $("#roadChangeForm");
+
+            // Add rules and messages specific to "Road Change Type"
+            form.find("#RoadChangeType").rules("add", { required: true, messages: { required: "Please select a Road Change Type." } });
+            form.find("#CoDate").rules("add", { required: false, messages: { required: "Please provide a valid date for CoDate." } });
+            form.find("#CoDateTwo").rules("add", { required: false, messages: { required: "Please provide a valid date for CoDateTwo." } });
+            form.find("#Otherbox").rules("add", { required: false, messages: { required: "This field is required when 'Other' is selected." } });
+            form.find("#RequestedBy").rules("add", { required: true, messages: { required: "Please select who is requesting." } });
+            form.find("#RequestedByName").rules("add", { required: true, messages: { required: "Please provide the requester's name." } });
+            form.find("#segmentCount").rules("add", { required: false, messages: { required: "Please provide the segment count." } });
+            form.find("#Attachments").rules("add", { required: true, messages: { required: "Please provide attachment details." } });
+            form.find("#RouteAssignment").rules("add", { required: true, messages: { required: "Please select a Route Assignment." } });
+            form.find("#Route").rules("add", { required: true, messages: { required: "Please enter the Route." } });
+            form.find("#SubRoute").rules("add", { required: true, messages: { required: "Please enter the SubRoute." } });
+            form.find("#Supplemental").rules("add", { required: true, messages: { required: "Please select Supplemental information." } });
+            form.find("#RightOfWayWidth").rules("add", { required: false, messages: { required: "Please select the Right of Way Width." } });
+            form.find("#RightOther").rules("add", { required: false, messages: { required: "Please provide details for 'Other' Right of Way." } });
+            form.find("#Comments").rules("add", { required: false, messages: { required: "Please provide additional comments." } });
+
+
+            // Toggle visibility logic for RightOfWayWidth
+            $("#RightOfWayWidth").change(function () {
+                const selectedValue = $(this).val();
+
+                if (selectedValue === "Other") {
+                    $("#RightOtherContainer").show();
+                    $("#RightOther").rules("add", { required: true });
+                } else {
+                    $("#RightOtherContainer").hide();
+                    $("#RightOther").rules("remove", "required");
+                }
+            });
+            // Toggle visibility logic
+            $("#RoadChangeType").change(function () {
+                const roadChangeType = $(this).val();
+
+                // Toggle CoDate and CoDateTwo
+                if (roadChangeType === "Amend") {
+                    $("#RoadContainer, #CoDateTwoContainer").show();
+                    $("#CoDate, #CoDateTwo").rules("add", { required: true });
+                } else {
+                    $("#RoadContainer, #CoDateTwoContainer").hide();
+                    $("#CoDate, #CoDateTwo").rules("remove", "required");
+                }
+
+                // Toggle Otherbox for road change type 
+                if (roadChangeType === "Other") {
+                    $("#OtherboxContainer").show();
+                    $("#Otherbox").rules("add", { required: true });
+                } else {
+                    $("#OtherboxContainer").hide();
+                    $("#Otherbox").rules("remove", "required");
+                }
+
+                // Toggle Segment Count
+                if (roadChangeType === "Addition" || roadChangeType === "Redesignation") {
+                    $("#segmentCountContainer").show();
+                    $("#segmentCount").rules("add", { required: true });
+                } else {
+                    $("#segmentCountContainer").hide();
+                    $("#segmentCount").rules("remove", "required");
+                }
+            });
+
+            // Initialize visibility
+            $("#RoadChangeType").trigger("change");
+        }
+        // Ensure the setup function is called on document ready
+        $(document).ready(function () {
+           setupRoadChangeTypeValidation();
+        });
+    </script>
+
+    <script>
+        function setupAdjacentPropertyValidation() {
+            const form = $("#roadChangeForm");
+
+            // Add rules and messages for Adjacent Property fields
+            form.find("#APHouses").rules("add", { required: false, min: 0, messages: { min: "Value cannot be negative." } });
+            form.find("#APBusinesses").rules("add", { required: false, min: 0, messages: { min: "Value cannot be negative." } });
+            form.find("#APSchools").rules("add", { required: false, min: 0, messages: { min: "Value cannot be negative." } });
+            form.find("#APOther").rules("add", { required: false, min: 0, messages: { min: "Value cannot be negative." } });
+            form.find("#APOtherIdentify").rules("add", { required: false, messages: { required: "Please identify 'Other' properties." } });
+
+            // Function to calculate the sum and update AdjacentProperty
+            function updateSum() {
+                let sum = 0;
+                $(".calculate-sum").each(function () {
+                    const value = parseFloat($(this).val()) || 0;
+                    sum += value;
+                });
+                $("#AdjacentProperty").val(sum);
+
+                // Show or hide the APOtherIdentifyContainer
+                const otherValue = parseFloat($("#APOther").val()) || 0;
+                if (otherValue > 0) {
+                    $("#APOtherIdentifyContainer").show();
+                    form.find("#APOtherIdentify").rules("add", { required: true });
+                } else {
+                    $("#APOtherIdentifyContainer").hide();
+                    form.find("#APOtherIdentify").rules("remove", "required");
+                }
+            }
+
+            // Attach updateSum to change event of relevant inputs
+            $(".calculate-sum").on("change", updateSum);
+
+            // Initial calculation
+            updateSum();
+        }
+         // Ensure the setup function is called on document ready
+        $(document).ready(function () {
+           setupAdjacentPropertyValidation()
+        });
+    </script>
+
+
+}
+
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        height: 300px;
+        position: relative;
+        background-blend-mode: darken;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+        .hero-section h1,
+        .hero-section p {
+            color: #fff;
+        }
+
+    /* Card Hover Effect */
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
+
+
+<style>
+    /* General Styling for Fieldsets */
+    fieldset {
+        background-color: #f9f9f9; /* Light background for fieldset */
+        border: 1px solid #ddd; /* Subtle border */
+        border-radius: 10px; /* Rounded corners */
+        padding: 20px; /* Padding inside fieldset */
+        margin-bottom: 30px; /* Spacing between fieldsets */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    }
+
+    legend {
+        background-color: #5a5a5a; /* Dark gray background */
+        color: #ffffff; /* White text */
+        padding: 8px 15px; /* Padding inside legend */
+        border-radius: 8px; /* Rounded corners */
+        font-size: 1.2rem; /* Slightly larger font size */
+        font-weight: bold; /* Bold font for emphasis */
+        margin-bottom: 10px; /* Space below legend */
+    }
+
+    /* Styling for Labels */
+    label {
+        font-weight: bold; /* Bold text */
+        display: block; /* Ensure labels are on their own line */
+        margin-bottom: 5px; /* Add space between label and input */
+        font-size: 0.95rem; /* Slightly larger text */
+        color: #333; /* Darker color for readability */
+    }
+
+    /* Styling for Inputs, Selects, and Textareas */
+    input, select, textarea {
+        width: 100%; /* Full width for consistency */
+        padding: 10px; /* Comfortable padding */
+        font-size: 0.95rem; /* Slightly larger font size */
+        border: 1px solid #ccc; /* Subtle border */
+        border-radius: 5px; /* Rounded corners */
+        background-color: #ffffff; /* White background */
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
+        transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Smooth transition for focus effect */
+    }
+
+        /* Styling for Inputs and Selects on Focus */
+        input:focus, select:focus, textarea:focus {
+            border-color: #007bff; /* Highlight border */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Glow effect */
+            outline: none; /* Remove default outline */
+        }
+
+    /* Styling for Required Asterisk */
+    .required-asterisk {
+        color: #ff4d4f; /* Vibrant red for visibility */
+        font-size: 0.9rem; /* Slightly smaller size */
+    }
+
+    /* Styling for Error Messages */
+    .text-danger {
+        color: #ff4d4f; /* Red for error text */
+        font-size: 0.85rem; /* Slightly smaller text */
+        margin-top: 5px; /* Space above error message */
+    }
+
+    /* Styling for Submit Button */
+    .btn-primary {
+        background-color: #007bff; /* Bootstrap primary color */
+        color: #ffffff; /* White text */
+        border: none; /* Remove border */
+        padding: 10px 20px; /* Comfortable padding */
+        font-size: 1rem; /* Regular font size */
+        border-radius: 5px; /* Rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow */
+        transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Smooth transition for hover effect */
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+        }
+
+    /* Adjust Margin Between Rows */
+    .row {
+        margin-bottom: 15px; /* Spacing between rows */
+    }
+
+    /* Styling for Input Groups */
+    .col-md-4, .col-md-12 {
+        padding: 0 10px; /* Add horizontal spacing */
+    }
+
+    /* Custom Styling for Save Button Section */
+    .form-group {
+        text-align: center; /* Center-align the button */
+        margin-top: 20px; /* Space above the button */
+    }
+</style>
+
+
+
+
+@* @model OMTable
+
+@{
+    @*Layout = "~/Views/Shared/_OM79Layout.cshtml";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     ViewData["Title"] = "Create";
@@ -26,7 +913,7 @@
                 <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
                 <span asp-validation-for="County" class="text-danger"></span>
             </div>
-            *@
+            
             <br>
             
             <h4> The District requests a Commissioner's Order be entered to implement the following road change(s):</h4>
@@ -244,18 +1131,7 @@
                     <div id="maintOrgError" class="text-danger"></div>
                 </div>
 
-                <div class="col-md-4">
-                    <label asp-for="StartingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.StartingMilePoint)<span class="required-asterisk">*</span></label>
-                    <input asp-for="StartingMilePoint" class="form-control" type="number" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
-                    <span asp-validation-for="StartingMilePoint" class="text-danger"></span>
-                    <div id="startingMilePointError" class="text-danger"></div>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="EndingMilePoint" class="control-label">@Html.DisplayNameFor(model => model.EndingMilePoint)<span class="required-asterisk">*</span></label>
-                    <input asp-for="EndingMilePoint" class="form-control" type="number" step="0.001" min="0" onkeydown="validatePositiveNumber(event)" />
-                    <span asp-validation-for="EndingMilePoint" class="text-danger"></span>
-                    <div id="endingMilePointError" class="text-danger"></div>
-                </div>
+            
 
             <input type="hidden" name="HubId" value="@ViewBag.testUniqueID" />
 
@@ -286,7 +1162,7 @@
 @*                <div class="form-group">
                     <button type="button" class="btn btn-info" id="addNewFile">Add New Files</button>
                     <ul id="fileList" class="list-unstyled"></ul>
-                </div>*@
+                </div>
 
             @*
             <h4><br />Attachments<br /></h4>
@@ -299,7 +1175,7 @@
             </div>
 
 
-            *@
+            
 
 
 
@@ -325,7 +1201,7 @@
             <div class="form-group">
                 <input type="submit" name="Datsubmit" value="Save and Create Additional Item" class="btn btn-primary" />
             </div>
-            <br />*@
+            <br />
 
                 @*  <div class="form-group">
                     <input type="submit" name="Datsubmit" value="Save" class="btn btn-primary" />
@@ -333,7 +1209,7 @@
                     <input type="submit" name="Datsubmit" value="Save and Create PJ103 Segment" class="btn btn-primary" style="display:none;" id="Save and Create PJ103 Segment" />
 
                     <input type="submit" name="Datsubmit" value="Save and Create Additional Item" class="btn btn-primary" />
-                </div>*@
+                </div>
         </div>
     </form>
 </div>
@@ -426,7 +1302,7 @@
             }
         });
     </script>
-@*
+
     <script>
         let allFiles = []; // Global array to store all files
 
@@ -474,7 +1350,7 @@
             updateFileList();
         });
     </script>
-    *@
+    *
     <script>
     // Function to display file information
     function displayFileInfo(files) {
@@ -617,7 +1493,7 @@
             // Call function to display file information
             displayFileInfo(files);
         });
-    </script>*@
+    </script>*
 @*
     <script>
         // Function to display file information
@@ -650,7 +1526,7 @@
             displayFileInfo(files);
         });
     </script>
-*@
+*
 
 
 
@@ -913,7 +1789,7 @@
                 toggleAsterisk();
             });
         });
-    </script>   *@
+    </script>   
 
 
     <script>
@@ -1037,4 +1913,4 @@
         color: green;
         margin-right: 5px;
     }
-</style>
+</style> *@
