@@ -438,7 +438,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
 
     <script>
-        let allFiles = []; // Store all files globally
+              let allFiles = []; // Store all files globally
 
         // Function to update the file list
         function updateFileList() {
@@ -481,19 +481,21 @@
         function validateAndAddFiles(files) {
             const bannerContainer = document.getElementById('bannerContainer');
             const maxTotalSize = 100 * 1024 * 1024; // 100 MB in bytes
-            let totalSize = allFiles.reduce((sum, file) => sum + file.size, 0);
+            let totalSize = 0;
 
             bannerContainer.innerHTML = ''; // Clear banners
 
-            Array.from(files).forEach(file => {
+            // Replace allFiles with the new files
+            allFiles = Array.from(files).filter(file => {
                 if (totalSize + file.size > maxTotalSize) {
                     const errorBanner = document.createElement('div');
                     errorBanner.className = 'alert alert-danger';
                     errorBanner.textContent = `Cannot add ${file.name}. Total size exceeds the limit of 100MB.`;
                     bannerContainer.appendChild(errorBanner);
+                    return false; // Exclude files that exceed the limit
                 } else {
-                    allFiles.push(file);
                     totalSize += file.size;
+                    return true; // Include valid files
                 }
             });
 
