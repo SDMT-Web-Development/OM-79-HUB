@@ -544,12 +544,12 @@
                             <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <div style="font-size: 1.2rem; font-weight: bold; color: #333;">Submitting...</div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #333;">Submitting... Please don't refresh the page. Your submission is being processed and may take a moment.</div>
                         </div>
                     `);           
                     $('body').append(loadingOverlay);
 
-                                   // Add delay before form submission (e.g., 2 seconds)
+                                   
                     setTimeout(() => {
                         form.submit();
                     }, 2000); // Delay of 2000ms (2 seconds)

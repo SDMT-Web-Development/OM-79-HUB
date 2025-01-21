@@ -5,7 +5,7 @@
 @{
     int completedItems = Model.OMTableCount ?? 0;
     int requiredItems = Model.OMRequiredCount ?? 1; // To avoid division by zero
-    double percentageCompleted = (double)completedItems / requiredItems * 100;
+    double percentageCompleted = Math.Min((double)completedItems / requiredItems * 100, 100);
     @if (Model.OM79Workflow?.NextStep == "AddSegment")
     {
         percentageCompleted *= 0.9; // Reduce by 10% if there are segments needed
@@ -382,7 +382,7 @@
                     <li>Click on the <strong>"Home"</strong> button in the navigation bar above.</li>
                     <li>Select the <strong>"Create New OM79 Form"</strong> link on the homepage.</li>
                     <li>Fill out all required information in the form and click <strong>"Create"</strong>.</li>
-                    <li>Enter the number of items for this OM79 and click <strong>"Submit"</strong>.</li>
+                    @*<li>Enter the number of items for this OM79 and click <strong>"Submit"</strong>.</li>*@
                 </ol>
 
                 <br />
