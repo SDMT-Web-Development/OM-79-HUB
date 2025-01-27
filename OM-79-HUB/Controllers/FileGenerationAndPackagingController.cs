@@ -1118,7 +1118,6 @@ namespace OM_79_HUB.Controllers
                             //    }
                             //}
 
-                            table.Cell().Row(35).ColumnSpan(9).Border(0).Height(0);
 
                             if (signatureData.SigType == "District Manager")
                             {
@@ -1136,10 +1135,10 @@ namespace OM_79_HUB.Controllers
                                     table.Cell().Row(34).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("X").Style(tableStyle);
                                 }
                             }
-                            table.Cell().Row(35).ColumnSpan(9).Border(0).Height(0);
 
                             if (signatureData.SigType == "Right of Way Manager")
                             {
+                                table.Cell().Row(35).ColumnSpan(9).Border(0).Height(0);
                                 ROWMaFound = true;
                                 table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
                                 table.Cell().Row(36).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
@@ -1250,6 +1249,7 @@ namespace OM_79_HUB.Controllers
 
                         if (!ROWMaFound)
                         {
+                            table.Cell().Row(35).ColumnSpan(9).Border(0).Height(0);
                             table.Cell().Row(36).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignLeft().Text("District Right of Way Manager").Style(tableStyle);
                             table.Cell().Row(36).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                             table.Cell().Row(36).ColumnSpan(1).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
@@ -1306,11 +1306,25 @@ namespace OM_79_HUB.Controllers
 
 
 
-                        table.Cell().Row(47).ColumnSpan(9).Height(4); // Adjust height as needed
-                        table.Cell().Row(48).ColumnSpan(9).Height(4); // Adjust height as needed
-                        table.Cell().Row(49).ColumnSpan(9).Height(4); // Adjust height as needed
-                        table.Cell().Row(50).ColumnSpan(9).Height(4); // Adjust height as needed
-                        table.Cell().Row(51).ColumnSpan(9).Height(4).PageBreak(); // Adjust height as needed
+                        table.Cell().Row(47).ColumnSpan(9).Height(25); // Adjust height as needed
+
+                        table.Cell().Row(48).ColumnSpan(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("STATE HIGHWAY ENGINEER").Style(tableStyle);
+
+                        table.Cell().Row(49).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(49).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Signature").Style(tableStyle);
+                        table.Cell().Row(49).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Date").Style(tableStyle);
+
+                        table.Cell().Row(50).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Approved:").Style(tableStyle);
+                        table.Cell().Row(50).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        table.Cell().Row(50).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+
+
+
+                        //table.Cell().Row(47).ColumnSpan(9).Height(4); // Adjust height as needed
+                        //table.Cell().Row(48).ColumnSpan(9).Height(4); // Adjust height as needed
+                        //table.Cell().Row(49).ColumnSpan(9).Height(4); // Adjust height as needed
+                        //table.Cell().Row(50).ColumnSpan(9).Height(4); // Adjust height as needed
+                        table.Cell().Row(51).ColumnSpan(9).Height(20).PageBreak(); // Adjust height as needed
 
                         table.Cell().Row(52).ColumnSpan(9).PaddingTop(5).PaddingBottom(15).AlignCenter().Text("DISTRICT RECOMMENDATION COMMENTS").Style(tableStyle);
 
@@ -1698,6 +1712,7 @@ namespace OM_79_HUB.Controllers
                     // Add some padding or spacing on the right side for balance
                     row.ConstantItem(50).Height(50); // Placeholder for spacing
                 });
+
             }
 
 

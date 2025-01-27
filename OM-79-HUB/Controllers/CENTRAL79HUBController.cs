@@ -32,6 +32,34 @@ namespace OM_79_HUB.Controllers
             _PJcontext = pj103Context;
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> CreateAdminAuto()
+        //{
+        //     Create a hardcoded AdminData object
+        //    var newAdminData = new AdminData
+        //    {
+        //        FirstName = "Ethan",          // Hardcoded value
+        //        LastName = "Johnson",            // Hardcoded value
+        //        ENumber = "E122059",           // Hardcoded value
+        //        StateEmail = "ethan.m.johnson@wv.gov",  // Hardcoded value
+        //        DateEstablished = DateTime.Now,
+        //        DistrictAdmin = false,        // Hardcoded value
+        //        StatewideAdmin = false,      // Hardcoded value
+        //        SystemAdmin = true,         // Hardcoded value
+        //        DistrictNumber = null           // Hardcoded value
+        //    };
+
+        //     Assuming you have a _context (DbContext) injected into the controller
+        //    _context.AdminData.Add(newAdminData);
+
+        //     Save the changes to the database
+        //    await _context.SaveChangesAsync();
+
+        //     Return a success response or redirect
+        //    return Ok("Admin data created successfully!");
+        //}
+
+
         [HttpGet]
         public async Task<IActionResult> EditPackage(int? id)
         {
@@ -69,6 +97,7 @@ namespace OM_79_HUB.Controllers
             // Return the view with the loaded package data
             return View(om);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AdjustSegmentCount([FromBody] SegmentAdjustmentModel model)
@@ -180,10 +209,6 @@ namespace OM_79_HUB.Controllers
             public string action { get; set; } // 'increase' or 'decrease'
             public int omTableId { get; set; } // The ID of the OMTable entry
         }
-
-
-
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]

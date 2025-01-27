@@ -23,13 +23,11 @@ public partial class OMTable
 
     public string? Routing { get; set; }
     [DisplayName("Road Change Type")]
-    [Required]
 
     public string? RoadChangeType { get; set; }
     [DisplayName("If Other Please Explain")]
     public string? Otherbox { get; set; }
     [DisplayName("Route Assignment")]
-    [Required]
     public string? RouteAssignment { get; set; }
     [DisplayName("Right Of Way Width")]
     
@@ -39,7 +37,6 @@ public partial class OMTable
     [DisplayName("Railroad crossing numbers (Separate by comma)")]
     public string? DOTAARNumber { get; set; }
     [DisplayName("Requested By")]
-    [Required]
     public string? RequestedBy { get; set; }
     [DisplayName("Explanation")]
 
@@ -57,7 +54,6 @@ public partial class OMTable
     [DisplayName("If other adjacent properties, explain.")]
     public string? APOtherIdentify { get; set; }
     [DisplayName("Description")]
-    [Required]
     public string? Attachments { get; set; }
 
     public string? DESignature { get; set; }
@@ -65,9 +61,7 @@ public partial class OMTable
     public string? Preparer { get; set; }
     [DisplayName("Requester Name")]
     public string? RequestedByName { get; set; }
-    [Required]
     public int? Route { get; set; }
-    [Required]
     public int? SubRoute { get; set; }
     [DisplayName("CO Date")]
     public DateTime? CoDate { get; set; }
@@ -95,39 +89,27 @@ public partial class OMTable
 
     public int? HubId { get; set; }
     [DisplayName("Sign System")]
-    [Required]
     public string? SignSystem { get; set; }
     [DisplayName("Project Number")]
     public string? ProjectNumber { get; set; }
     [DisplayName("Route Number")]
-    [Required]
     public int? RouteNumber { get; set; }
     [DisplayName("Subroute Number")]
-    [Required]
     public int? SubRouteNumber { get; set; }
     [DisplayName("Date Complete")]
     public DateTime? DateComplete { get; set; }
-    //[DisplayName("Starting MP")]
-    //[RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
-    //[Required]
-    //public decimal? StartingMilePoint {  get; set; }
-    //[DisplayName("Ending MP")]
-    //[RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
-    //[Required]
-    //public decimal? EndingMilePoint { get; set; }
+
 
 
     [DisplayName("Starting MP")]
-    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
-    [Required]
-    [Column(TypeName = "decimal(10, 4)")]
+    [Column(TypeName = "decimal(10,4)")]
     public decimal? StartingMilePoint { get; set; }
 
+
     [DisplayName("Ending MP")]
-    [RegularExpression(@"^\d{1,4}(\.\d{1,3})?$", ErrorMessage = "Invalid format. Must have up to 4 digits before the decimal point and up to 3 digits after.")]
-    [Required]
-    [Column(TypeName = "decimal(10, 4)")]
+    [Column(TypeName = "decimal(10,4)")]
     public decimal? EndingMilePoint { get; set; }
+
 
 
     [DisplayName("Org Number")]
@@ -135,10 +117,8 @@ public partial class OMTable
     [DisplayName("Year Of Survey")]
     public int? YearOfSurvey {  get; set; }
     [DisplayName("Is there a bridge?")]
-    [Required]
     public string? BridgeInv { get; set; }
     [DisplayName("Is there a railroad?")]
-    [Required]
     public string? RailroadInv { get; set; }
     [DisplayName("Number of railroad crossings")]
     public int? RailroadAmount {  get; set; }
@@ -149,7 +129,6 @@ public partial class OMTable
     [DisplayName("BARS (Separate by comma)")]
     public string? BridgeNumbers {  get; set; }
 
-    [Required]
     [DisplayName("Supplemental Code")]
     public string? Supplemental {  get; set; }
 

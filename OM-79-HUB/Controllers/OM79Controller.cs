@@ -274,6 +274,33 @@ namespace OM_79_HUB.Data
                     {"9", new List<string>{"Fayette", "Greenbrier", "Monroe", "Nicholas", "Summers"}},
                     {"10", new List<string>{"McDowell", "Mercer", "Raleigh", "Wyoming"}}
                 };
+            if (Request.Form.TryGetValue("StartingMilePoint", out var startingMilePointValue) && decimal.TryParse(startingMilePointValue, out var startingMilePoint))
+            {
+                oMTable.StartingMilePoint = startingMilePoint;
+            }
+            else
+            {
+                ModelState.AddModelError("StartingMilePoint", "Starting Mile Point is required and must be a valid number.");
+            }
+
+            if (Request.Form.TryGetValue("EndingMilePoint", out var endingMilePointValue) &&
+                decimal.TryParse(endingMilePointValue, out var endingMilePoint))
+            {
+                oMTable.EndingMilePoint = endingMilePoint;
+            }
+            else
+            {
+                ModelState.AddModelError("EndingMilePoint", "Ending Mile Point is required and must be a valid number.");
+            }
+            if (!ModelState.IsValid)
+            {
+                foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine(modelError.ErrorMessage);
+                }
+                return View(oMTable);
+            }
+
             try
             {
                 if (ModelState.IsValid)

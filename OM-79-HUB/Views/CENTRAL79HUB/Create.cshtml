@@ -1,6 +1,337 @@
 ﻿@model CENTRAL79HUB
 
 @{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "New OM-79";
+}
+
+<div class="container">
+    <!-- Header Section -->
+    <div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">Create New OM-79 Package</h1>
+            <p class="lead">Fill out the form below to start a new OM-79.</p>
+        </div>
+    </div>
+
+    <main>
+        <!-- Form Section -->
+        <form id="om79Form" asp-action="Create" method="post">
+            <!-- Validation Summary -->
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <section>
+                <fieldset>
+                    <legend>General Information</legend>
+                    <div class="row">
+                        <!-- User ID -->
+                        <div class="col-md-4">
+                            <label asp-for="UserId" class="control-label">
+                                @Html.DisplayNameFor(model => model.UserId) <span class="required-asterisk">*</span>
+                            </label>
+                            <input type="text" class="form-control text-muted is-valid" value="@User.Identity.Name" readonly />
+                        </div>
+
+                        <!-- District -->
+                        <div class="col-md-4">
+                            <label asp-for="District" class="control-label">
+                                @Html.DisplayNameFor(model => model.District) <span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="District" id="districtDropdown" class="form-control" asp-items="@ViewBag.DDropdown"></select>
+                            <span asp-validation-for="District" class="text-danger"></span>
+                        </div>
+
+                        <!-- County -->
+                        <div class="col-md-4">
+                            <label asp-for="County" class="control-label">
+                                @Html.DisplayNameFor(model => model.County) <span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="County" id="countyDropdown" class="form-control" asp-items="@ViewBag.CountyDropdown"></select>
+                            <span asp-validation-for="County" class="text-danger"></span>
+                        </div>
+
+                        <!-- Route ID -->
+                        <div class="col-md-4">
+                            <label asp-for="RouteID" class="control-label">
+                                @Html.DisplayNameFor(model => model.RouteID) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="RouteID" class="form-control" />
+                            <span asp-validation-for="RouteID" class="text-danger"></span>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-4">
+                            <label asp-for="EmailSubmit" class="control-label">
+                                @Html.DisplayNameFor(model => model.EmailSubmit) <span class="required-asterisk">*</span>
+                            </label>
+                            <input asp-for="EmailSubmit" class="form-control" type="email" />
+                            <span asp-validation-for="EmailSubmit" class="text-danger"></span>
+                        </div>
+
+                        <!-- Otherbox -->
+                        <div class="col-md-12">
+                            <label asp-for="Otherbox" class="control-label">
+                                @Html.DisplayNameFor(model => model.Otherbox) <span class="required-asterisk">*</span>
+                            </label>
+                            <textarea asp-for="Otherbox" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Otherbox" class="text-danger"></span>
+                        </div>
+
+                        
+                        <div class="col-md-12">
+                            <br />
+                            <br />
+                            <label for="numberOfItems" class="control-label">
+                                Number of OM-79 Items To Be Attached <span class="required-asterisk">*</span>
+                            </label>
+                            <p class="text-muted" style="margin-bottom: 10px;">
+                                This field specifies the number of OM-79 items to be included in this package. The entered value determines how many items will be processed in this workflow.
+                                In the future, you can adjust the number of items using the plus/minus counter available in the workflow panel. Please ensure the value is accurate for efficient tracking.
+                            </p>
+                            <input type="number" id="numberOfItems" name="NumberOfItems" class="form-control" min="1" max="50" required />
+                            <span class="text-danger" id="numberOfItems-error"></span>
+                        </div>                        
+                    </div>
+                </fieldset>
+            </section>
+
+            <!-- Submit Button -->
+            <div class="form-group mt-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </main>
+</div>
+
+@section Scripts {
+    @Html.Partial("_ValidationScriptsPartial")
+    <script>
+        $(document).ready(function () {
+            const form = $("#om79Form");
+            const districtDropdown = $("#districtDropdown");
+            const countyDropdown = $("#countyDropdown");
+
+            // District to County Mapping
+            const districtToCounties = {
+                "1": ["Boone", "Clay", "Kanawha", "Mason", "Putnam"],
+                "2": ["Cabell", "Lincoln", "Logan", "Mingo", "Wayne"],
+                "3": ["Calhoun", "Jackson", "Pleasants", "Ritchie", "Roane", "Wirt", "Wood"],
+                "4": ["Doddridge", "Harrison", "Marion", "Monongalia", "Preston", "Taylor"],
+                "5": ["Berkeley", "Grant", "Hampshire", "Hardy", "Jefferson", "Mineral", "Morgan"],
+                "6": ["Brooke", "Hancock", "Marshall", "Ohio", "Tyler", "Wetzel"],
+                "7": ["Barbour", "Braxton", "Gilmer", "Lewis", "Upshur", "Webster"],
+                "8": ["Pendleton", "Pocahontas", "Randolph", "Tucker"],
+                "9": ["Fayette", "Greenbrier", "Monroe", "Nicholas", "Summers"],
+                "10": ["McDowell", "Mercer", "Raleigh", "Wyoming"]
+            };
+
+            // Populate counties based on selected district
+            districtDropdown.change(function () {
+                const selectedDistrict = districtDropdown.val();
+                const counties = districtToCounties[selectedDistrict] || [];
+                countyDropdown.empty();
+
+                if (counties.length === 0) {
+                    countyDropdown.append('<option value="">Please select district first</option>');
+                } else {
+                    countyDropdown.append('<option value="">Select County</option>');
+                    counties.forEach(county => {
+                        countyDropdown.append(`<option value="${county}">${county}</option>`);
+                    });
+                }
+            });
+
+            districtDropdown.trigger('change');
+
+            // Initialize jQuery Validation
+            form.validate({
+                rules: {
+                    District: { required: true },
+                    County: { required: true },
+                    RouteID: { required: true },
+                    EmailSubmit: { required: true, email: true },
+                    Otherbox: { required: true },
+                    NumberOfItems: { required: true, min: 1, max: 50, digits: true }
+                },
+                messages: {
+                    District: { required: "Please select a district." },
+                    County: { required: "Please select a county." },
+                    RouteID: { required: "Route ID is required." },
+                    EmailSubmit: { required: "Email is required.", email: "Enter a valid email address." },
+                    Otherbox: { required: "Comments are required." },
+                    NumberOfItems: { required: "Please enter the number of items.", min: "Enter a number greater than 0.", max: "The maximum allowed number is 50.", digits: "Enter a valid whole number without decimals." }
+                },
+                errorClass: "text-danger",
+                highlight: function (element) {
+                    $(element).addClass("is-invalid").removeClass("is-valid");
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass("is-invalid").addClass("is-valid");
+                },
+                invalidHandler: function () {
+                    console.log("Form contains errors. Please correct them.");
+                },
+                submitHandler: function (form) {
+                    // Disable the submit button
+                    const submitButton = $(form).find(':submit');
+                    submitButton.prop('disabled', true).text('Submitting...');
+
+                    // Display a loading overlay with spinner and text
+                    const loadingOverlay = $(`
+                        <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: Arial, sans-serif;">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #333; text-align: center;">
+                                Submitting... Please don't refresh the page. Your submission is being processed and may take a moment.
+                            </div>
+   
+                        </div>
+                    `);
+                    $('body').append(loadingOverlay);
+                         // <div style="font-size: 1.2rem; font-weight: bold; color: #333;">Submitting...</div>
+                    // Add delay before form submission
+                    setTimeout(() => {
+                        form.submit();
+                    }, 2000); // 1.5-second delay
+                }
+            });
+        });
+    </script>
+}
+
+
+
+<style>
+    /* General Styling for Fieldsets */
+    fieldset {
+        background-color: #f9f9f9; /* Light background for fieldset */
+        border: 1px solid #ddd; /* Subtle border */
+        border-radius: 10px; /* Rounded corners */
+        padding: 20px; /* Padding inside fieldset */
+        margin-bottom: 30px; /* Spacing between fieldsets */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    }
+
+    legend {
+        background-color: #5a5a5a; /* Dark gray background */
+        color: #ffffff; /* White text */
+        padding: 8px 15px; /* Padding inside legend */
+        border-radius: 8px; /* Rounded corners */
+        font-size: 1.2rem; /* Slightly larger font size */
+        font-weight: bold; /* Bold font for emphasis */
+        margin-bottom: 10px; /* Space below legend */
+    }
+
+    /* Styling for Labels */
+    label {
+        font-weight: bold; /* Bold text */
+        display: block; /* Ensure labels are on their own line */
+        margin-bottom: 5px; /* Add space between label and input */
+        font-size: 0.95rem; /* Slightly larger text */
+        color: #333; /* Darker color for readability */
+    }
+
+    /* Styling for Inputs, Selects, and Textareas */
+    input, select, textarea {
+        width: 100%; /* Full width for consistency */
+        padding: 10px; /* Comfortable padding */
+        font-size: 0.95rem; /* Slightly larger font size */
+        border: 1px solid #ccc; /* Subtle border */
+        border-radius: 5px; /* Rounded corners */
+        background-color: #ffffff; /* White background */
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
+        transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Smooth transition for focus effect */
+    }
+
+        /* Styling for Inputs and Selects on Focus */
+        input:focus, select:focus, textarea:focus {
+            border-color: #007bff; /* Highlight border */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Glow effect */
+            outline: none; /* Remove default outline */
+        }
+
+    /* Styling for Required Asterisk */
+    .required-asterisk {
+        color: #ff4d4f; /* Vibrant red for visibility */
+        font-size: 0.9rem; /* Slightly smaller size */
+    }
+
+    /* Styling for Error Messages */
+    .text-danger {
+        color: #ff4d4f; /* Red for error text */
+        font-size: 0.85rem; /* Slightly smaller text */
+        margin-top: 5px; /* Space above error message */
+    }
+
+    /* Styling for Submit Button */
+    .btn-primary {
+        background-color: #007bff; /* Bootstrap primary color */
+        color: #ffffff; /* White text */
+        border: none; /* Remove border */
+        padding: 10px 20px; /* Comfortable padding */
+        font-size: 1rem; /* Regular font size */
+        border-radius: 5px; /* Rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow */
+        transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Smooth transition for hover effect */
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+        }
+
+    /* Adjust Margin Between Rows */
+    .row {
+        margin-bottom: 15px; /* Spacing between rows */
+    }
+
+    /* Styling for Input Groups */
+    .col-md-4, .col-md-12 {
+        padding: 0 10px; /* Add horizontal spacing */
+    }
+
+    /* Custom Styling for Save Button Section */
+    .form-group {
+        text-align: center; /* Center-align the button */
+        margin-top: 20px; /* Space above the button */
+    }
+</style>
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        height: 300px;
+        position: relative;
+        background-blend-mode: darken;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+        .hero-section h1,
+        .hero-section p {
+            color: #fff;
+        }
+
+    /* Card Hover Effect */
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
+<style>
+    .required-asterisk {
+        color: red;
+    }
+
+    .form-group.mt-3 {
+        margin-top: 1rem;
+    }
+</style>
+
+
+
+
+@* @model CENTRAL79HUB
+
+@{
     ViewData["Title"] = "Create";
 }
 
@@ -24,12 +355,7 @@
                 <select asp-for="County" name="County" class="form-control" id="countyDropdown" asp-items=@ViewBag.CountyDropdown></select>
                 <span asp-validation-for="County" class="text-danger"></span>
             </div>
-            @*
-            <div class="col-md-4">
-                <label asp-for="IDNumber" class="control-label">@Html.DisplayNameFor(model => model.IDNumber)</label>
-                <input asp-for="IDNumber" class="form-control" />
-                <span asp-validation-for="IDNumber" class="text-danger"></span>
-            </div>*@
+            
             <div class="col-md-4">
                 <label asp-for="RouteID" class="control-label">@Html.DisplayNameFor(model => model.RouteID)<span class="required-asterisk">*</span></label>
                 <input asp-for="RouteID" class="form-control" />
@@ -45,7 +371,7 @@
                 <textarea asp-for="Otherbox" class="form-control" rows="4"></textarea>
                 <span asp-validation-for="Otherbox" class="text-danger"></span>
             </div>
-            <input type="hidden" id="NumberOfItems" name="NumberOfItems" />
+            <input type="hidden" id="NumberOfItems" name="NumberOfItems"/>
             
             
             <div class="form-group mt-3">
@@ -212,7 +538,7 @@
         }
     </style>
 }
-
+ *@
 
 
 @*@model CENTRAL79HUB
