@@ -21,16 +21,45 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddDbContext<OM_79_HUBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection") ?? throw new InvalidOperationException("Connection string 'OM_79_HUBContext' not found.")));
 
-// Second DB
-builder.Services.AddDbContext<OM79Context>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection2") ?? throw new InvalidOperationException("Connection string 'DevConnection2' not found.")));
 
-// Third DB
-builder.Services.AddDbContext<Pj103Context>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection3") ?? throw new InvalidOperationException("Connection string 'DevConnection3' not found.")));
+//**********
+//Change this when committing whether to prod or test!!!!!!!!!!!!!!!!!!
+var environment = "Production";
+
+
+if (environment == "Production")
+{
+    builder.Services.AddDbContext<OM_79_HUBContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("ProdDevConnectionHub")
+            ?? throw new InvalidOperationException("Connection string 'ProdDevConnectionHub' not found.")));
+
+    builder.Services.AddDbContext<OM79Context>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("ProdDevConnectionOM79")
+            ?? throw new InvalidOperationException("Connection string 'ProdDevConnectionOM79' not found.")));
+
+    builder.Services.AddDbContext<Pj103Context>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("ProdDevConnectionPJ103")
+            ?? throw new InvalidOperationException("Connection string 'ProdDevConnectionPJ103' not found.")));
+}
+else if (environment == "Test")
+{
+    builder.Services.AddDbContext<OM_79_HUBContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("TestDevConnectionHub")
+            ?? throw new InvalidOperationException("Connection string 'TestDevConnectionHub' not found.")));
+
+    builder.Services.AddDbContext<OM79Context>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("TestDevConnectionOM79")
+            ?? throw new InvalidOperationException("Connection string 'TestDevConnectionOM79' not found.")));
+
+    builder.Services.AddDbContext<Pj103Context>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("TestDevConnectionPJ103")
+            ?? throw new InvalidOperationException("Connection string 'TestDevConnectionPJ103' not found.")));
+}
+else
+{
+    throw new InvalidOperationException("Invalid environment specified. Use 'Production' or 'Test'.");
+}
 
 
 // Register the RecyclableMemoryStreamManager service
@@ -64,6 +93,13 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    // Pass the environment to the ViewData so it can be accessed in Razor views
+    context.Items["Environment"] = environment;
+    await next.Invoke();
+});
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())

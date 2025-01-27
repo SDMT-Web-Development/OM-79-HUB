@@ -1,5 +1,19 @@
 ﻿@{
     ViewData["Title"] = "Welcome to the OM79 Application";
+    var environment = Context.Items["Environment"]?.ToString();
+}
+
+@if (environment == "Production")
+{
+    <div class="alert alert-success text-center">
+        <strong>LIVE VERSION</strong> - You are viewing the live version of the application.
+    </div>
+}
+else if (environment == "Test")
+{
+    <div class="alert alert-warning text-center">
+        <strong>TEST VERSION</strong> - You are viewing the test version of the application.
+    </div>
 }
 
 <!-- Hero Section -->
@@ -9,6 +23,7 @@
         <p class="lead">Easily submit and manage your OM79 forms.</p>
     </div>
 </div>
+
 
 
 @*TAKEOUT
