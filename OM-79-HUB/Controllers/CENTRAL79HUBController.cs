@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using OM_79_HUB.Components;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
 using OM_79_HUB.Models.DB.OM79Hub;
@@ -511,15 +512,30 @@ namespace OM_79_HUB.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ArchiveOM79(int id)
+        public async Task<IActionResult> ArchiveOM79(int id, string IDNumber)
         {
-            var om79 = await _context.CENTRAL79HUB.FindAsync(id);
-            if (om79 == null)
+            // Validate that the IDNumber is not null or empty
+            if (string.IsNullOrWhiteSpace(IDNumber))
             {
-                return NotFound();
+                // Add an error message to the ModelState
+                ModelState.AddModelError("IDNumber", "The archive link is required.");
+                return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
             }
+
+            var om79Entry = await _context.CENTRAL79HUB.FindAsync(id);
+            if (om79Entry == null)
+            {
+                return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
+            }
+
             // Archive the CENTRAL79HUB entry
-            om79.IsArchive = true;
+            om79Entry.IsArchive = true;
+
+            // Set workflow step to Archived
+            om79Entry.WorkflowStep = "Archived";
+
+            // Update the IDNumber field with the provided link
+            om79Entry.IDNumber = IDNumber;
 
             // Find and archive related OMTable entries
             var relatedOMTables = await _OMcontext.OMTable.Where(t => t.HubId == id).ToListAsync();
@@ -534,6 +550,8 @@ namespace OM_79_HUB.Controllers
 
             return RedirectToAction(nameof(Index)); // Redirect to an appropriate action
         }
+
+
 
 
 

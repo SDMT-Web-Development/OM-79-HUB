@@ -9,6 +9,7 @@
 <h1 style="font-weight: bold">
     Details</h1>
 <hr />
+
 <div>
     <h4>OM-79</h4>
     <hr />
@@ -78,27 +79,7 @@
         <hr />
     }
     *@
-    <!-- Archive Confirmation Modal -->
-    <div class="modal fade" id="archiveModal" tabindex="-1" aria-labelledby="archiveModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="archiveModalLabel">Confirm Archive</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to archive this OM79?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form asp-controller="CENTRAL79HUB" asp-action="ArchiveOM79" method="post">
-                        <input type="hidden" name="id" value="@Model.OMId" />
-                        <button type="submit" class="btn btn-primary">Confirm</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+   
 
 
 
@@ -123,7 +104,12 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5+5hb7ie3bYq4Z5p9FO8Q5v3kzMj2C4cfx9J2R7d" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js" integrity="sha384-Xz/Q1C1/ScpE6MBT11Hcp3vnoHklkQ2Zn42YAd5GA4gp6x1G07aaR4RBOJNRHwVo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js" integrity="sha384-7rQfmU6cdwO01OXo3fdW8vht62yjRXlUJ3xHpBfR1VbF4w5E5YmN5Rp6SNFPz3Ql" crossorigin="anonymous"></script>
-
+   @*  <script>
+        function setIDNumber() {
+            const idNumberInput = document.getElementById('idNumberInput').value;
+            document.getElementById('hiddenIDNumber').value = idNumberInput;
+        }
+    </script> *@
     <script>
         document.getElementById('confirmArchiveButton').addEventListener('click', function () {
             var omId = @Model.OMId;

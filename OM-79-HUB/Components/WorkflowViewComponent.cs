@@ -97,7 +97,7 @@ namespace OM_79_HUB.Components
                     IsHDSUser = isHDSUser,
                     IsGISUser = isGISUser,
                     IsDistrictManager = isDistrictManager,
-                    IsCurrentUserOMEntryUser = isCurrentUserOMEntryUser // Add this to the view model
+                    IsCurrentUserOMEntryUser = isCurrentUserOMEntryUser 
                 };
             }
 

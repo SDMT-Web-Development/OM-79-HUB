@@ -39,7 +39,7 @@
         @*Check for avaliable entry*@
         @if (Model != null && Model.Central79Hub != null)
         {
-            <p>Currently Displaying Information Regarding OM79 with ID: @Model.Central79Hub.OMId</p>
+            <p>Currently Displaying Information Regarding OM79 with ID: @Model.Central79Hub.SmartID</p>
 
             @*Show when the entry has not been submitted for review*@
             @if (Model.Central79Hub.IsSubmitted == false)
@@ -362,10 +362,102 @@
                 else if (Model.Central79Hub.WorkflowStep == "Finalized")
                 {
                     <p><strong>Status:</strong> Request Finalized</p>
+                    @if (Model.IsHDSUser)
+                    {
+                        <!-- Archive Section (Visible only to HDS Users) -->
+                        <div class="archive-section border rounded p-3 mt-4 shadow-sm">
+                            <h5 class="mt-3 text-primary">Archive OM79</h5>
+                            <p class="text-muted">
+                                <strong>Note:</strong> This section is only visible to HDS users. To archive this OM79, please enter the required link below and click <strong>"Confirm Archive"</strong>.
+                            </p>
+
+                            <!-- Input Field for Link -->
+                            <label for="idNumberInput" class="form-label">Archive Link</label>
+                            <input type="text"
+                                   class="form-control mb-3"
+                                   id="idNumberInput"
+                                   name="IDNumber"
+                                   placeholder="Enter the archive link"
+                                   required />
+
+                            <!-- Submit Button -->
+                            <form asp-controller="CENTRAL79HUB" asp-action="ArchiveOM79" method="post">
+                                <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
+                                <input type="hidden" id="hiddenIDNumber" name="IDNumber" />
+                                <button type="submit"
+                                        class="btn btn-primary fw-bold px-4"
+                                        onclick="setIDNumber()">
+                                    Confirm Archive
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- JavaScript Function to Set Hidden ID -->
+                        <script>
+                            function setIDNumber() {
+                                const idNumberInput = document.getElementById('idNumberInput').value;
+                                document.getElementById('hiddenIDNumber').value = idNumberInput;
+                            }
+                        </script>
+                    }
                 }
                 else if (Model.Central79Hub.WorkflowStep == "Archived")
                 {
                     <p><strong>Status:</strong> Request Finalized and Archived</p>
+                    @if (!string.IsNullOrEmpty(Model.Central79Hub.IDNumber))
+                    {
+                        <p>
+                            <strong>Link:</strong>
+                            <a href="@Model.Central79Hub.IDNumber" target="_blank" class="text-primary">
+                                @((Model.Central79Hub.IDNumber.Length > 30)
+                                    ? $"{Model.Central79Hub.IDNumber.Substring(0, 30)}..."
+                                    : Model.Central79Hub.IDNumber)
+                            </a>
+                        </p>
+                    }
+                    else
+                    {
+                        <p><strong>Archive Link:</strong> <span class="text-muted">No link available</span></p>
+                    }
+
+                    @if (Model.IsHDSUser)
+                    {
+                        <!-- Edit Archive Section (Visible only to HDS Users) -->
+                        <div class="archive-section border rounded p-3 mt-4 shadow-sm">
+                            <h5 class="mt-3 text-primary">Edit Archive Link</h5>
+                            <p class="text-muted">
+                                <strong>Note:</strong> This section is only visible to HDS users. You can edit the archive link below and click <strong>"Update Archive"</strong>.
+                            </p>
+
+                            <!-- Input Field for Link -->
+                            <label for="idNumberInput" class="form-label">Archive Link</label>
+                            <input type="text"
+                                   class="form-control mb-3"
+                                   id="idNumberInput"
+                                   name="IDNumber"
+                                   placeholder="Enter the archive link"
+                                   value="@Model.Central79Hub.IDNumber"
+                                   required />
+
+                            <!-- Submit Button -->
+                            <form asp-controller="CENTRAL79HUB" asp-action="ArchiveOM79" method="post">
+                                <input type="hidden" name="id" value="@Model.Central79Hub.OMId" />
+                                <input type="hidden" id="hiddenIDNumber" name="IDNumber" />
+                                <button type="submit"
+                                        class="btn btn-primary fw-bold px-4"
+                                        onclick="setIDNumber()">
+                                    Update Archive
+                                </button>
+                            </form>
+                        </div>
+
+                        <script>
+                            function setIDNumber() {
+                                const idNumberInput = document.getElementById('idNumberInput').value;
+                                document.getElementById('hiddenIDNumber').value = idNumberInput;
+                            }
+                        </script>
+                    }
                 }
                 else
                 {
