@@ -320,8 +320,21 @@ namespace OM_79_HUB.Controllers
                 return RedirectToAction("Details", "CENTRAL79HUB", new { id = id.Value });
             }
 
-            var omSignatures = await _hubContext.SignatureData.Where(e => e.HubKey == id.Value).ToListAsync();
-            var omItems = await _om79Context.OMTable.Where(e => e.HubId == id.Value).ToListAsync();
+            var omSignatures = await _hubContext.SignatureData
+                .Where(e => e.HubKey == id.Value && e.IsCurrentSig == true)  // Only get active signatures
+                .GroupBy(e => e.SigType) // Group by role
+                .Select(g => g.OrderByDescending(e => e.DateSubmitted).FirstOrDefault()) // Get the most recent one
+                .ToListAsync(); var omItems = await _om79Context.OMTable.Where(e => e.HubId == id.Value).ToListAsync();
+
+            // Debugging output for signatures
+            Console.WriteLine($"Retrieved {omSignatures.Count} active signatures for OM ID {id.Value}");
+            foreach (var sig in omSignatures)
+            {
+                Console.WriteLine($"Role: {sig.SigType}, Name: {sig.Signatures}, Approved: {sig.IsApprove}, Denied: {sig.IsDenied}, Date: {sig.DateSubmitted}");
+            }
+
+            
+
             var omItemIds = omItems.Select(e => e.Id).ToList(); // Extract the IDs from omItems
             var pjSegments = await _pj103Context.Submissions.Where(e => e.OM79Id.HasValue && omItemIds.Contains(e.OM79Id.Value)).ToListAsync(); // Convert OM79Id to int
             var pjSegmentsIds = pjSegments.Select(e => e.SubmissionID).ToList(); // Extract the IDs from omItems
@@ -1136,7 +1149,7 @@ namespace OM_79_HUB.Controllers
                                 }
                             }
 
-                            if (signatureData.SigType == "Right of Way Manager")
+                            if (signatureData.SigType == "Right Of Way Manager")
                             {
                                 table.Cell().Row(35).ColumnSpan(9).Border(0).Height(0);
                                 ROWMaFound = true;
@@ -1288,25 +1301,50 @@ namespace OM_79_HUB.Controllers
                             table.Cell().Row(40).ColumnSpan(1).Column(9).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
                         }
 
+                        // Add spacing before the Chief Engineer section
                         table.Cell().Row(41).ColumnSpan(9).Height(25); // Adjust height as needed
 
                         table.Cell().Row(42).ColumnSpan(9).Column(1).AlignLeft().Text("Note: District recommendation comment boxes on next page.").Style(tableStyle);
 
                         table.Cell().Row(43).ColumnSpan(9).Height(25); // Adjust height as needed
 
+                        // Header for Chief Engineer of Operations
                         table.Cell().Row(44).ColumnSpan(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("CHIEF ENGINEER OF OPERATIONS").Style(tableStyle);
 
+                        // Column Headers
                         table.Cell().Row(45).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("").Style(tableStyle);
                         table.Cell().Row(45).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Signature").Style(tableStyle);
                         table.Cell().Row(45).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("Date").Style(tableStyle);
 
-                        table.Cell().Row(46).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Approved:").Style(tableStyle);
-                        table.Cell().Row(46).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
-                        table.Cell().Row(46).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        foreach (var signatureData in SignatureDataList)
+                        {
+                            if (signatureData.SigType == "Chief Engineer of Operations")
+                            {
+                                Console.WriteLine($"Found Chief Engineer of Operations signature: {signatureData.Signatures}, Date: {signatureData.DateSubmitted}");
+                                string dateSubmitted = signatureData.DateSubmitted is DateTime date ? date.ToString("MM/dd/yyyy") : "";
+
+                                // Insert Chief Engineer Signature
+                                table.Cell().Row(46).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Approved:").Style(tableStyle);
+                                table.Cell().Row(46).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(signatureData.Signatures).Style(tableStyle);
+                                table.Cell().Row(46).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text(dateSubmitted).Style(tableStyle);
+                            }
+                        }
+
+                        // If no Chief Engineer signature is found, add an empty placeholder
+                        if (!SignatureDataList.Any(s => s.SigType == "Chief Engineer of Operations"))
+                        {
+                            Console.WriteLine("No Chief Engineer of Operations signature found.");
+
+                            // Add blank signature fields
+                            table.Cell().Row(46).ColumnSpan(2).Column(1).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("Approved:").Style(tableStyle);
+                            table.Cell().Row(46).ColumnSpan(5).Column(3).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                            table.Cell().Row(46).ColumnSpan(2).Column(8).Border(1).BorderColor(Colors.Black).Padding(5).AlignCenter().Text("").Style(tableStyle);
+                        }
 
 
-
+                        // Add spacing after Chief Engineer section
                         table.Cell().Row(47).ColumnSpan(9).Height(25); // Adjust height as needed
+
 
                         table.Cell().Row(48).ColumnSpan(9).Border(1).BorderColor(Colors.Black).Padding(10).AlignCenter().Text("STATE HIGHWAY ENGINEER").Style(tableStyle);
 
