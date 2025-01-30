@@ -29,6 +29,7 @@ else
                 <th>Comments</th>
                 <th>County</th>
                 <th>District</th>
+                <th>Smart ID</th>
                 <th>Workflow Step</th>
                 <th></th>
             </tr>
@@ -51,7 +52,7 @@ else
                     "SubmittedBackToDistrictManagerFromOperations" => "Operations Denied - Revise or Rescind",
                     "SubmittedToRegionalEngineer" => "Ready for Regional Engineer Review",
                     "SubmittedToDirectorOfOperations" => "Ready for Director of Operations Review",
-                    "SubmittedToCentralChief" => "Ready for Central Chief Review",
+                    "SubmittedToCentralChief" => "Ready forCentral Chief Engineer of Operations Review",
                     _ => "Unknown"
                 };
 
@@ -66,7 +67,7 @@ else
                     "SubmittedBackToDistrictManagerFromOperations" => "The regional office has denied these OM79(s); please either make the requested changes or rescind the request",
                     "SubmittedToRegionalEngineer" => "Ready for Regional Engineer Review",
                     "SubmittedToDirectorOfOperations" => "Ready for Director of Operations Review",
-                    "SubmittedToCentralChief" => "Ready for Central Chief Review",
+                    "SubmittedToCentralChief" => "Ready for Central Chief Engineer of Operations Review",
                     _ => "Unknown"
                 };
 
@@ -107,6 +108,7 @@ else
                     <td>@item.Otherbox</td>
                     <td>@item.County</td>
                     <td>@item.District</td>
+                    <td>@item.SmartID</td>
                     <td>@displayText</td>
                     <td>
                         <a asp-action="Details" asp-route-id="@item.OMId" class="btn btn-info">Details</a>

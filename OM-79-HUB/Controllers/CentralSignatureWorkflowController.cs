@@ -27,100 +27,7 @@ namespace OM_79_HUB.Controllers
         /*This is the functionality for the HDS user signing the OM79*/
         #region SignOMHubCentralHDS
 
-        //public async Task<IActionResult> SignOMCentralHDS()
-        //{
-        //    var hubkey = int.Parse(Request.Form["HubKey"]); // Define hubkey here
-        //    var approved = Request.Form["apradio"];
-        //    var edited = Request.Form["editradio"];
-        //    var omEntry = _hubContext.CENTRAL79HUB.FirstOrDefault(e => e.OMId == hubkey);
-
-        //    if (omEntry == null)
-        //    {
-        //        return NotFound("OM Entry not found");
-        //    }
-
-        //    // The HDS user has just signed the OM79, it has NOT been edited
-        //    if (approved.FirstOrDefault() == "approve")
-        //    {
-        //        var signature = new SignatureData
-        //        {
-        //            HubKey = hubkey,
-        //            IsApprove = true,
-        //            IsDenied = false,
-        //            IsEdited = false,
-        //            Comments = Request.Form["commentsmodal"],
-        //            Signatures = Request.Form["signaturemodal"],
-        //            SigType = "HDS",
-        //            ENumber = HttpContext.User.Identity.Name,
-        //            DateSubmitted = DateTime.Now,
-        //            IsCurrentSig = true,
-        //        };
-        //        _hubContext.Add(signature);
-        //        await _hubContext.SaveChangesAsync();
-        //        // Need to figure out how to know if this has ever been to the GIS manager, using : HasGISReviewed (in omEntry)
-        //        bool everEdited = omEntry.Edited ?? false;
-        //        bool hasBeenReviewedAtLeastOnceByGIS = omEntry.HasGISReviewed ?? false;
-
-
-        //        // Approval from the HDS leads to one of the following two roles: GIS Manager || District Manager
-
-        //        // If this is the first Approval by HDS and it has not yet been to GIS
-        //        // Go to GIS manager for them to approve/edit for the first time
-        //        if (!hasBeenReviewedAtLeastOnceByGIS)
-        //        {
-        //            //Should hit this on first approval from HDS user
-        //            //Email the GISManager(s) with the comments from the HDS user
-        //            //Update the workflow step here
-        //            omEntry.WorkflowStep = "SubmittedToCentralGIS";
-        //            await _hubContext.SaveChangesAsync();
-
-        //            await SendWorkflowEmailToGISManagers(hubkey, Request.Form["commentsmodal"]);
-        //        }
-
-
-        //        // If GIS has reviewed it already then it can go to the district manager and there have been edits
-        //        // Go to District manager for them to approve the changes by one or both of the following users: HDS, GIS
-        //        if (everEdited && hasBeenReviewedAtLeastOnceByGIS)
-        //        {
-        //            omEntry.WorkflowStep = "SubmittedBackToDistrictManager";
-        //            await _hubContext.SaveChangesAsync();
-        //            await SendWorkflowEmailToDistrictManagerWithApprovedFromHDS(hubkey, Request.Form["commentsmodal"]);
-        //        }
-        //    }
-
-        //    // The HDS user has just signed the OM79, but it has been edited
-        //    if (edited.FirstOrDefault() == "edited")
-        //    {
-        //        var signature = new SignatureData
-        //        {
-        //            HubKey = hubkey,
-        //            IsApprove = false,
-        //            IsDenied = false,
-        //            IsEdited = true,
-        //            Comments = Request.Form["commentsmodal"],
-        //            Signatures = Request.Form["signaturemodal"],
-        //            SigType = "HDS",
-        //            ENumber = HttpContext.User.Identity.Name,
-        //            DateSubmitted = DateTime.Now,
-        //            IsCurrentSig = true,
-        //        };
-        //        _hubContext.Add(signature);
-        //        await _hubContext.SaveChangesAsync();
-
-
-        //        // So we know the HDS user just edited the OM79
-        //        // Meaning that the only next step for the OM79 is to go to the GIS Manager(s)
-        //        // Notify the GIS manager that there is a OM79 ready for review, and that the HDS user did make edits
-        //        omEntry.WorkflowStep = "SubmittedToCentralGIS";
-        //        omEntry.Edited = true;
-        //        await _hubContext.SaveChangesAsync();
-        //        await SendWorkflowEmailToGISManagersWithEditsFromHDS(hubkey, Request.Form["commentsmodal"]);
-
-        //    }
-        //    return RedirectToAction("Details", "Central79Hub", new { id = hubkey });
-
-        //}
-
+       
 
         public async Task<IActionResult> SignOMCentralHDS()
         {
@@ -230,23 +137,62 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires GIS Review</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>An OM79 entry has been edited by the HDS user and is now awaiting your review. Please review the comments and make necessary approvals or edits.</p>
+
+                                <!-- Role Responsibilities -->
+                                <p><strong>Your Review Options:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p><strong style='color: #0056b3;'>Approve:</strong> Approving the entry will send it back to the District Manager for a Revision Review.</p>
+                                    <p><strong style='color: #0056b3;'>Edit:</strong> Editing the entry will send it back to the HDS user for a Revision Review.</p>
+                                </div>
+
+                                <!-- Comments Section -->
+                                <p><strong>Comments from HDS:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p>{comments}</p>
+                                </div>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       Review & Sign OM79 Entry
+                                    </a>
+                                </p>
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                        The signature form is located at the bottom of the page at the link above.
+                                </p>
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Ready for GIS Manager Review",
-                    Body = $"Hello,<br><br>" +
-                    $"An OM79 entry has been edited by the HDS user and is now awaiting your review. Please review the comments and make necessary approvals or edits.<br><br>" +
-                    $"You have two options:<br>" +
-                    $"<ul>" +
-                    $"<li><b>Approve:</b> Approving it will send the OM79 back to the District Manager for a Revision Review.</li>" +
-                    $"<li><b>Edit:</b> Editing it will send the OM79 back to the HDS user for a Revision Review.</li>" +
-                    $"</ul><br>" +
-                    $"<b>Comments from HDS:</b> {comments}<br><br>" +
-                    $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                    $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                    $"Thank you for your prompt attention to this matter.<br><br>" +
-                    $"Best regards,<br>" +
-                    $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -304,29 +250,82 @@ namespace OM_79_HUB.Controllers
                     .Select(e => new { e.Comments, e.DateSubmitted })
                     .ToList();
 
-                var hdsCommentsHtml = string.Join("<br>", hdsComments.Select(c => $"<i>Date Signed:</i> {c.DateSubmitted}, Comments: {c.Comments}<br><br>"));
-                var gisCommentsHtml = string.Join("<br>", gisComments.Select(c => $"<i>Date Signed:</i> {c.DateSubmitted}, Comments: {c.Comments}<br><br>"));
+                var hdsCommentsHtml = string.Join("", hdsComments.Select(c => $@"
+                        <div style='background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 5px solid #007BFF; margin-bottom: 10px;'>
+                            <p><strong>Date Signed:</strong> {c.DateSubmitted}</p>
+                            <p><strong>Comments:</strong> {c.Comments}</p>
+                        </div>
+                    "));
 
+                var gisCommentsHtml = string.Join("", gisComments.Select(c => $@"
+                        <div style='background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 5px solid #007BFF; margin-bottom: 10px;'>
+                            <p><strong>Date Signed:</strong> {c.DateSubmitted}</p>
+                            <p><strong>Comments:</strong> {c.Comments}</p>
+                        </div>
+                    "));
+
+
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires District Manager Review</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{omEntry.District}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>An OM79 entry from your district has been reviewed and edited by the HDS user(s) and/or the LRS Manager(s) from the central office. The updated version is now ready for your approval or further edits.</p>
+
+                                <!-- Role Responsibilities -->
+                                <p><strong>Your Review Options:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p><strong style='color: #0056b3;'>Approve:</strong> Approving the changes made by the central office will forward the OM79 to the Regional Engineer.</p>
+                                    <p><strong style='color: #0056b3;'>Edit:</strong> Making additional edits to the OM79 will send it back to the HDS user, restarting the workflow.</p>
+                                </div>
+
+                                <!-- Comments Section -->
+                                <p><strong>GIS Manager Comments:</strong></p>
+                                {gisCommentsHtml}
+
+                                <p><strong>HDS User Comments:</strong></p>
+                                {hdsCommentsHtml}
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       Review & Sign OM79 Entry
+                                    </a>
+                                </p>
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                    The signature form is located at the bottom of the page at the link above.
+                                </p>
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Ready for District Manager Revision Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry from your district has been reviewed and edited by the HDS user(s) and/or the GIS Manager(s) from the central office. It is now ready for your approval or further edits.<br><br>" +
-                           $"You have two options:<br>" +
-                           $"<ul>" +
-                           $"<li><b>Approve:</b> Approving the changes made by the central office will forward the OM79 to the Regional Engineer.</li>" +
-                           $"<li><b>Edit:</b> Making additional edits to the OM79 will send it back to the HDS user, restarting the workflow.</li>" +
-                           $"</ul><br>" +
-                           $"<b>GIS Manager Comments:</b><br>{gisCommentsHtml}<br><br>" +
-                           $"<b>HDS User Comments:</b><br>{hdsCommentsHtml}<br><br>" +
-                           $"Please click the link below to review and take action on the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your prompt attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
+
+                // Construct the email body
 
                 foreach (var districtManager in districtManagers)
                 {
@@ -370,23 +369,62 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                                <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                    <!-- Header -->
+                                    <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires GIS Review</h2>
+                                    <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                    <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                    <!-- Greeting -->
+                                    <p>Hello,</p>
+
+                                    <!-- Explanation -->
+                                    <p>An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the GIS Manager, your review is crucial before the entry can proceed to the next step.</p>
+
+                                    <!-- Role Responsibilities -->
+                                    <p><strong>Your Review Options:</strong></p>
+                                    <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                        <p><strong style='color: #0056b3;'>Approve:</strong> Approving the entry will send it to the Regional Engineer.</p>
+                                        <p><strong style='color: #0056b3;'>Edit:</strong> Editing the entry will send it back to the HDS for another revision review.</p>
+                                    </div>
+
+                                    <!-- Comments Section -->
+                                    <p><strong>Comments from HDS:</strong></p>
+                                    <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                        <p>{comments}</p>
+                                    </div>
+
+                                    <!-- Call to Action -->
+                                    <p style='text-align: center; margin-top: 20px;'>
+                                        <a href='{reviewLink}' 
+                                           style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                           Review & Sign OM79 Entry
+                                        </a>
+                                    </p>
+                                    <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                       The signature form is located at the bottom of the page at the link above.
+                                    </p>
+                                    <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                    <!-- Footer -->
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                                </div>
+                            </body>
+                            </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Ready for GIS Manager Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been reviewed by the HDS and is now awaiting your approval. As the GIS Manager, your review is crucial before the entry can be forwarded to the next step.<br><br>" +
-                           $"You have two options:<br>" +
-                           $"<ul>" +
-                           $"<li><b>Approve:</b> Approving the entry will send it to the Regional Engineer.</li>" +
-                           $"<li><b>Edit:</b> Editing the entry will send it back to the HDS for another revision review.</li>" +
-                           $"</ul><br>" +
-                           $"<b>Comments from HDS:</b> {comments}<br><br>" +
-                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -667,28 +705,80 @@ namespace OM_79_HUB.Controllers
                     .Select(e => new { e.Comments, e.DateSubmitted })
                     .ToList();
 
-                var hdsCommentsHtml = string.Join("<br>", hdsComments.Select(c => $"<i>Date Signed:</i> {c.DateSubmitted}, Comments: {c.Comments}<br><br>"));
-                var gisCommentsHtml = string.Join("<br>", gisComments.Select(c => $"<i>Date Signed:</i> {c.DateSubmitted}, Comments: {c.Comments}<br><br>"));
+                var hdsCommentsHtml = string.Join("", hdsComments.Select(c => $@"
+                        <div style='background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 5px solid #007BFF; margin-bottom: 10px;'>
+                            <p><strong>Date Signed:</strong> {c.DateSubmitted}</p>
+                            <p><strong>Comments:</strong> {c.Comments}</p>
+                        </div>
+                    "));
 
+                var gisCommentsHtml = string.Join("", gisComments.Select(c => $@"
+                        <div style='background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 5px solid #007BFF; margin-bottom: 10px;'>
+                            <p><strong>Date Signed:</strong> {c.DateSubmitted}</p>
+                            <p><strong>Comments:</strong> {c.Comments}</p>
+                        </div>
+                    "));
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                                <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                    <!-- Header -->
+                                    <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires District Manager Review</h2>
+                                    <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{omEntry.District}</strong></p>
+                                    <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                    <!-- Greeting -->
+                                    <p>Hello,</p>
+
+                                    <!-- Explanation -->
+                                    <p>An OM79 entry from your district has been reviewed and edited by the HDS user(s) and/or the GIS Manager(s) from the central office. It is now ready for your approval or further edits.</p>
+
+                                    <!-- Role Responsibilities -->
+                                    <p><strong>Your Review Options:</strong></p>
+                                    <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                        <p><strong style='color: #0056b3;'>Approve:</strong> Approving the changes made by the central office will forward the OM79 to the Regional Engineer.</p>
+                                        <p><strong style='color: #0056b3;'>Making Edits:</strong> Making additional edits to the OM79 will send it back to the HDS user, restarting the workflow.</p>
+                                    </div>
+
+                                    <!-- Comments Section -->
+                                    <p><strong>GIS Manager Comments:</strong></p>
+                                    {gisCommentsHtml}
+
+                                    <p><strong>HDS User Comments:</strong></p>
+                                    {hdsCommentsHtml}
+
+                                    <!-- Call to Action -->
+                                    <p style='text-align: center; margin-top: 20px;'>
+                                        <a href='{reviewLink}' 
+                                           style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                           Review & Sign OM79 Entry
+                                        </a>
+                                    </p>
+
+                                    <!-- Important Note -->
+                                    <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                       The signature form is located at the bottom of the page at the link above.
+                                    </p>
+
+                                    <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                    <!-- Footer -->
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                                </div>
+                            </body>
+                            </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Ready for District Manager Revision Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry from your district has been reviewed and edited by the HDS user(s) and/or the GIS Manager(s) from the central office. It is now ready for your approval or further edits.<br><br>" +
-                           $"You have two options:<br>" +
-                           $"<ul>" +
-                           $"<li><b>Approve:</b> Approving the changes made by the central office will forward the OM79 to the Regional Engineer.</li>" +
-                           $"<li><b>Edit:</b> Making additional edits to the OM79 will send it back to the HDS user, restarting the workflow.</li>" +
-                           $"</ul><br>" +
-                           $"<b>GIS Manager Comments:</b><br>{gisCommentsHtml}<br><br>" +
-                           $"<b>HDS User Comments:</b><br>{hdsCommentsHtml}<br><br>" +
-                           $"Please click the link below to review and take action on the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your prompt attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -736,25 +826,67 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires Regional Engineer Review</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{omEntryDistrict}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>An OM79 entry has been approved by the District, HDS user(s), and GIS Manager(s) and is now awaiting your review. As the Regional Engineer, your approval is crucial for finalizing this entry.</p>
+
+                                <!-- Role Responsibilities -->
+                                <p><strong>Your Review Options:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p><strong style='color: #0056b3;'>Approve:</strong> Approving this entry will forward the OM79 to the Director of Operations.</p>
+                                    <p><strong style='color: #0056b3;'>Deny:</strong> Denying this entry will send it back to the District Manager with your requested changes. The District Manager can then either perform the requested changes or close the request.</p>
+                                </div>
+
+                                <!-- Comments Section -->
+                                <p><strong>Additional Notes:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p>{comments}</p>
+                                </div>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       Review & Take Action on OM79 Entry
+                                    </a>
+                                </p>
+
+                                <!-- Important Note -->
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                   The signature form is located at the bottom of the page at the link above.
+                                </p>
+
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = $"OM79 Entry Ready for Regional Engineer Review, From District [{omEntryDistrict}]",
-                    Body = $"Hello,<br><br>" +
-                       $"An OM79 entry has been approved by the District, HDS user(s), and GIS Manager(s) and is now awaiting your review. As the Regional Engineer, your approval is crucial for finalizing this entry.<br><br>" +
-                       $"You have two options:<br>" +
-                       $"<ul>" +
-                       $"<li><b>Approve:</b> Approving this entry will forward the OM79 to the Director of Operations.</li>" +
-                       $"<li><b>Deny:</b> Denying this entry will send it back to the District Manager with your requested changes. The District Manager can then either perform the requested changes or close the request.</li>" +
-                       $"</ul><br>" +
-                       $"Please click the link below to review and take action on the OM79 entry:<br><br>" +
-                       $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                       $"Thank you for your prompt attention to this matter.<br><br>" +
-                       $"Best regards,<br>" +
-                       $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
-
 
                 foreach (var regionalEngineer in regionalEngineers)
                 {
@@ -808,23 +940,65 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                                <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                    <!-- Header -->
+                                    <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires Your Review</h2>
+                                    <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                    <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                    <!-- Greeting -->
+                                    <p>Hello,</p>
+
+                                    <!-- Explanation -->
+                                    <p>An OM79 entry has been edited by the GIS Manager and is now awaiting your review. As an HDS user, your review is crucial for finalizing this entry.</p>
+
+                                    <!-- Role Responsibilities -->
+                                    <p><strong>Your Review Options:</strong></p>
+                                    <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                        <p><strong style='color: #0056b3;'>Approve:</strong> Approving the changes will forward the OM79 back to the District Manager for review of the revisions.</p>
+                                        <p><strong style='color: #0056b3;'>Edit:</strong> Making additional edits will send the OM79 back to the GIS Manager for further review.</p>
+                                    </div>
+
+                                    <!-- Comments Section -->
+                                    <p><strong>Comments from GIS Manager:</strong></p>
+                                    <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                        <p>{comments}</p>
+                                    </div>
+
+                                    <!-- Call to Action -->
+                                    <p style='text-align: center; margin-top: 20px;'>
+                                        <a href='{reviewLink}' 
+                                           style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                           Review & Sign OM79
+                                        </a>
+                                    </p>
+
+                                    <!-- Important Note -->
+                                    <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                       The signature form is located at the bottom of the page at the link above.
+                                    </p>
+
+                                    <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                    <!-- Footer -->
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                                </div>
+                            </body>
+                            </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Has Been Edited By GIS Manager",
-                    Body = $"Hello,<br><br>" +
-                      $"An OM79 entry has been edited by the GIS Manager and is now awaiting your review. As an HDS user, your review is crucial for finalizing this entry.<br><br>" +
-                      $"You have two options:<br>" +
-                      $"<ul>" +
-                      $"<li><b>Approve:</b> Approving the changes will forward the OM79 back to the District Manager for review of the revisions.</li>" +
-                      $"<li><b>Edit:</b> Making additional edits will send the OM79 back to the GIS Manager for further review.</li>" +
-                      $"</ul><br>" +
-                      $"<b>Comments from GIS Manager:</b> {comments}<br><br>" +
-                      $"Please click the link below to review and take action on the OM79 entry:<br><br>" +
-                      $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                      $"Thank you for your prompt attention to this matter.<br><br>" +
-                      $"Best regards,<br>" +
-                      $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -1053,24 +1227,66 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #0056b3;'>Revised OM79 Entry Edited by District Manager</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>The District Manager has made additional edits to the revised OM79 entry that you have already reviewed. These edits have restarted the workflow.</p>
+                                <p>As an HDS user, your review is crucial for finalizing the changes.</p>
+
+                                <!-- Role Responsibilities -->
+                                <p><strong>Your Review Options:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p><strong style='color: #0056b3;'>Approve:</strong> Approving the entry will send it to the GIS Manager for review.</p>
+                                    <p><strong style='color: #0056b3;'>Edit:</strong> Editing the entry will also send it to the GIS Manager for review.</p>
+                                </div>
+
+                                <!-- Comments Section -->
+                                <p><strong>Comments from District Manager:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p>{comments}</p>
+                                </div>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       Review & Sign OM79
+                                    </a>
+                                </p>
+
+                                <!-- Important Note -->
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                   The signature form is located at the bottom of the page at the link above.
+                                </p>
+
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "Revised OM79 Entry Edited by District Manager",
-                    Body = $"Hello,<br><br>" +
-                    $"The District Manager has made additional edits to the revised OM79 entry that you all have already reviewed. These edits have restarted the workflow.<br><br>" +
-                    $"As an HDS user, your review is crucial for finalizing the changes.<br><br>" +
-                    $"You have two options:<br>" +
-                    $"<ul>" +
-                    $"<li><b>Approve:</b> Approving the entry will send it to the GIS Manager for review.</li>" +
-                    $"<li><b>Edit:</b> Editing the entry will also send it to the GIS Manager for review.</li>" +
-                    $"</ul><br>" +
-                    $"<b>Comments from District Manager:</b> {comments}<br><br>" +
-                    $"Please click the link below to review and take action on the OM79 entry:<br><br>" +
-                    $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                    $"Thank you for your prompt attention to this matter.<br><br>" +
-                    $"Best regards,<br>" +
-                    $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -1282,23 +1498,65 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires Your Review</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>An OM79 entry has been approved by the Regional Engineer and is now awaiting your review. As the Director of Operations, your review is crucial for finalizing this entry.</p>
+
+                                <!-- Role Responsibilities -->
+                                <p><strong>Your Review Options:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p><strong style='color: #0056b3;'>Approve:</strong> Approving this entry will forward the OM79 to the Chief Engineer of Operations.</p>
+                                    <p><strong style='color: #0056b3;'>Deny:</strong> Denying this entry will send it back to the District Manager with your requested changes. The District Manager can then either make the requested edits and restart the workflow or close the request.</p>
+                                </div>
+
+                                <!-- Comments Section -->
+                                <p><strong>Comments from Regional Engineer:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p>{comments}</p>
+                                </div>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       Review & Take Action on OM79 Entry
+                                    </a>
+                                </p>
+
+                                <!-- Important Note -->
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                   The signature form is located at the bottom of the page at the link above.
+                                </p>
+
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Ready for Director of Operations Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been approved by the Regional Engineer and is now awaiting your review. As the Director of Operations, your review is crucial for finalizing this entry.<br><br>" +
-                           $"You have two options:<br>" +
-                           $"<ul>" +
-                           $"<li><b>Approve:</b> Approving this entry will forward the OM79 to the Chief Engineer of Operations.</li>" +
-                           $"<li><b>Deny:</b> Denying this entry will send it back to the District Manager with your requested changes. The District Manager can then either make the requested edits and restart the workflow or close the request.</li>" +
-                           $"</ul><br>" +
-                           $"<b>Comments from Regional Engineer:</b> {comments}<br><br>" +
-                           $"Please click the link below to review and take action on the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your prompt attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -1351,25 +1609,66 @@ namespace OM_79_HUB.Controllers
                 }
                 else if (userRole == "Chief Engineer of Operations")
                 {
-                    nextRole = "Deputy Secretary / Deputy Commissioner of Highways";
+                    nextRole = "ready for a paper package to be delivered to the State Highway Engineer for final review.";
                 }
                 else
                 {
                     nextRole = "the next reviewer";
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                                <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                    <!-- Header -->
+                                    <h2 style='text-align: center; color: #0056b3;'>OM79 Entry Approved by {userRole}</h2>
+                                    <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                    <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                    <!-- Greeting -->
+                                    <p>Hello,</p>
+
+                                    <!-- Explanation -->
+                                    <p>The <strong>{userRole}</strong> has approved this OM79 entry.</p>";
+
+                                            if (userRole == "Chief Engineer of Operations")
+                                            {
+                                                emailBody += @"
+                                    <p>This marks the end of the digital workflow. It is now time to prepare and deliver a paper package of the OM79 to the <strong>State Highway Engineer</strong> for final review.</p>";
+                                            }
+                                            else
+                                            {
+                                                emailBody += $@"
+                                    <p>It is now in the hands of <strong>{nextRole}</strong> for further review.</p>
+                                    <p>No action is required on your part at this moment.</p>";
+                                            }
+
+                                            emailBody += $@"
+                                    <!-- Call to Action -->
+                                    <p style='text-align: center; margin-top: 20px;'>
+                                        <a href='{reviewLink}' 
+                                           style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                           View OM79 Entry
+                                        </a>
+                                    </p>
+
+                                    <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                    <!-- Footer -->
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                                </div>
+                            </body>
+                            </html>";
+
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = $"OM79 Entry Approved by {userRole}",
-                    Body = $"Hello,<br><br>" +
-                           $"The {userRole} has approved the OM79 entry. It is now in the hands of the {nextRole} for further review.<br><br>" +
-                           $"No action is required on your part at this moment.<br><br>" +
-                           $"You can view the OM79 entry by clicking the link below:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>View OM79 Entry</a><br><br>" +
-                           $"Thank you for your contribution to this workflow.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -1415,23 +1714,64 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #d9534f;'>OM79 Entry Denied by {userRole}</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{omEntry.District}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>The <strong>{userRole}</strong> has denied the OM79 entry and provided the following comments:</p>
+
+                                <!-- Comments Section -->
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #d9534f;'>
+                                    <p>{comments}</p>
+                                </div>
+
+                                <!-- Review Options -->
+                                <p><strong>Your Next Steps:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p><strong style='color: #0056b3;'>Make the requested changes:</strong> If there are any changes requested, you can make the necessary edits and restart the workflow.</p>
+                                    <p><strong style='color: #0056b3;'>Close the request:</strong> If you choose to close the request, it will be removed from the system.</p>
+                                </div>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       Review OM79 Entry
+                                    </a>
+                                </p>
+
+                                <!-- Important Note -->
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                   The signature form is located at the bottom of the page at the link above.
+                                </p>
+
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = $"OM79 Entry Denied by {userRole}",
-                    Body = $"Hello,<br><br>" +
-                           $"The {userRole} has denied the OM79 entry and provided the following comments:<br><br>" +
-                           $"<b>Comments:</b> {comments}<br><br>" +
-                           $"You have two options:<br>" +
-                           $"<ul>" +
-                           $"<li><b>Make the requested changes:</b> If there are any changes requested, you can make the necessary edits and restart the workflow.</li>" +
-                           $"<li><b>Close the request:</b> If you choose to close the request, it will be removed from the system.</li>" +
-                           $"</ul><br>" +
-                           $"Please click the link below to review the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your prompt attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -1641,23 +1981,64 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires Your Review</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>An OM79 entry has been approved by the Director of Operations and is now awaiting your review. As the Chief Engineer of Operations, your review is crucial for finalizing this entry.</p>
+
+                                <!-- Role Responsibilities -->
+                                <p><strong>Your Review Options:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p><strong style='color: #0056b3;'>Approve:</strong> Approving this entry will end the digital workflow and notify the HDS manager(s) to provide a printed copy to the State Highway Engineer for final review.</p>
+                                    <p><strong style='color: #0056b3;'>Deny:</strong> Denying this entry will send it back to the District Manager with your requested changes. The District Manager can then either make the requested edits and restart the workflow or close the request.</p>
+                                </div>
+
+                                <!-- Comments Section -->
+                                <p><strong>Comments from Director of Operations:</strong></p>
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                    <p>{comments}</p>
+                                </div>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       Review & Take Action on OM79 Entry
+                                    </a>
+                                </p>
+
+                                <!-- Important Note -->
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                   The signature form is located at the bottom of the page at the link above.
+                                </p>
+
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Ready for Chief Engineer of Operations Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been approved by the Director of Operations and is now awaiting your review. As the Chief Engineer of Operations, your review is crucial for finalizing this entry.<br><br>" +
-                           $"You have two options:<br>" +
-                           $"<ul>" +
-                           $"<li><b>Approve:</b> Approving this entry will send a PDF copy of the OM79 via email to the Deputy Secretary / Deputy Commissioner of Highways for their review.</li>" +
-                           $"<li><b>Deny:</b> Denying this entry will send it back to the District Manager with your requested changes. The District Manager can then either make the requested edits and restart the workflow or close the request.</li>" +
-                           $"</ul><br>" +
-                           $"<b>Comments from Director of Operations:</b> {comments}<br><br>" +
-                           $"Please click the link below to review and take action on the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your prompt attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -1699,18 +2080,47 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #d9534f;'>OM79 Entry Denied by {userRole}</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>The <strong>{userRole}</strong> has denied the OM79 entry, and it has been returned to the District Manager for further review.</p>
+                                <p>No action is required on your part at this moment.</p>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                       style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                       View OM79 Entry
+                                    </a>
+                                </p>
+
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = $"OM79 Entry Denied by {userRole}",
-                    Body = $"Hello,<br><br>" +
-                           $"The {userRole} has denied the OM79 entry and it is now back in the hands of the District Manager.<br><br>" +
-                           $"No action is required on your part at this moment.<br><br>" +
-                           $"You can view the OM79 entry by clicking the link below:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>View OM79 Entry</a><br><br>" +
-                           $"Thank you for your contribution to this workflow.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
@@ -1777,7 +2187,7 @@ namespace OM_79_HUB.Controllers
 
                 omEntry.WorkflowStep = "Finalized";
                 await _hubContext.SaveChangesAsync();
-                await SendWorkflowEmailToDeputySecretary(hubkey, Request.Form["commentsmodal"]);
+                //await SendWorkflowEmailToDeputySecretary(hubkey, Request.Form["commentsmodal"]);
                 await SendWorkflowUpdateEmailToHDSUser(hubkey, userRole);
             }
 

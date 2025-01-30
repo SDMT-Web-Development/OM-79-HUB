@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore; 
 using OM_79_HUB.Components;
 using OM_79_HUB.Data;
 using OM_79_HUB.Models;
@@ -225,7 +225,7 @@ namespace OM_79_HUB.Controllers
             {
                 return NotFound("Unique ID not found.");
             }
-
+            
             try
             {
                 // Retrieve the OM79Workflow entry based on the HubID stored in the session
@@ -358,6 +358,80 @@ namespace OM_79_HUB.Controllers
                 return StatusCode(500, "An internal server error occurred.");
             }
         }
+        public void sendMissingUsersEmailToDistrictManager(List<string> missingRoles, int? districtToSendTo)
+        {
+            // Find the District System Administrator for this district
+            var districtAdmins = _context.AdminData
+                                 .Where(u => u.DistrictNumber == districtToSendTo && u.DistrictAdmin == true)
+                                 .ToList();
+
+            if (!districtAdmins.Any())
+            {
+                // No district administrators found, exit early
+                return;
+            }
+
+            foreach (var admin in districtAdmins)
+            {
+                var message = new MailMessage
+                {
+                    From = new MailAddress("DOTPJ103Srv@wv.gov")
+                };
+                message.To.Add(admin.StateEmail);
+                message.CC.Add("ethan.m.johnson@wv.gov");
+
+                message.Subject = $"OM79 System Alert for District {districtToSendTo} - Action Required";
+                message.Body = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                                <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+            
+                                    <!-- Header -->
+                                    <h2 style='text-align: center; color: #d9534f;'>OM79 System Missing Roles</h2>
+                                    <p style='font-size: 14px; text-align: center;'>District {districtToSendTo}</p>
+                                    <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                    <!-- Greeting -->
+                                    <p>Hello <strong>{admin.FirstName}</strong>,</p>
+
+                                    <!-- Introduction -->
+                                    <p>The system has detected that the following required roles are currently unassigned in <strong>District {districtToSendTo}</strong>:</p>
+
+                                    <!-- Missing Roles List -->
+                                    <ul style='background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 5px solid #d9534f;'>
+                                        {string.Join("", missingRoles.Select(role => $"<li><strong>{role}</strong></li>"))}
+                                    </ul>
+
+                                    <!-- Action Needed -->
+                                    <p>An OM79 entry has just been submitted for review in <strong>District {districtToSendTo}</strong>. However, without these required roles assigned in the system, the review process will be stalled until someone is added to continue the workflow.</p>
+
+                                    <!-- Call to Action: Add Users Link -->
+                                    <p style='text-align: center; margin-top: 20px;'>
+                                        <a href='https://dotapps.transportation.wv.gov/om79/AccountSystemAndWorkflow/DistrictAccountSystem' 
+                                           style='background: #007BFF; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                           Add Missing User(s)
+                                        </a>
+                                    </p>
+
+                                    <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                    <!-- Footer -->
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                                </div>
+                            </body>
+                            </html>";
+
+                message.IsBodyHtml = true;
+                var client = new SmtpClient
+                {
+                    Host = "10.204.145.32",
+                    Port = 25,
+                    EnableSsl = false,
+                    Credentials = new NetworkCredential("ethan.m.johnson@wv.gov", "trippononemails")
+                };
+                client.Send(message);
+            }
+        }
 
         public void sendInitialWorkflowEmailToDistrictUsers(int id)
         {
@@ -381,35 +455,122 @@ namespace OM_79_HUB.Controllers
                             Roles = g.SelectMany(GetUserRoles).Distinct().ToList()
                         });
 
-                foreach (var userRoleEntry in userRolesDictionary)
+
+
+
+                var requiredRoles = new HashSet<string>
+                {
+                    "Bridge Engineer",
+                    "Traffic Engineer",
+                    "Maintenance Engineer",
+                    "Construction Engineer",
+                    "Right Of Way Manager"
+                };
+                var existingRoles = allDistrictUsers.SelectMany(GetUserRoles).Distinct().ToHashSet();
+                var missingRoles = requiredRoles.Except(existingRoles).ToList();
+                if (missingRoles.Any()) // If at least one role is missing
+                {
+                    sendMissingUsersEmailToDistrictManager(missingRoles, districtToSendTo);
+                }
+
+
+                    foreach (var userRoleEntry in userRolesDictionary)
                 {
                     var user = userRoleEntry.Value.User;
-                    var roles = string.Join(", ", userRoleEntry.Value.Roles);
+                    var roles = userRoleEntry.Value.Roles;
+                    var roleResponsibilities = new Dictionary<string, string>
+                    {
+                        { "Bridge Engineer", "Responsible for." },
+                        { "Traffic Engineer", "Responsible for." },
+                        { "Maintenance Engineer", "Responsible for" },
+                        { "Construction Engineer", "Responsible for" },
+                        { "Right Of Way Manager", "Responsible for" }
+                    };
+
+                    var roleDetails = string.Join("<br>", roles.Select(role =>
+                                                $"<strong>{role}:</strong> {roleResponsibilities.GetValueOrDefault(role, "Responsible for reviewing the OM79 entry.")}"));
+
 
                     var message = new MailMessage
                     {
                         From = new MailAddress("DOTPJ103Srv@wv.gov")
                     };
+
+
                     message.To.Add(user.Email);
                     message.CC.Add("ethan.m.johnson@wv.gov");
 
-                    message.Subject = $"OM79 Submitted For District [{user.District}] Review";
-                    message.Body = $"Hello {user.FirstName},<br><br>" +
-                                   $"An OM79 entry has been submitted from your district. You are currently listed for the following role(s) in the system and are responsible for reviewing and signing the OM79 in district {user.District}:<br><br>" +
-                                   $"{string.Join("<br>", userRoleEntry.Value.Roles)}.<br><br>" +
-                                   $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                                   $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                                   $"Note: If you hold multiple roles within your district, you will need to sign for each role separately using the link above.<br><br>" +
-                                   $"Thank you,<br>" +
-                                   $"OM79 Automated System";
+                    message.Subject = $"OM79 Submission - Review Required for District {user.District}";
+
+                    message.Body = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                                <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+                
+                                    <!-- Header -->
+                                    <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires Your Review</h2>
+                                    <p style='font-size: 14px; text-align: center;'>District {user.District}</p>
+                                    <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                    <!-- Greeting -->
+                                    <p>Hello <strong>{user.FirstName}</strong>,</p>
+
+                                    <!-- Introduction -->
+                                    <p>An OM79 entry has been submitted for review in District {user.District}. You are responsible for reviewing the following sections based on your assigned role(s):</p>
+
+                                    <!-- Role Responsibilities Table -->
+                                     <p><strong>Your Responsibilities:</strong></p>
+                                    <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                        {string.Join("", roles.Select(role => $"<p><strong style='color: #0056b3;'>{role}:</strong> {roleResponsibilities.GetValueOrDefault(role, "Responsible for reviewing the OM79 entry.")}</p>"))}
+                                    </div>
+
+
+                                    <!-- Call to Action -->
+                                    <p style='text-align: center; margin-top: 20px;'>
+                                        <a href='https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}' 
+                                            style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                            Review & Sign OM79 Entry
+                                        </a>
+                                    </p>
+
+                                    <!-- Important Note -->
+                                    <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                        The signature form is located at the bottom of the page at the link above.
+                                    </p>
+
+                                    <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                    <!-- Footer -->
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Note: If you hold multiple roles, you must sign separately for each role.</p>
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                                </div>
+                            </body>
+                            </html>";
+
+                    //message.Subject = $"OM79 Submission - Review Required for District {user.District}";
+                    //message.Body = $@"
+                    //                <html>
+                    //                <body>
+                    //                    <p>Hello {user.FirstName},</p>
+                    //                    <p>An OM79 entry has been submitted for review in District {user.District}. Based on your assigned role(s), you are responsible for reviewing the following aspects:</p>
+                    //                    <p>{roleDetails}</p>
+                    //                    <p>Please click the link below to access and sign the OM79 entry:</p>
+                    //                    <p><a href='https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a></p>
+                    //                    <p><strong>Note:</strong> If you hold multiple roles, you must sign separately for each role.</p>
+                    //                    <p style='color: red; font-weight: bold;'>The signature form is located at the bottom of the page inside the pink box.</p>
+                    //                    <p>Thank you,<br>OM79 Automated System</p>
+                    //                </body>
+                    //                </html>";
+
                     message.IsBodyHtml = true;
+
 
                     var client = new SmtpClient
                     {
                         Host = "10.204.145.32",
                         Port = 25,
                         EnableSsl = false,
-                        Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                        Credentials = new NetworkCredential("ethan.m.johnson@wv.gov", "trippononemails")
                     };
                     client.Send(message);
                 }
@@ -428,7 +589,6 @@ namespace OM_79_HUB.Controllers
             if (user.ConstructionEngineer) yield return "Construction Engineer";
             if (user.RightOfWayManager) yield return "Right Of Way Manager";
         }
-
 
         private async Task<bool> checkComplexPermission(string currentUser, CENTRAL79HUB passedHub)
         {
@@ -2036,6 +2196,7 @@ namespace OM_79_HUB.Controllers
             }
         }
 
+
         public void SendWorkflowEmailToHDS(int id)
         {
             try
@@ -2055,45 +2216,170 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
-                // Compose the email
+                // Construct the Review Link (Replace with actual URL)
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires Your Review</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{omEntry.District}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                <!-- Greeting -->
+                                <p>Hello,</p>
+
+                                <!-- Explanation -->
+                                <p>An OM79 entry has been submitted from district {omEntry.District} for review. You are responsible for reviewing the following based on your assigned role(s): </p>
+                                <p><strong>Your Responsibilities:</strong></p>
+                                <ul style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF; list-style-type: none;'>
+                                    <li><strong>HDS:</strong> CHANGETHIS</li>
+                                </ul>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                        style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                        Review & Sign OM79 Entry
+                                    </a>
+                                </p>
+                                <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                        The signature form is located at the bottom of the page at the link above.
+                                </p>
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                // Create the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = $"OM79 Entry Ready for HDS Review",
-                    Body = $"Hello,<br><br>" +
-                           $"An OM79 entry has been reviewed by the District Manager and is now awaiting your approval. As the HDS, your review is crucial before the entry can be forwarded to the next step.<br><br>" +
-                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Subject = $"OM79 Submission - HDS Review required",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
-                // Add all HDS users to the recipient list
+                // Add all HDS users to the To field
                 foreach (var hdsUser in hdsUsers)
                 {
                     message.To.Add(hdsUser.Email);
-                    message.CC.Add("ethan.m.johnson@wv.gov");
-
                 }
+                message.CC.Add("ethan.m.johnson@wv.gov");
 
-                // Send the email
+
                 var client = new SmtpClient
                 {
                     Host = "10.204.145.32",
                     Port = 25,
                     EnableSsl = false,
-                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                    Credentials = new NetworkCredential("ethan.m.johnson@wv.gov", "trippononemails")
                 };
 
                 client.Send(message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+                Console.WriteLine($"Error sending HDS email: {ex.Message}");
             }
         }
+
+
+        //public void SendWorkflowEmailToHDS(int id)
+        //{
+        //    try
+        //    {
+        //        var omEntry = _context.CENTRAL79HUB.FirstOrDefault(e => e.OMId == id);
+        //        if (omEntry == null)
+        //        {
+        //            Console.WriteLine("OM Entry not found.");
+        //            return;
+        //        }
+
+        //        // Find all HDS users
+        //        var hdsUsers = _context.UserData.Where(e => e.HDS).ToList();
+        //        if (!hdsUsers.Any())
+        //        {
+        //            Console.WriteLine("HDS users not found.");
+        //            return;
+        //        }
+        //        string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
+        //        // Compose the email
+        //        var message = new MailMessage
+        //        {
+        //            From = new MailAddress("DOTPJ103Srv@wv.gov"),
+        //            Subject = $"OM79 Entry Ready for HDS Review",
+        //            Body = $@"
+        //                    <html>
+        //                    <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+        //                        <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+        //                            <!-- Header -->
+        //                            <h2 style='text-align: center; color: #0056b3;'>OM79 Entry Requires HDS Review</h2>
+        //                            <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.OMId}</strong></p>
+        //                            <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+        //                            <!-- Greeting -->
+        //                            <p>Hello,</p>
+
+        //                            <!-- Explanation -->
+        //                            <p>An OM79 entry has been reviewed by the District Manager and is now awaiting your approval. As the HDS, your review is crucial before the entry can proceed to the next step.</p>
+
+        //                            <!-- Call to Action -->
+        //                            <p style='text-align: center; margin-top: 20px;'>
+        //                                <a href='{reviewLink}' 
+        //                                    style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+        //                                    ✅ Review & Sign OM79 Entry
+        //                                </a>
+        //                            </p>
+
+        //                            <!-- Important Note -->
+        //                            <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+        //                                Please review the entry at your earliest convenience to avoid workflow delays.
+        //                            </p>
+
+        //                            <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+        //                            <!-- Footer -->
+        //                            <p style='font-size: 12px; text-align: center; color: #666;'>Thank you for your attention to this matter.</p>
+        //                            <p style='font-size: 12px; text-align: center; color: #666;'>Best regards,<br>OM79 Automated System</p>
+
+        //                        </div>
+        //                    </body>
+        //                    </html>"
+        //            IsBodyHtml = true
+        //        };
+
+        //        // Add all HDS users to the recipient list
+        //        foreach (var hdsUser in hdsUsers)
+        //        {
+        //            message.To.Add(hdsUser.Email);
+        //        }
+        //        message.CC.Add("ethan.m.johnson@wv.gov");
+
+        //        // Send the email
+        //        var client = new SmtpClient
+        //        {
+        //            Host = "10.204.145.32",
+        //            Port = 25,
+        //            EnableSsl = false,
+        //            Credentials = new NetworkCredential("ethan.m.johnson@wv.gov", "trippononemails")
+        //        };
+
+        //        client.Send(message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString() + " this is because the email is incorrect form");
+        //    }
+        //}
 
 
         public void sendDistrictManagerDenialEmail(int id)
@@ -2107,45 +2393,81 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
-                var initialUser = omEntry.EmailSubmit;
-                var signatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true && e.SigType == "District Manager").ToList();
+                var initialUserEmail = omEntry.EmailSubmit;
+                var signatures = _context.SignatureData
+                    .Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true && e.SigType == "District Manager")
+                    .ToList();
 
-                // Compose the email body with comments
-                var bodyBuilder = new StringBuilder();
-                bodyBuilder.AppendLine("Hello,<br><br>");
-                bodyBuilder.AppendLine("The district manager has denied an OM79 entry that you submitted. Here are their comments:<br><br>");
+                // Construct the Review Link
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
 
-                foreach (var signature in signatures)
-                {
-                    string approvalStatus = signature.IsApprove ? "&#x2705; Approved" : signature.IsDenied ? "&#x274C; Denied" : "Pending";
-                    string color = signature.IsApprove ? "green" : "red";
+                // Construct the email body
+                string emailBody = $@"
+                        <html>
+                        <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                            <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
 
-                    bodyBuilder.AppendLine($"<strong>{signature.SigType}:</strong> {signature.Signatures} <span style='color:{color};'>{approvalStatus}</span><br>");
-                    bodyBuilder.AppendLine($"<strong>Comments:</strong> {signature.Comments}<br><br>");
-                }
+                                <!-- Header -->
+                                <h2 style='text-align: center; color: #d9534f;'>OM79 Submission Denied</h2>
+                                <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{omEntry.District}</strong></p>
+                                <hr style='border: 0; border-top: 1px solid #ddd;'>
 
-                bodyBuilder.AppendLine("Please review the requested changes/concerns from your district manager and update the entry accordingly. You can access your entry using the link below:<br><br>");
-                bodyBuilder.AppendLine($"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>");
-                bodyBuilder.AppendLine("Thank you,<br>OM79 Automated System");
+                                <!-- Greeting -->
+                                <p>Hello,</p>
 
+                                <!-- Explanation -->
+                                <p>The District Manager has denied an OM79 entry that you submitted. Below are their comments:</p>
+
+                                <!-- Comments Section -->
+                                <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #d9534f;'>
+                                    {string.Join("", signatures.Select(signature => $@"
+                                        <div style='background: white; padding: 10px; border-radius: 8px; box-shadow: 0px 0px 5px #ddd; margin-bottom: 10px;'>
+                                            <p><strong>District Manager:</strong> {signature.Signatures} 
+                                                <span style='color:{(signature.IsApprove ? "green" : "red")};'>
+                                                    {(signature.IsApprove ? "✅ Approved" : "❌ Denied")}
+                                                </span>
+                                            </p>
+                                            <p><strong>Comments:</strong> {signature.Comments}</p>
+                                        </div>
+                                    "))}
+                                </div>
+
+                                <!-- Action Needed -->
+                                <p>Please review the requested changes/concerns from your District Manager and update the entry accordingly.</p>
+
+                                <!-- Call to Action -->
+                                <p style='text-align: center; margin-top: 20px;'>
+                                    <a href='{reviewLink}' 
+                                        style='background: #dc3545; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                        Review & Update OM79 Entry
+                                    </a>
+                                </p>
+
+                                <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                <!-- Footer -->
+                                <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                            </div>
+                        </body>
+                        </html>";
 
                 // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
                     Subject = "OM79 Entry Denial Notification",
-                    Body = bodyBuilder.ToString(),
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
                 message.CC.Add("ethan.m.johnson@wv.gov");
-                message.To.Add(initialUser);
+                message.To.Add(initialUserEmail);
 
                 var client = new SmtpClient
                 {
                     Host = "10.204.145.32",
                     Port = 25,
                     EnableSsl = false,
-                    Credentials = new NetworkCredential("richard.a.tucker@wv.gov", "trippononemails")
+                    Credentials = new NetworkCredential("ethan.m.johnson@wv.gov", "trippononemails")
                 };
                 client.Send(message);
             }
@@ -2165,38 +2487,73 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
-                var initialUser = omEntry.EmailSubmit;
-                var signatures = _context.SignatureData.Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true).ToList();
+                var initialUserEmail = omEntry.EmailSubmit;
+                var signatures = _context.SignatureData
+                    .Where(e => e.HubKey == omEntry.OMId && e.IsCurrentSig == true)
+                    .ToList();
 
-                // Compose the email body with comments
-                var bodyBuilder = new StringBuilder();
-                bodyBuilder.AppendLine("Hello,<br><br>");
-                bodyBuilder.AppendLine("One or more of the district-level users has denied an OM79 entry that you submitted. Here are the comments:<br><br>");
+                // Construct the Review Link
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
 
-                foreach (var signature in signatures)
-                {
-                    string approvalStatus = signature.IsApprove ? "&#x2705; Approved" : signature.IsDenied ? "&#x274C; Denied" : "Pending";
-                    string color = signature.IsApprove ? "green" : "red";
+                // Construct the email body
+                string emailBody = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                        <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
 
-                    bodyBuilder.AppendLine($"<strong>{signature.SigType}:</strong> {signature.Signatures} <span style='color:{color};'>{approvalStatus}</span><br>");
-                    bodyBuilder.AppendLine($"<strong>Comments:</strong> {signature.Comments}<br><br>");
-                }
+                            <!-- Header -->
+                            <h2 style='text-align: center; color: #d9534f;'>OM79 Submission Denied</h2>
+                            <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{omEntry.District}</strong></p>
+                            <hr style='border: 0; border-top: 1px solid #ddd;'>
 
-                bodyBuilder.AppendLine("Please review the requested changes/concerns from your district and update the entry accordingly. You can access your entry using the link below:<br><br>");
-                bodyBuilder.AppendLine($"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>");
-                bodyBuilder.AppendLine("Thank you,<br>OM79 Automated System");
+                            <!-- Greeting -->
+                            <p>Hello,</p>
 
+                            <!-- Explanation -->
+                            <p>One or more of the district-level users has denied an OM79 entry that you submitted. Below are their comments:</p>
 
+                            <!-- Comments Section -->
+                            <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #d9534f;'>
+                                {string.Join("", signatures.Select(signature => $@"
+                                    <div style='background: white; padding: 10px; border-radius: 8px; box-shadow: 0px 0px 5px #ddd; margin-bottom: 10px;'>
+                                        <p><strong>{signature.SigType}:</strong> {signature.Signatures} 
+                                            <span style='color:{(signature.IsApprove ? "green" : "red")};'>
+                                                {(signature.IsApprove ? "✅ Approved" : "❌ Denied")}
+                                            </span>
+                                        </p>
+                                        <p><strong>Comments:</strong> {signature.Comments}</p>
+                                    </div>
+                                "))}
+                            </div>
+
+                            <!-- Action Needed -->
+                            <p>Please review the requested changes/concerns from your district and update the entry accordingly.</p>
+
+                            <!-- Call to Action -->
+                            <p style='text-align: center; margin-top: 20px;'>
+                                <a href='{reviewLink}' 
+                                    style='background: #dc3545; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                    Review & Update OM79 Entry
+                                </a>
+                            </p>                            
+
+                            <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                            <!-- Footer -->
+                            <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                        </div>
+                    </body>
+                    </html>";
                 // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = "OM79 Entry Denial Notification",
-                    Body = bodyBuilder.ToString(),
+                    Subject = "OM79 Submission Denied Notification",
+                    Body = emailBody,
                     IsBodyHtml = true
                 };
 
-                message.To.Add(initialUser);
+                message.To.Add(initialUserEmail);
                 message.CC.Add("ethan.m.johnson@wv.gov");
 
                 var client = new SmtpClient
@@ -2234,19 +2591,54 @@ namespace OM_79_HUB.Controllers
                     Console.WriteLine("District Manager not found.");
                     return;
                 }
+                string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
 
                 // Compose the email
                 var message = new MailMessage
                 {
                     From = new MailAddress("DOTPJ103Srv@wv.gov"),
-                    Subject = $"OM79 Entry Ready for District [{districtManager.District}] Manager Review",
-                    Body = $"Hello {districtManager.FirstName},<br><br>" +
-                           $"An OM79 entry from your district has been reviewed and is now awaiting your approval. As the District Manager, your review is crucial before the entry can be forwarded to the central office.<br><br>" +
-                           $"Please click the link below to review and sign the OM79 entry:<br><br>" +
-                           $"<a href='https://dotappstest.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}'>Review OM79 Entry</a><br><br>" +
-                           $"Thank you for your attention to this matter.<br><br>" +
-                           $"Best regards,<br>" +
-                           $"OM79 Automated System",
+                    Subject = $"OM79 Submission - Review Required for District {districtManager.District}",
+                    Body = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                        <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                            <!-- Header -->
+                            <h2 style='text-align: center; color: #0056b3;'>OM79 Submission Requires Your Review</h2>
+                            <p style='font-size: 14px; text-align: center;'>Entry ID: <strong>{omEntry.SmartID}</strong> | District: <strong>{districtManager.District}</strong></p>
+                            <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                            <!-- Greeting -->
+                            <p>Hello {districtManager.FirstName},</p>
+
+                            <!-- Explanation -->
+                            <p>An OM79 entry has been submitted from district {omEntry.District} for review. You are responsible for reviewing the following based on your assigned role(s): </p>
+                            <!-- Responsibilities Section -->
+                            <p><strong>Your Responsibilities:</strong></p>
+                            <ul style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF; list-style-type: none;'>
+                                <li><strong>District Manager:</strong> CHANGETHIS</li>
+                            </ul>
+
+                            <!-- Call to Action -->
+                            <p style='text-align: center; margin-top: 20px;'>
+                                <a href='{reviewLink}' 
+                                   style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                   Review & Sign OM79 Entry
+                                </a>
+                            </p>
+
+                            <!-- Important Note -->
+                            <p style='color: #0056b3; font-weight: bold; text-align: center; margin-top: 15px;'>
+                                The signature form is located at the bottom of the page at the link above.
+                            </p>
+
+                            <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                            <!-- Footer -->
+                            <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br>OM79 Automated System</p>
+                        </div>
+                    </body>
+                    </html>",
                     IsBodyHtml = true
                 };
 

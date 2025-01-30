@@ -22,6 +22,7 @@
             <th>@Html.DisplayNameFor(model => model.FirstOrDefault().Otherbox)</th>
             <th>@Html.DisplayNameFor(model => model.FirstOrDefault().County)</th>
             <th>@Html.DisplayNameFor(model => model.FirstOrDefault().District)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().SmartID)</th>
             <th>Workflow Step</th>
             <th></th>
         </tr>
@@ -119,6 +120,7 @@
                 <td>@Html.DisplayFor(modelItem => item.Otherbox)</td>
                 <td>@Html.DisplayFor(modelItem => item.County)</td>
                 <td>@Html.DisplayFor(modelItem => item.District)</td>
+                <td>@Html.DisplayFor(modelItem => item.SmartID)</td>
                 <td>@displayWorkflowStep</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@item.OMId" class="btn btn-info">Details</a>
