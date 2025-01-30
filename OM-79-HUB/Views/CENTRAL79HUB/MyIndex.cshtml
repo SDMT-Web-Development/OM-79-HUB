@@ -22,6 +22,7 @@
             <th>@Html.DisplayNameFor(model => model.FirstOrDefault().Otherbox)</th>
             <th>@Html.DisplayNameFor(model => model.FirstOrDefault().County)</th>
             <th>@Html.DisplayNameFor(model => model.FirstOrDefault().District)</th>
+            <th>@Html.DisplayNameFor(model => model.FirstOrDefault().SmartID)</th>
             <th>Workflow Step</th>
             <th></th>
         </tr>
@@ -63,6 +64,7 @@
                     displayWorkflowStep = "Request Rescinded and Archived";
                     break;
                 case "Finalized":
+                case "Archived":
                     displayWorkflowStep = "Request Finalized and Archived";
                     break;
                 default:
@@ -102,7 +104,7 @@
             {
                 currentGroup = displayWorkflowStep;
                 <tr>
-                    <td colspan="6" class="fw-bold @headerClass">@currentGroup</td>
+                    <td colspan="7" class="fw-bold @headerClass">@currentGroup</td>
                 </tr>
 
                 // Reset rowIndex for each new group to alternate colors within each group
@@ -118,6 +120,7 @@
                 <td>@Html.DisplayFor(modelItem => item.Otherbox)</td>
                 <td>@Html.DisplayFor(modelItem => item.County)</td>
                 <td>@Html.DisplayFor(modelItem => item.District)</td>
+                <td>@Html.DisplayFor(modelItem => item.SmartID)</td>
                 <td>@displayWorkflowStep</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@item.OMId" class="btn btn-info">Details</a>

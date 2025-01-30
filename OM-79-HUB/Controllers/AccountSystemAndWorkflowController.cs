@@ -176,29 +176,87 @@ namespace OM_79_HUB.Controllers
                 if (!isAdmin)
                 {
                     // Compose email for non-admin users
-                    body = $"<p>Hello <strong>{firstName}</strong>,</p>" +
-                           $"<p>You have been added to the OM79 system as a <strong>{string.Join(", ", roles)}</strong>.</p>";
+                    body = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                        <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
 
-                    // Check if user has any reviewer roles
-                   
-                    body += $"<p>Your role includes reviewing OM79 submissions already in the system. Please visit the <a href='https://dotappstest.transportation.wv.gov/om79/Central79Hub/SignIndex'>My OM79(s) Pending Signatures</a> page to review and sign any submissions that are ready for your attention.</p>";
-                    
+                            <!-- Header -->
+                            <h2 style='text-align: center; color: #0056b3;'>Welcome to the OM79 System</h2>
+                            <hr style='border: 0; border-top: 1px solid #ddd;'>
 
-                    body += $"<p>Thank you for your work and welcome to the OM79 system!</p>" +
-                            $"<p>Best regards,<br/>OM79 Automated System</p>";
+                            <!-- Greeting -->
+                            <p>Hello <strong>{firstName}</strong>,</p>
+
+                            <!-- Role Assignment -->
+                            <p>You have been successfully added to the OM79 system as a <strong>{string.Join(", ", roles)}</strong>.</p>
+
+                            <!-- Role Responsibilities -->
+                            <p><strong>Your Responsibilities:</strong></p>
+                            <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                            <p><strong style='color: #0056b3;'>Reviewing OM79 Submissions:</strong> The primary responsibility is to review OM79 submissions. There may already be entries in the system requiring your attention, and you will also be responsible for reviewing any new submissions as they are added.</p>
+                            </div>
+
+                            <!-- Call to Action -->
+                            <p style='text-align: center; margin-top: 20px;'>
+                                <a href='https://dotapps.transportation.wv.gov/om79/Central79Hub/SignIndex' 
+                                   style='background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                   View OM79(s) Awaiting Review
+                                </a>
+                            </p>
+
+                            <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                            <!-- Footer -->
+                            <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br/>OM79 Automated System</p>
+                        </div>
+                    </body>
+                    </html>";
                 }
                 else
                 {
-                    // Compose email for admin users
+                    // Get the management link based on admin type
                     string managementLink = GetManagementLink(adminType);
 
-                    body = $"<p>Hello <strong>{firstName}</strong>,</p>" +
-                           $"<p>You have been added to the OM79 system as a <strong>{adminType}</strong>.</p>" +
-                           $"<p>You can manage users in the system by visiting the following link:</p>" +
-                           $"<p><a href='{managementLink}'>{managementLink}</a></p>" +
-                           $"<p>Thank you for your administrative role and contributions to the OM79 system!</p>" +
-                           $"<p>Best regards,<br/>OM79 Automated System</p>";
+                    // Compose email for admin users
+                    body = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; color: #333; background-color: #f8f8f8; padding: 20px;'>
+                                <div style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px #ddd;'>
+
+                                    <!-- Header -->
+                                    <h2 style='text-align: center; color: #0056b3;'>Welcome to the OM79 System</h2>
+                                    <hr style='border: 0; border-top: 1px solid #ddd;'>
+
+                                    <!-- Greeting -->
+                                    <p>Hello <strong>{firstName}</strong>,</p>
+
+                                    <!-- Admin Role Assignment -->
+                                    <p>You have been added to the OM79 system as a <strong>{adminType}</strong>.</p>
+
+                                    <!-- Admin Responsibilities -->
+                                    <p><strong>Your Administrative Access:</strong></p>
+                                    <div style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF;'>
+                                        <p><strong style='color: #0056b3;'>Manage User Accounts:</strong> You have administrative privileges to manage user access and permissions.</p>
+                                    </div>
+
+                                    <!-- Call to Action -->
+                                    <p style='text-align: center; margin-top: 20px;'>
+                                        <a href='{managementLink}' 
+                                           style='background: #007BFF; color: white; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; display: inline-block;'>
+                                           Manage Users
+                                        </a>
+                                    </p>
+
+                                    <hr style='border: 0; border-top: 1px solid #ddd; margin-top: 20px;'>
+
+                                    <!-- Footer -->
+                                    <p style='font-size: 12px; text-align: center; color: #667;'>Thank you,<br/>OM79 Automated System</p>
+                                </div>
+                            </body>
+                            </html>";
                 }
+
 
                 var message = new MailMessage
                 {
@@ -257,13 +315,13 @@ namespace OM_79_HUB.Controllers
             switch (adminType)
             {
                 case "District Administrator":
-                    return "https://dotappstest.transportation.wv.gov/om79/AccountSystemAndWorkflow/DistrictAccountSystem";
+                    return "https://dotapps.transportation.wv.gov/om79/AccountSystemAndWorkflow/DistrictAccountSystem";
                 case "Central Office Administrator":
-                    return "https://dotappstest.transportation.wv.gov/om79/AccountSystemAndWorkflow/StatewideAccountSystem";
+                    return "https://dotapps.transportation.wv.gov/om79/AccountSystemAndWorkflow/StatewideAccountSystem";
                 case "System Administrator":
-                    return "https://dotappstest.transportation.wv.gov/om79/AccountSystemAndWorkflow/AdminAccountSystem";
+                    return "https://dotapps.transportation.wv.gov/om79/AccountSystemAndWorkflow/AdminAccountSystem";
                 default:
-                    return "https://dotappstest.transportation.wv.gov/om79/";
+                    return "https://dotapps.transportation.wv.gov/om79/";
             }
         }
 

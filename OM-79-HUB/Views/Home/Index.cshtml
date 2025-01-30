@@ -6,15 +6,16 @@
 @if (environment == "Production")
 {
     <div class="alert alert-success text-center">
-        <strong>LIVE VERSION</strong> - You are viewing the live version of the application.
+        <strong>PRODUCTION ENVIRONMENT</strong> - You are using the live and official version of the application.
     </div>
 }
 else if (environment == "Test")
 {
     <div class="alert alert-warning text-center">
-        <strong>TEST VERSION</strong> - You are viewing the test version of the application.
+        <strong>TESTING ENVIRONMENT</strong> - You are using a test version of the application. Changes here will not affect the production system.
     </div>
 }
+
 
 <!-- Hero Section -->
 <div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">

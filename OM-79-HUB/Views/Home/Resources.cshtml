@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Resources and Privacy Policy";
+    var environment = Context.Items["Environment"]?.ToString();
 }
 <!-- Hero Section -->
 <div class="hero-section text-white d-flex align-items-center" style="background-image: url('@Url.Content("~/assets/16428394152_4939ddc42d_h.jpg")'); background-size: cover; background-position: center;">
@@ -8,14 +9,7 @@
         <p class="lead">Your one-stop resource for support and information.</p>
     </div>
 </div>
-@*
-<!-- Testing Information Link -->
-<div class="container text-center my-4">
-    <a href="https://docs.google.com/document/d/1GYCBOGUDxiCxjk80Sh2T8flsTiWk7Fnqyfh-xXLvLww/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-        11/4/2024 Testing Information
-    </a>
-</div>
-*@
+
 <!-- Main Content -->
 <div class="container mt-5">
     <!-- Resource Cards -->
@@ -29,8 +23,13 @@
                     </div>
                     <h5 class="card-title">Support Ticket</h5>
                     <p class="card-text">Submit a support ticket.</p>
-                    <span class="badge bg-secondary">Disabled for Testing Phase</span>
-                    @*<a href="https://dotapps.transportation.wv.gov/ITicket/Default" class="btn btn-outline-dark stretched-link" target="_blank" rel="noopener noreferrer">Submit Ticket</a>*@
+                    @if (environment == "Test"){
+                        <span class="badge bg-secondary">Disabled for Test Version</span>
+                    }
+                    @if (environment == "Production")
+                    {
+                        <a href="https://dotapps.transportation.wv.gov/ITicket/Default" class="btn btn-outline-dark stretched-link" target="_blank" rel="noopener noreferrer">Submit Ticket</a>
+                    }
                 </div>
             </div>
         </div>
