@@ -1100,7 +1100,7 @@ namespace OM_79_HUB.Controllers
                 // Send email to the HDS user from the central office
                 // Need to turn all current central office signatures to inactive
                 // Restart Central Office Workflow
-
+                omEntry.Edited = false;
                 omEntry.HasGISReviewed = false;
                 omEntry.WorkflowStep = "SubmittedToCentralHDS";
 
@@ -2393,7 +2393,7 @@ namespace OM_79_HUB.Controllers
                     HubKey = hubkey,
                     IsApprove = false,
                     IsDenied = false,
-                    IsEdited = true,
+                    IsEdited = false,
                     Comments = Request.Form["commentsmodal"],
                     Signatures = Request.Form["signaturemodal"],
                     SigType = "District Manager",
