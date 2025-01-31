@@ -27,13 +27,16 @@ namespace OM_79_HUB.Data
         private readonly OM_79_HUBContext _context2;
         private readonly Pj103Context _pjContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public OM79Controller(OM79Context context, OM_79_HUBContext context2, Pj103Context pjContext, IWebHostEnvironment webHostEnvironment)
+
+        public OM79Controller(OM79Context context, OM_79_HUBContext context2, Pj103Context pjContext, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _context2 = context2;
             _pjContext = pjContext;
             _webHostEnvironment = webHostEnvironment;
+            _httpContextAccessor = httpContextAccessor;
         }
         //// GET: OMTables
         //public async Task<IActionResult> Index(string searchRouteIDB, string sortOrder)

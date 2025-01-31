@@ -15,13 +15,15 @@ namespace OM_79_HUB.Controllers
         private readonly OM79Context _om79Context;
         private readonly OM_79_HUBContext _hubContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CentralSignatureWorkflowController(Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context om79Context, OM_79_HUBContext hubContext)
+        public CentralSignatureWorkflowController(Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context om79Context, OM_79_HUBContext hubContext, IHttpContextAccessor httpContextAccessor)
         {
             _webHostEnvironment = webHostEnvironment;
             _hubContext = hubContext;
             _om79Context = om79Context;
             _pj103Context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /*This is the functionality for the HDS user signing the OM79*/
@@ -187,10 +189,11 @@ namespace OM_79_HUB.Controllers
                         </body>
                         </html>";
 
-                // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Ready for GIS Manager Review",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -317,9 +320,11 @@ namespace OM_79_HUB.Controllers
                         </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Ready for District Manager Revision Review",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -420,9 +425,11 @@ namespace OM_79_HUB.Controllers
                             </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Ready for GIS Manager Review",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -774,9 +781,11 @@ namespace OM_79_HUB.Controllers
                             </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Ready for District Manager Revision Review",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -880,9 +889,11 @@ namespace OM_79_HUB.Controllers
                         </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = $"OM79 Entry Ready for Regional Engineer Review, From District [{omEntryDistrict}]",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -994,9 +1005,11 @@ namespace OM_79_HUB.Controllers
                             </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Has Been Edited By GIS Manager",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -1282,9 +1295,11 @@ namespace OM_79_HUB.Controllers
                         </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "Revised OM79 Entry Edited by District Manager",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -1552,9 +1567,11 @@ namespace OM_79_HUB.Controllers
                         </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Ready for Director of Operations Review",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -1664,9 +1681,11 @@ namespace OM_79_HUB.Controllers
                             </body>
                             </html>";
 
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = $"OM79 Entry Approved by {userRole}",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -1767,9 +1786,11 @@ namespace OM_79_HUB.Controllers
                         </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = $"OM79 Entry Denied by {userRole}",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -2034,9 +2055,11 @@ namespace OM_79_HUB.Controllers
                         </body>
                         </html>";
 
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Ready for Chief Engineer of Operations Review",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -2116,9 +2139,11 @@ namespace OM_79_HUB.Controllers
                         </body>
                         </html>";
 
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = $"OM79 Entry Denied by {userRole}",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -2331,9 +2356,11 @@ namespace OM_79_HUB.Controllers
                     return;
                 }
 
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Ready for Deputy Secretary / Deputy Commissioner of Highways Review",
                     Body = $"Hello,<br><br>" +
                        $"An OM79 entry has been approved by the Chief Engineer of Operations and is now awaiting your review. As the Deputy Secretary / Deputy Commissioner of Highways, your review is crucial for finalizing this entry.<br><br>" +

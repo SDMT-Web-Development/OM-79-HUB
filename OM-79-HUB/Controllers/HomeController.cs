@@ -10,11 +10,13 @@ namespace OM_79_HUB.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly OM_79_HUBContext _hubContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public HomeController(ILogger<HomeController> logger, OM_79_HUBContext hubContext)
+        public HomeController(ILogger<HomeController> logger, OM_79_HUBContext hubContext, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _hubContext = hubContext;   
+            _httpContextAccessor = httpContextAccessor;
         }
         public IActionResult Contacts()
 {

@@ -33,15 +33,17 @@ namespace OM_79_HUB.Controllers
         private readonly OM79Context _om79Context;
         private readonly Pj103Context _pj103Context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
 
-        public FileGenerationAndPackagingController(OM_79_HUBContext hubContext, OM79Context om79Context, Pj103Context pj103Context, IWebHostEnvironment hostingEnvironment)
+
+        public FileGenerationAndPackagingController(OM_79_HUBContext hubContext, OM79Context om79Context, Pj103Context pj103Context, IWebHostEnvironment hostingEnvironment, IHttpContextAccessor httpContextAccessor)
         {
             _hubContext = hubContext;
             _om79Context = om79Context;
             _pj103Context = pj103Context;
             _webHostEnvironment = hostingEnvironment;
-
+            _httpContextAccessor = httpContextAccessor;
         }
 
 

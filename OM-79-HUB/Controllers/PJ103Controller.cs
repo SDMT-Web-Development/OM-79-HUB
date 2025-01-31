@@ -23,13 +23,16 @@ namespace OM_79_HUB.Data
         private readonly OM79Context _oM79Context;
         private readonly OM_79_HUBContext _hubContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PJ103Controller(Data.Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context oM79Context, OM_79_HUBContext hubContext)
+
+        public PJ103Controller(Data.Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context oM79Context, OM_79_HUBContext hubContext, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
             _oM79Context = oM79Context;
             _hubContext = hubContext;   
+            _httpContextAccessor = httpContextAccessor;
         }
         // GET: Submissions
 
@@ -700,39 +703,45 @@ namespace OM_79_HUB.Data
         }
 
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Aclvl aclvlViewModel)
         {
-            /*
-            if (id != aclvlViewModel.SubmissionID)
-            {
-                return NotFound();
-            }
-            */
             if (ModelState.IsValid)
             {
-                //Need to only allow someone to access this when the workflow step is currently with this 
-                var oMTable = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == aclvlViewModel.OM79ID);
-                var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
                 var user = User.Identity.Name;
+
+                var oMTable = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == aclvlViewModel.OM79ID);
+                if (oMTable == null)
+                {
+                    Console.WriteLine($"OMTable not found for OM79ID {aclvlViewModel.OM79ID}");
+                    return NotFound();
+                }
+
+                var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+                if (hub == null)
+                {
+                    Console.WriteLine($"CENTRAL79HUB entry not found for OMId {oMTable.HubId}");
+                    return NotFound();
+                }
+
                 var validUser = await checkComplexPermission(user, hub);
                 if (!validUser)
                 {
                     return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
                 }
+
                 try
                 {
-                    // Retrieve the existing Submission entity from the database
-                    var submission = await _context.Submissions
-                        .FirstOrDefaultAsync(s => s.SubmissionID == id);
-
+                    var submission = await _context.Submissions.FirstOrDefaultAsync(s => s.SubmissionID == id);
                     if (submission == null)
                     {
+                        Console.WriteLine($"Submission not found for ID {id}");
                         return NotFound();
                     }
 
-                    // Map data from the ViewModel back to the Submission entity
+                    // Map ViewModel to Submission entity
                     submission.County = aclvlViewModel.County;
                     submission.RouteNumber = aclvlViewModel.RouteNumber;
                     submission.SubRouteNumber = aclvlViewModel.SubRouteNumber;
@@ -745,24 +754,16 @@ namespace OM_79_HUB.Data
                     submission.RailroadInv = aclvlViewModel.RailroadInv;
                     submission.BridgeInv = aclvlViewModel.BridgeInv;
                     submission.OtherBox = aclvlViewModel.OtherBox;
-                    submission.DateComplete = aclvlViewModel.DateComplete;
-                    // Map any other properties as needed
 
-                    // Retrieve the related RouteInfo entity
-                    var routeInfo = await _context.RouteInfo
-                        .FirstOrDefaultAsync(r => r.SubmissionID == id);
-
+                    var routeInfo = await _context.RouteInfo.FirstOrDefaultAsync(r => r.SubmissionID == id);
                     if (routeInfo == null)
                     {
-                        // If RouteInfo doesn't exist, create a new one
-                        routeInfo = new RouteInfo
-                        {
-                            SubmissionID = id
-                        };
+                        Console.WriteLine($"RouteInfo not found for SubmissionID {id}, creating new entry.");
+                        routeInfo = new RouteInfo { SubmissionID = id };
                         _context.RouteInfo.Add(routeInfo);
                     }
 
-                    // Map data from the ViewModel back to the RouteInfo entity
+                    // Map ViewModel to RouteInfo entity
                     routeInfo.AccessControl = aclvlViewModel.AccessControl;
                     routeInfo.ThroughLanes = aclvlViewModel.ThroughLanes;
                     routeInfo.CounterPeakLanes = aclvlViewModel.CounterPeakLanes;
@@ -785,43 +786,154 @@ namespace OM_79_HUB.Data
                     routeInfo.SurfaceTypeN = aclvlViewModel.SurfaceTypeN;
                     routeInfo.MPSegmentStart = aclvlViewModel.MPSegmentStart;
                     routeInfo.MPSegmentEnd = aclvlViewModel.MPSegmentEnd;
-                    // Map any other properties as needed
 
-                    // Update the entities in the context
                     _context.Update(submission);
                     _context.Update(routeInfo);
-
-                    // Save all changes to the database
                     await _context.SaveChangesAsync();
 
                     var item = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == submission.OM79Id);
-
                     if (item == null)
                     {
+                        Console.WriteLine($"OMTable entry not found for OM79ID {submission.OM79Id}");
                         return NotFound();
                     }
 
-                    var hubID = item.HubId;
-
-                    return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubID });
+                    return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = item.HubId });
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!aclvlViewModel.SubmissionID.HasValue || !SubmissionExists(aclvlViewModel.SubmissionID.Value))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    Console.WriteLine($"Concurrency exception: {ex.Message}");
+                    throw;
                 }
             }
 
-            // If ModelState is invalid, re-populate dropdowns and return the view
             DropDowns();
             return View(aclvlViewModel);
         }
+
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(int id, Aclvl aclvlViewModel)
+        //{
+        //    /*
+        //    if (id != aclvlViewModel.SubmissionID)
+        //    {
+        //        return NotFound();
+        //    }
+        //    */
+        //    if (ModelState.IsValid)
+        //    {
+        //        //Need to only allow someone to access this when the workflow step is currently with this 
+        //        var oMTable = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == aclvlViewModel.OM79ID);
+        //        var hub = await _hubContext.CENTRAL79HUB.FirstOrDefaultAsync(e => e.OMId == oMTable.HubId);
+        //        var user = User.Identity.Name;
+        //        var validUser = await checkComplexPermission(user, hub);
+        //        if (!validUser)
+        //        {
+        //            return RedirectToAction("Unauthorized", "AccountSystemAndWorkflow");
+        //        }
+        //        try
+        //        {
+        //            // Retrieve the existing Submission entity from the database
+        //            var submission = await _context.Submissions
+        //                .FirstOrDefaultAsync(s => s.SubmissionID == id);
+
+        //            if (submission == null)
+        //            {
+        //                return NotFound();
+        //            }
+
+        //            // Map data from the ViewModel back to the Submission entity
+        //            submission.County = aclvlViewModel.County;
+        //            submission.RouteNumber = aclvlViewModel.RouteNumber;
+        //            submission.SubRouteNumber = aclvlViewModel.SubRouteNumber;
+        //            submission.ProjectNumber = aclvlViewModel.ProjectNumber;
+        //            submission.DateComplete = aclvlViewModel.DateComplete;
+        //            submission.NatureOfChange = aclvlViewModel.NatureOfChange;
+        //            submission.StartingMilePoint = aclvlViewModel.StartingMilePoint;
+        //            submission.EndingMilePoint = aclvlViewModel.EndingMilePoint;
+        //            submission.SignSystem = aclvlViewModel.SignSystem;
+        //            submission.RailroadInv = aclvlViewModel.RailroadInv;
+        //            submission.BridgeInv = aclvlViewModel.BridgeInv;
+        //            submission.OtherBox = aclvlViewModel.OtherBox;
+        //            submission.DateComplete = aclvlViewModel.DateComplete;
+        //            // Map any other properties as needed
+
+        //            // Retrieve the related RouteInfo entity
+        //            var routeInfo = await _context.RouteInfo
+        //                .FirstOrDefaultAsync(r => r.SubmissionID == id);
+
+        //            if (routeInfo == null)
+        //            {
+        //                // If RouteInfo doesn't exist, create a new one
+        //                routeInfo = new RouteInfo
+        //                {
+        //                    SubmissionID = id
+        //                };
+        //                _context.RouteInfo.Add(routeInfo);
+        //            }
+
+        //            // Map data from the ViewModel back to the RouteInfo entity
+        //            routeInfo.AccessControl = aclvlViewModel.AccessControl;
+        //            routeInfo.ThroughLanes = aclvlViewModel.ThroughLanes;
+        //            routeInfo.CounterPeakLanes = aclvlViewModel.CounterPeakLanes;
+        //            routeInfo.PeakLanes = aclvlViewModel.PeakLanes;
+        //            routeInfo.ReverseLanes = aclvlViewModel.ReverseLanes;
+        //            routeInfo.LaneWidth = aclvlViewModel.LaneWidth;
+        //            routeInfo.MedianWidth = aclvlViewModel.MedianWidth;
+        //            routeInfo.GradeWidth = aclvlViewModel.GradeWidth;
+        //            routeInfo.PavementWidth = aclvlViewModel.PavementWidth;
+        //            routeInfo.SpecialSys = aclvlViewModel.SpecialSys;
+        //            routeInfo.FacilityType = aclvlViewModel.FacilityType;
+        //            routeInfo.FederalAid = aclvlViewModel.FederalAid;
+        //            routeInfo.FedForestHighway = aclvlViewModel.FedForestHighway;
+        //            routeInfo.MedianType = aclvlViewModel.MedianType;
+        //            routeInfo.NHS = aclvlViewModel.NHS;
+        //            routeInfo.TruckRoute = aclvlViewModel.TruckRoute;
+        //            routeInfo.GovIDOwnership = aclvlViewModel.GovIDOwnership;
+        //            routeInfo.WVlegalClass = aclvlViewModel.WVlegalClass;
+        //            routeInfo.FunctionalClass = aclvlViewModel.FunctionalClass;
+        //            routeInfo.SurfaceTypeN = aclvlViewModel.SurfaceTypeN;
+        //            routeInfo.MPSegmentStart = aclvlViewModel.MPSegmentStart;
+        //            routeInfo.MPSegmentEnd = aclvlViewModel.MPSegmentEnd;
+        //            // Map any other properties as needed
+
+        //            // Update the entities in the context
+        //            _context.Update(submission);
+        //            _context.Update(routeInfo);
+
+        //            // Save all changes to the database
+        //            await _context.SaveChangesAsync();
+
+        //            var item = await _oM79Context.OMTable.FirstOrDefaultAsync(e => e.Id == submission.OM79Id);
+
+        //            if (item == null)
+        //            {
+        //                return NotFound();
+        //            }
+
+        //            var hubID = item.HubId;
+
+        //            return RedirectToAction("EditPackage", "CENTRAL79HUB", new { id = hubID });
+        //        }
+        //        catch (DbUpdateConcurrencyException)
+        //        {
+        //            if (!aclvlViewModel.SubmissionID.HasValue || !SubmissionExists(aclvlViewModel.SubmissionID.Value))
+        //            {
+        //                return NotFound();
+        //            }
+        //            else
+        //            {
+        //                throw;
+        //            }
+        //        }
+        //    }
+
+        //    // If ModelState is invalid, re-populate dropdowns and return the view
+        //    DropDowns();
+        //    return View(aclvlViewModel);
+        //}
 
 
         // GET: Submissions/Delete/5

@@ -15,13 +15,15 @@ namespace OM_79_HUB.Controllers
         private readonly OM79Context _om79Context;
         private readonly OM_79_HUBContext _hubContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AccountSystemAndWorkflowController(Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context om79Context, OM_79_HUBContext hubContext)
+        public AccountSystemAndWorkflowController(Pj103Context context, IWebHostEnvironment webHostEnvironment, OM79Context om79Context, OM_79_HUBContext hubContext, IHttpContextAccessor httpContextAccessor)
         {
             _webHostEnvironment = webHostEnvironment;
             _hubContext = hubContext;
             _om79Context = om79Context;
             _pj103Context = context;
+            _httpContextAccessor = httpContextAccessor; 
         }
 
         /*
@@ -257,10 +259,11 @@ namespace OM_79_HUB.Controllers
                             </html>";
                 }
 
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
 
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = subject,
                     Body = body,
                     IsBodyHtml = true
