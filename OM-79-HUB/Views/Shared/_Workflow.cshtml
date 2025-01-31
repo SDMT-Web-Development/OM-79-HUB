@@ -4,11 +4,19 @@
 
 @{
     int completedItems = Model.OMTableCount ?? 0;
-    int requiredItems = Model.OMRequiredCount ?? 1; // To avoid division by zero
-    double percentageCompleted = Math.Min((double)completedItems / requiredItems * 100, 100);
-    @if (Model.OM79Workflow?.NextStep == "AddSegment")
+    int requiredItems = Model.OMRequiredCount ?? 1; // Ensure it is at least 1 to avoid division by zero
+
+    // Ensure completedItems does not exceed requiredItems
+    if (completedItems > requiredItems)
     {
-        percentageCompleted *= 0.9; // Reduce by 10% if there are segments needed
+        completedItems = requiredItems; // Prevents situations like 4/3, will show 3/3 instead
+    }
+
+    double percentageCompleted = Math.Min((double)completedItems / requiredItems * 100, 100);
+
+    if (Model.OM79Workflow?.NextStep == "AddSegment")
+    {
+        percentageCompleted *= 0.97; // Reduce by 10% if segments are needed
     }
 
     string[] workflowSteps = {
@@ -28,7 +36,6 @@
     {
         currentStepIndex = Array.IndexOf(workflowSteps, Model.Central79Hub.WorkflowStep);
     }
-
 }
 
 <div style="padding-top: 20px; text-align: center;">

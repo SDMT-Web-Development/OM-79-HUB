@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using ITfoxtec.Identity.Saml2.Schemas;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
@@ -25,12 +26,15 @@ namespace OM_79_HUB.Controllers
         private readonly OM_79_HUBContext _context;
         private readonly OM79Context _OMcontext;
         private readonly Pj103Context _PJcontext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context, Pj103Context pj103Context)
+
+        public CENTRAL79HUBController(OM_79_HUBContext context, OM79Context oM79Context, Pj103Context pj103Context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _OMcontext = oM79Context;
             _PJcontext = pj103Context;
+            _httpContextAccessor = httpContextAccessor; 
         }
 
         //[HttpPost]
@@ -373,9 +377,11 @@ namespace OM_79_HUB.Controllers
 
             foreach (var admin in districtAdmins)
             {
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov")
+                    From = new MailAddress(automatedEmail)
                 };
                 message.To.Add(admin.StateEmail);
                 message.CC.Add("ethan.m.johnson@wv.gov");
@@ -480,20 +486,22 @@ namespace OM_79_HUB.Controllers
                     var roles = userRoleEntry.Value.Roles;
                     var roleResponsibilities = new Dictionary<string, string>
                     {
-                        { "Bridge Engineer", "Responsible for." },
-                        { "Traffic Engineer", "Responsible for." },
-                        { "Maintenance Engineer", "Responsible for" },
-                        { "Construction Engineer", "Responsible for" },
-                        { "Right Of Way Manager", "Responsible for" }
+                        { "Bridge Engineer", "Responsible for reviewing OM-79 package and attachments for accuracy and completeness." },
+                        { "Traffic Engineer", "Responsible for reviewing OM-79 package and attachments for accuracy and completeness." },
+                        { "Maintenance Engineer", "Responsible for reviewing OM-79 package and attachments for accuracy and completeness." },
+                        { "Construction Engineer", "Responsible for reviewing OM-79 package and attachments for accuracy and completeness." },
+                        { "Right Of Way Manager", "Responsible for reviewing OM-79 package and attachments for accuracy and completeness." }
                     };
 
                     var roleDetails = string.Join("<br>", roles.Select(role =>
                                                 $"<strong>{role}:</strong> {roleResponsibilities.GetValueOrDefault(role, "Responsible for reviewing the OM79 entry.")}"));
 
 
+                    var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                     var message = new MailMessage
                     {
-                        From = new MailAddress("DOTPJ103Srv@wv.gov")
+                        From = new MailAddress(automatedEmail)
                     };
 
 
@@ -2237,7 +2245,7 @@ namespace OM_79_HUB.Controllers
                                 <p>An OM79 entry has been submitted from district {omEntry.District} for review. You are responsible for reviewing the following based on your assigned role(s): </p>
                                 <p><strong>Your Responsibilities:</strong></p>
                                 <ul style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF; list-style-type: none;'>
-                                    <li><strong>HDS:</strong> CHANGETHIS</li>
+                                    <li><strong>HDS:</strong> Responsible for reviewing OM-79 package and attachments for accuracy and completeness.</li>
                                 </ul>
 
                                 <!-- Call to Action -->
@@ -2259,14 +2267,16 @@ namespace OM_79_HUB.Controllers
                         </html>";
 
                 // Create the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = $"OM79 Submission - HDS Review required",
                     Body = emailBody,
                     IsBodyHtml = true
                 };
-
+               
                 // Add all HDS users to the To field
                 foreach (var hdsUser in hdsUsers)
                 {
@@ -2452,9 +2462,11 @@ namespace OM_79_HUB.Controllers
                         </html>";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Entry Denial Notification",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -2545,9 +2557,11 @@ namespace OM_79_HUB.Controllers
                     </body>
                     </html>";
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = "OM79 Submission Denied Notification",
                     Body = emailBody,
                     IsBodyHtml = true
@@ -2594,9 +2608,11 @@ namespace OM_79_HUB.Controllers
                 string reviewLink = $"https://dotapps.transportation.wv.gov/om79/CENTRAL79HUB/Details/{id}";
 
                 // Compose the email
+                var automatedEmail = _httpContextAccessor.HttpContext?.Items["AutomatedEmailAddress"]?.ToString() ?? "DOTPJ103Srv@wv.gov";
+
                 var message = new MailMessage
                 {
-                    From = new MailAddress("DOTPJ103Srv@wv.gov"),
+                    From = new MailAddress(automatedEmail),
                     Subject = $"OM79 Submission - Review Required for District {districtManager.District}",
                     Body = $@"
                     <html>
@@ -2616,7 +2632,7 @@ namespace OM_79_HUB.Controllers
                             <!-- Responsibilities Section -->
                             <p><strong>Your Responsibilities:</strong></p>
                             <ul style='background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #007BFF; list-style-type: none;'>
-                                <li><strong>District Manager:</strong> CHANGETHIS</li>
+                                <li><strong>District Manager:</strong> Responsible for reviewing OM-79 package and attachments for accuracy and completeness.</li>
                             </ul>
 
                             <!-- Call to Action -->

@@ -6,6 +6,10 @@ using QuestPDF.Infrastructure;
 using Microsoft.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Features;
+using ProcurementTracking.Context;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.DataProtection;
+using ITfoxtec.Identity.Saml2.Util;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -23,9 +27,16 @@ builder.Services.AddSession(options =>
 
 
 
-//**********
-//Change this when committing whether to prod or test!!!!!!!!!!!!!!!!!!
+
+#if DEBUG
+var environment = "Test";
+var automatedEmailAddress = "DOTPJ103Srv@wv.gov";
+#endif 
+#if !DEBUG
 var environment = "Production";
+var automatedEmailAddress = "DOTHDS@wv.gov";
+#endif
+
 
 
 if (environment == "Production")
@@ -41,6 +52,11 @@ if (environment == "Production")
     builder.Services.AddDbContext<Pj103Context>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("ProdDevConnectionPJ103")
             ?? throw new InvalidOperationException("Connection string 'ProdDevConnectionPJ103' not found.")));
+
+    builder.Services.AddDbContext<KeysContext>(options =>
+    {
+        options.UseSqlServer(builder.Configuration["ConnectionStrings:ProdDevConnectionHub"]);
+    });
 }
 else if (environment == "Test")
 {
@@ -55,6 +71,10 @@ else if (environment == "Test")
     builder.Services.AddDbContext<Pj103Context>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("TestDevConnectionPJ103")
             ?? throw new InvalidOperationException("Connection string 'TestDevConnectionPJ103' not found.")));
+    builder.Services.AddDbContext<KeysContext>(options =>
+    {
+        options.UseSqlServer(builder.Configuration["ConnectionStrings:TestDevConnectionHub"]);
+    });
 }
 else
 {
@@ -85,12 +105,16 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNe
 
 builder.Services.AddAuthorization(options =>
 {
-    // By default, all incoming requests will be authorized according to the default policy.  
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
+
+
+builder.Services.AddDataProtection().PersistKeysToDbContext<KeysContext>().ProtectKeysWithCertificate(CertificateUtil.Load(builder.Configuration["Saml2:SigningCertificateFile"], builder.Configuration["Saml2:SigningCertificatePassword"], X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet));
+
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -98,6 +122,7 @@ app.Use(async (context, next) =>
 {
     // Pass the environment to the ViewData so it can be accessed in Razor views
     context.Items["Environment"] = environment;
+    context.Items["AutomatedEmailAddress"] = automatedEmailAddress;
     await next.Invoke();
 });
 
