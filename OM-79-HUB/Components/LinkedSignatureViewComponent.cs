@@ -13,7 +13,11 @@ namespace OM_79_HUB.Components
 
         public IViewComponentResult Invoke(int hubID)
         {
-            var entries = _context.SignatureData.Where(entry => entry.HubKey == hubID && entry.IsCurrentSig == true).ToList();
+            var entries = _context.SignatureData
+                .Where(entry => entry.HubKey == hubID && entry.IsCurrentSig == true)
+                .GroupBy(s => s.SigType) // Group by role
+                .Select(g => g.OrderByDescending(s => s.DateSubmitted).FirstOrDefault()) // Get the most recent signature per role
+                .ToList();
             return View("_linkedSignatures.cshtml",entries);
         }
     }
