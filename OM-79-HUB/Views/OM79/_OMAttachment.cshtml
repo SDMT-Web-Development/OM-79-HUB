@@ -11,9 +11,14 @@
         {
             var file = Model.Files[i];
             var displayName = file.Substring(file.IndexOf('_') + 1);
+
+            var fileUrl = Url.Action("ViewFile", "FileGenerationAndPackaging", new { fileName = file, om79Id = Model.OMITEMID });
+
             <li class="file-item">
                 @displayName <!-- File in OM79 Directory -->
-                <!-- Download and Delete action links -->
+
+                <a href="#" class="action-link" onclick="openDocumentModal('@fileUrl')">View Document</a> <!-- View Document -->
+                <span class="separator"> | </span>
                 @Html.ActionLink("Download", "DownloadFile", "FileGenerationAndPackaging", new { fileName = file, om79Id = Model.OMITEMID }, new { @class = "action-link" })
                 <span class="separator"> | </span>
                 <a href="#" class="action-link delete-link" data-filename="@file" data-om79id="@Model.OMITEMID" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</a>
@@ -29,6 +34,112 @@ else
 {
     <div>No Attachments.</div>
 }
+
+<!-- Modal for File Viewer -->
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">File Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="pdfViewer" style="display: none;">
+                    <canvas id="pdfCanvas"></canvas>
+                </div>
+                <div id="imageViewer" style="display: none;">
+                    <img id="imagePreview" width="100%" />
+                </div>
+                <div id="odfViewer" style="display: none;"></div>
+                <div id="kmzViewer" style="display: none;">
+                    <div id="map" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- JavaScript for Opening Modal -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/openlayers/dist/ol.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/webodf/webodf.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fileviewerjs/fileviewer.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+
+<script>
+    function openDocumentModal(fileUrl) {
+        const pdfViewer = document.getElementById("pdfViewer");
+        const imageViewer = document.getElementById("imageViewer");
+        const odfViewer = document.getElementById("odfViewer");
+        const kmzViewer = document.getElementById("kmzViewer");
+
+        pdfViewer.style.display = "none";
+        imageViewer.style.display = "none";
+        odfViewer.style.display = "none";
+        kmzViewer.style.display = "none";
+
+        if (fileUrl.endsWith(".pdf")) {
+            pdfViewer.style.display = "block";
+            loadPDF(fileUrl);
+        } else if (fileUrl.match(/\.(jpg|jpeg|png|gif)$/i)) {
+            imageViewer.style.display = "block";
+            document.getElementById("imagePreview").src = fileUrl;
+        } else if (fileUrl.endsWith(".docx")) {
+            odfViewer.style.display = "block";
+            loadWord(fileUrl);
+        } else if (fileUrl.endsWith(".kmz")) {
+            kmzViewer.style.display = "block";
+            loadKMZ(fileUrl);
+        } else {
+            alert("Unsupported file type.");
+            return;
+        }
+
+        var documentModal = new bootstrap.Modal(document.getElementById("documentModal"));
+        documentModal.show();
+    }
+
+    function loadPDF(url) {
+        const canvas = document.getElementById("pdfCanvas");
+        pdfjsLib.getDocument(url).promise.then(pdf => {
+            pdf.getPage(1).then(page => {
+                const viewport = page.getViewport({ scale: 1.5 });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                const context = canvas.getContext("2d");
+                page.render({ canvasContext: context, viewport: viewport });
+            });
+        });
+    }
+
+    function loadWord(url) {
+        const odfCanvas = new odf.OdfCanvas(document.getElementById("odfViewer"));
+        odfCanvas.load(url);
+    }
+
+    function loadKMZ(url) {
+        const map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                }),
+                new ol.layer.Vector({
+                    source: new ol.source.Vector({
+                        url: url,
+                        format: new ol.format.KML()
+                    })
+                })
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([-80.5, 38.5]),
+                zoom: 6
+            })
+        });
+    }
+</script>
 
 @*@model OM_79_HUB.Components.OMAttachmentViewModel
 
