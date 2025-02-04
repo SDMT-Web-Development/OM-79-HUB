@@ -37,9 +37,29 @@
                             <label asp-for="District" class="control-label">
                                 @Html.DisplayNameFor(model => model.District) <span class="required-asterisk">*</span>
                             </label>
-                            <select asp-for="District" id="districtDropdown" class="form-control" asp-items="@ViewBag.DDropdown"></select>
+                            <select asp-for="District" id="districtDropdown" class="form-control">
+                                <option value="" selected disabled>Select District</option>
+                                <option value="1">District 1</option>
+                                <option value="2" disabled>District 2 (Unavailable)</option>
+                                <option value="3" disabled>District 3 (Unavailable)</option>
+                                <option value="4" disabled>District 4 (Unavailable)</option>
+                                <option value="5" disabled>District 5 (Unavailable)</option>
+                                <option value="6" disabled>District 6 (Unavailable)</option>
+                                <option value="7" disabled>District 7 (Unavailable)</option>
+                                <option value="8" disabled>District 8 (Unavailable)</option>
+                                <option value="9" disabled>District 9 (Unavailable)</option>
+                                <option value="10" disabled>District 10 (Unavailable)</option>
+                            </select>
                             <span asp-validation-for="District" class="text-danger"></span>
                         </div>
+
+                        @* <div class="col-md-4">
+                            <label asp-for="District" class="control-label">
+                                @Html.DisplayNameFor(model => model.District) <span class="required-asterisk">*</span>
+                            </label>
+                            <select asp-for="District" id="districtDropdown" class="form-control" asp-items="@ViewBag.DDropdown"></select>
+                            <span asp-validation-for="District" class="text-danger"></span>
+                        </div> *@
 
                         <!-- County -->
                         <div class="col-md-4">
