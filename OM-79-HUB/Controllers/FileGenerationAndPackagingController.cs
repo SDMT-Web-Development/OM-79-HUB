@@ -155,55 +155,6 @@ namespace OM_79_HUB.Controllers
             return RedirectToAction("Details", "Central79Hub", new { id = omItem.HubId });
         }
 
-        public IActionResult ViewFile(string fileName, int om79Id)
-        {
-            try
-            {
-                var baseDir = Path.Combine(_webHostEnvironment.WebRootPath, "OMAttachments");
-                var omDir = Path.Combine(baseDir, $"OM79-{om79Id}-Attachments");
-                var filePath = Path.Combine(omDir, fileName);
-
-                if (!System.IO.File.Exists(filePath))
-                {
-                    return NotFound();
-                }
-
-                var mimeType = GetMimeType(filePath);
-
-                return PhysicalFile(filePath, mimeType);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error viewing file: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
-
-
-        // Helper method to determine MIME type based on file extension
-        private string GetMimeType(string filePath)
-        {
-            var extension = Path.GetExtension(filePath).ToLower();
-
-            return extension switch
-            {
-                ".pdf" => "application/pdf",
-                ".jpg" => "image/jpeg",
-                ".jpeg" => "image/jpeg",
-                ".png" => "image/png",
-                ".gif" => "image/gif",
-                ".txt" => "text/plain",
-                ".doc" => "application/msword",
-                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                ".ppt" => "application/vnd.ms-powerpoint",
-                ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                ".csv" => "text/csv",
-                ".mp4" => "video/mp4",
-                _ => "application/octet-stream"
-            };
-        }
 
 
 
@@ -342,7 +293,8 @@ namespace OM_79_HUB.Controllers
 
 
 
-      
+
+
 
         // Export Packaged Single Hub w/ zero or more OM79s w/ zero or more PJ103s
         [HttpPost]
